@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31729.503
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalkmeshCompareConsole", "WalkmeshCompareConsole\WalkmeshCompareConsole.csproj", "{A5C24D65-23D0-464F-807F-F1E0DC587347}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalkmeshVisualizerWpf", "WalkmeshVisualizerWpf\WalkmeshVisualizerWpf.csproj", "{B821D9B6-9F5D-4C56-9060-F5A26BA7D262}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoomAndPan", "..\..\..\Downloads\UpdatedAdvancedZoomAndPanSample\AdvancedZoomAndPanSample\ZoomAndPan\ZoomAndPan.csproj", "{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4523A114-841F-4F49-88D4-0993204FC3D2}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5C24D65-23D0-464F-807F-F1E0DC587347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5C24D65-23D0-464F-807F-F1E0DC587347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5C24D65-23D0-464F-807F-F1E0DC587347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5C24D65-23D0-464F-807F-F1E0DC587347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B821D9B6-9F5D-4C56-9060-F5A26BA7D262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B821D9B6-9F5D-4C56-9060-F5A26BA7D262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B821D9B6-9F5D-4C56-9060-F5A26BA7D262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B821D9B6-9F5D-4C56-9060-F5A26BA7D262}.Release|Any CPU.Build.0 = Release|Any CPU
+		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1CC222AF-40BF-4BE2-8633-7BB31F4B9D95}
+	EndGlobalSection
+EndGlobal

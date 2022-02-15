@@ -1,0 +1,414 @@
+﻿<Window
+    x:Class="WalkmeshVisualizerWpf.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:WalkmeshVisualizerWpf"
+    xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
+    xmlns:ZoomAndPan="clr-namespace:ZoomAndPan;assembly=ZoomAndPan"
+    Title="Walkmesh Visualizer (v0.3)"
+    MinHeight="600"
+    MinWidth="800"
+    Height="600"
+    Width="800"
+    Loaded="MainWindow_Loaded"
+    Icon="/Resources/Icon.png"
+    x:Name="mainWindow"
+    >
+
+    <Window.Resources>
+
+        <!-- UI commands. -->
+        <RoutedUICommand x:Key="Commands.ZoomOut" />
+        <RoutedUICommand x:Key="Commands.ZoomIn" />
+        <RoutedUICommand x:Key="Commands.JumpBackToPrevZoom" />
+        <RoutedUICommand x:Key="Commands.Fill" />
+        <RoutedUICommand x:Key="Commands.OneHundredPercent" />
+        <RoutedUICommand x:Key="Commands.LoadK1" />
+        <RoutedUICommand x:Key="Commands.LoadK2" />
+        <RoutedUICommand x:Key="Commands.LoadCustom" />
+        <RoutedUICommand x:Key="Commands.RemoveAll" />
+        <RoutedUICommand x:Key="Commands.ClearCache" />
+        <RoutedUICommand x:Key="Commands.FindMatchingCoords" />
+        <RoutedUICommand x:Key="Commands.FifteenHundredPercent" />
+
+        <!-- 
+        This converts from a scale value to a percentage value.
+        It is used to convert the value of 'ContentScale' to the percentage zoom level that is
+        displayed in the UI.
+        -->
+        <help:ScaleToPercentConverter x:Key="scaleToPercentConverter" />
+        <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <help:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+        <help:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+
+    </Window.Resources>
+
+    <Window.InputBindings>
+
+        <!--
+        Bind keys to commands.
+        -->
+        <KeyBinding
+            Key="Minus"
+            Command="{StaticResource Commands.ZoomOut}"
+            />
+        <KeyBinding
+            Key="Plus"
+            Command="{StaticResource Commands.ZoomIn}"
+            />
+        <KeyBinding
+            Key="Backspace"
+            Command="{StaticResource Commands.JumpBackToPrevZoom}"
+            />
+
+    </Window.InputBindings>
+
+    <Window.CommandBindings>
+
+        <!--
+        Bind commands to event handlers.
+        -->
+        <CommandBinding 
+            Command="{StaticResource Commands.ZoomOut}" 
+            Executed="ZoomOut_Executed" 
+            />
+        <CommandBinding 
+            Command="{StaticResource Commands.ZoomIn}" 
+            Executed="ZoomIn_Executed" 
+            />
+        <CommandBinding 
+            Command="{StaticResource Commands.JumpBackToPrevZoom}" 
+            Executed="JumpBackToPrevZoom_Executed" 
+            CanExecute="JumpBackToPrevZoom_CanExecuted"
+            />
+        <CommandBinding 
+            Command="{StaticResource Commands.Fill}" 
+            Executed="Fill_Executed" 
+            />
+        <CommandBinding 
+            Command="{StaticResource Commands.OneHundredPercent}" 
+            Executed="OneHundredPercent_Executed" 
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.LoadK1}"
+            Executed="LoadK1_Executed"
+            CanExecute="LoadK1_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.LoadK2}"
+            Executed="LoadK2_Executed"
+            CanExecute="LoadK2_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.LoadCustom}"
+            Executed="LoadCustom_Executed"
+            CanExecute="LoadCustom_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.RemoveAll}"
+            Executed="RemoveAll_Executed"
+            CanExecute="RemoveAll_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.ClearCache}"
+            Executed="ClearCache_Executed"
+            CanExecute="ClearCache_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.FindMatchingCoords}"
+            Executed="FindMatchingCoords_Executed"
+            CanExecute="FindMatchingCoords_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.FifteenHundredPercent}"
+            Executed="FifteenHundredPercent_Executed"
+            />
+
+    </Window.CommandBindings>
+
+    <DockPanel>
+        <!-- 
+        Grid placed below the zoom and pan control that contains the zoom slider, zoom label and
+        some button.
+        -->
+        <Grid
+            Margin="5"
+            DockPanel.Dock="Bottom"
+            >
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Margin" Value="5,0" />
+                        <Setter Property="Width" Value="40" />
+                    </Style>
+                </StackPanel.Resources>
+
+                <TextBlock x:Name="txtGameSelectText"
+                           Text="Select Game: "
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right" />
+                <Button x:Name="bSetGameK1" Content="KotOR 1" Width="60"
+                        Command="{StaticResource Commands.LoadK1}" />
+                <Button x:Name="bSetGameK2" Content="KotOR 2" Width="60"
+                        Command="{StaticResource Commands.LoadK2}" />
+                <Button x:Name="bSetGameCustom" Content="Custom" Width="60"
+                        Command="{StaticResource Commands.LoadCustom}" />
+
+                <Button x:Name="bFindMatchingCoords" Content="Matching" Width="60"
+                        Visibility="Collapsed"
+                        Command="{StaticResource Commands.FindMatchingCoords}" />
+
+                <ProgressBar
+                    x:Name="pbLoading"
+                    Width="200"
+                    Margin="5,0"
+                    Visibility="Collapsed"
+                    Value="{Binding ElementName=mainWindow, Path=CurrentProgress}"
+                    />
+
+                <Border BorderThickness="1" Width="2" BorderBrush="Gray" Margin="5,0" />
+
+                <!-- The 100% button.  Causes the content to be scaled to 100 percent. -->
+                <Button Content="300%"
+                        Command="{StaticResource Commands.OneHundredPercent}" />
+
+                <Button Content="1500%"
+                        Command="{StaticResource Commands.FifteenHundredPercent}" />
+
+                <!-- This is the label that shows what the current zoom level is while zooming in and out. -->
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right"
+                           Text="{Binding ElementName=zoomAndPanControl, Path=ContentScale, Converter={StaticResource scaleToPercentConverter}}"
+                           />
+                <TextBlock VerticalAlignment="Center" Text="%" />
+
+                <!-- Button to zoom out. -->
+                <Button Content="-"
+                        Width="20"
+                        Command="{StaticResource Commands.ZoomOut}" />
+
+                <!-- Slider to change the current zoom level. -->
+                <Slider Minimum="10" Maximum="1500"
+                        SmallChange="10" LargeChange="20" 
+                        TickFrequency="100" TickPlacement="TopLeft"
+                        Width="160"
+                        Value="{Binding ElementName=zoomAndPanControl, Path=ContentScale,
+                                        Converter={StaticResource scaleToPercentConverter}}"
+                        />
+
+                <!-- Button to zoom in. -->
+                <Button Content="+" Width="20" Margin="5,0,0,0"
+                        Command="{StaticResource Commands.ZoomIn}" />
+
+                <!-- Stick a resize grip in the bottom right corner of the window. -->
+                <ResizeGrip Margin="5,0,0,0" />
+
+            </StackPanel>
+        </Grid>
+
+        <Grid
+            x:Name="optionsGrid"
+            DockPanel.Dock="Right"
+            Width="180"
+            Margin="5,0,0,0"
+            >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="4*" />
+                <RowDefinition Height="5" />
+                <RowDefinition Height="5*" />
+            </Grid.RowDefinitions>
+
+            <Grid.Resources>
+                <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="Foreground" Value="Black" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="Blue" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="ListViewItem" x:Key="OnItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                    <Setter Property="Background" Value="Transparent" />
+                    <EventSetter Event="MouseDoubleClick" Handler="LvOn_DoubleClick" />
+                </Style>
+                <Style TargetType="ListViewItem" x:Key="OffItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                    <Setter Property="Background" Value="Transparent" />
+                    <EventSetter Event="MouseDoubleClick" Handler="LvOff_DoubleClick" />
+                </Style>
+            </Grid.Resources>
+
+            <Label HorizontalAlignment="Center" FontWeight="Bold">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Selected Game: " />
+                    <TextBlock Text="{Binding ElementName=mainWindow, Path=SelectedGame}" />
+                </StackPanel>
+            </Label>
+
+            <Grid x:Name="OnGrid" Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                
+                <TextBlock
+                    Text="ON"
+                    Margin="0,5"
+                    HorizontalAlignment="Center"
+                    />
+                <ListView x:Name="lvOn" Grid.Row="1"
+                          IsEnabled="{Binding ElementName=mainWindow, Path=IsBusy, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}"
+                          ItemContainerStyle="{StaticResource OnItemStyle}"
+                          ItemsSource="{Binding ElementName=mainWindow, Path=OnNames, Mode=TwoWay}"
+                          ScrollViewer.VerticalScrollBarVisibility="Visible"
+                          ScrollViewer.CanContentScroll="False"
+                          />
+                <Button Grid.Row="2" Margin="0,5" Content="Remove All"
+                        Command="{StaticResource Commands.RemoveAll}" />
+                <Button Grid.Row="3" Margin="0,0,0,5" Content="Clear Cache"
+                        Command="{StaticResource Commands.ClearCache}"
+                        Visibility="Collapsed"/>
+            </Grid>
+
+            <GridSplitter Grid.Row="3" Height="3" Background="Gray"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <Grid x:Name="OffGrid" Grid.Row="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <TextBlock
+                    Text="OFF"
+                    Margin="0,5"
+                    HorizontalAlignment="Center"
+                    />
+                <ListView x:Name="lvOff"
+                          Grid.Row="1"
+                          IsEnabled="{Binding ElementName=mainWindow, Path=IsBusy, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}"
+                          ItemContainerStyle="{StaticResource OffItemStyle}"
+                          ItemsSource="{Binding ElementName=mainWindow, Path=OffNames, Mode=TwoWay}"
+                          ScrollViewer.VerticalScrollBarVisibility="Visible"
+                          ScrollViewer.CanContentScroll="True"
+                          />
+            </Grid>
+
+
+        </Grid>
+        
+        <!--
+        Wrap the ZoomAndPanControl in a ScrollViewer.
+        When the scaled content that is displayed in ZoomAndPanControl is larger than the viewport
+        onto the content.
+        ScrollViewer's scrollbars can be used to manipulate the offset of the viewport.    
+        -->
+        <ScrollViewer
+            x:Name="scroller"
+            CanContentScroll="True"
+            VerticalScrollBarVisibility="Visible"
+            HorizontalScrollBarVisibility="Visible"
+            >
+            
+            <!--
+            This is the control that handles zooming and panning.
+            -->
+            <ZoomAndPan:ZoomAndPanControl
+                x:Name="zoomAndPanControl"
+                Background="LightGray"
+                MouseDown="zoomAndPanControl_MouseDown"
+                MouseUp="zoomAndPanControl_MouseUp"
+                MouseMove="zoomAndPanControl_MouseMove"
+                MouseWheel="zoomAndPanControl_MouseWheel"
+                MouseDoubleClick="zoomAndPanControl_MouseDoubleClick"
+                ContentScale="3"
+                MinContentScale=".1"
+                MaxContentScale="20"
+                >
+                
+                <!-- 
+                This is the content that is displayed.
+                -->
+                <Grid
+                    x:Name="theGrid"
+                    Width="250"
+                    Height="200"
+                    >
+                    <!--
+                    This Canvas is the main part of the content that is displayed.
+                    -->
+                    <Canvas
+                        x:Name="content"
+                        Background="White"
+                        >
+                        <Canvas.Resources>
+                            <TransformGroup x:Key="CartesianTransform">
+                                <TranslateTransform Y="{Binding ElementName=mainWindow, Path=BottomOffset}"
+                                                    X="{Binding ElementName=mainWindow, Path=LeftOffset}"/>
+                                <ScaleTransform ScaleY="-1" />
+                                <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
+                            </TransformGroup>
+                            <Style TargetType="Polygon">
+                                <Setter Property="RenderTransform" Value="{StaticResource CartesianTransform}" />
+                            </Style>
+                        </Canvas.Resources>
+
+                        <Ellipse
+                            x:Name="walkmeshPoint"
+                            Width="1" Height="1" Fill="Black"
+                            Visibility="{Binding ElementName=mainWindow, Path=PointClicked, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Canvas.Left="{Binding ElementName=mainWindow, Path=LastPoint.X}"
+                            Canvas.Bottom="{Binding ElementName=mainWindow, Path=LastPoint.Y}"
+                            />
+                        <StackPanel
+                            x:Name="pointCoords" Orientation="Horizontal"
+                            Visibility="{Binding ElementName=mainWindow, Path=PointClicked, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Canvas.Left="{Binding ElementName=mainWindow, Path=LastPoint.X}"
+                            Canvas.Bottom="{Binding ElementName=mainWindow, Path=LastPoint.Y}"
+                            Margin="0,0,0,0"
+                            >
+                            <StackPanel.RenderTransform>
+                                <TranslateTransform X="2" Y="1.5" />
+                            </StackPanel.RenderTransform>
+                            <StackPanel.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="4" />
+                                </Style>
+                            </StackPanel.Resources>
+                            
+                            <TextBlock Text="(" />
+                            <TextBlock Text="{Binding ElementName=mainWindow, Path=LastModuleCoords.X, StringFormat=N2}" />
+                            <TextBlock Text=", " />
+                            <TextBlock Text="{Binding ElementName=mainWindow, Path=LastModuleCoords.Y, StringFormat=N2}" />
+                            <TextBlock Text=")" />
+                        </StackPanel>
+                    </Canvas>
+
+                    <!--
+                    This Canvas and Border are used as a very simple way to render a drag rectangle that
+                    the user uses to specify an area to zoom in on.
+                    -->
+                    <Canvas
+                        x:Name="dragZoomCanvas"
+                        Visibility="Collapsed"
+                        >
+                        <Border 
+                            x:Name="dragZoomBorder"
+                            BorderBrush="Black"
+                            BorderThickness="1"
+                            Background="Silver"
+                            CornerRadius="1"
+                            Opacity="0"
+                            />
+                    </Canvas>
+                </Grid>
+            </ZoomAndPan:ZoomAndPanControl>
+        </ScrollViewer>
+        
+    </DockPanel>
+
+</Window>
