@@ -456,9 +456,11 @@ namespace WalkmeshVisualizerWpf.Views
             doubleClickPoint.Y -= BottomOffset;
             LastModuleCoords = doubleClickPoint;
 
+            walkmeshPoint.Visibility = Visibility.Visible;
             content.Children.Remove(walkmeshPoint);
             content.Children.Add(walkmeshPoint);
 
+            pointCoords.Visibility = Visibility.Visible;
             content.Children.Remove(pointCoords);
             content.Children.Add(pointCoords);
 
