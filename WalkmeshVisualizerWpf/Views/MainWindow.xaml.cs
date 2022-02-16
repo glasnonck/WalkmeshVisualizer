@@ -123,6 +123,16 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region DataBinding Members
 
+        public string WindowTitle
+        {
+            get
+            {
+                var v = System.Reflection.Assembly.GetAssembly(typeof(MainWindow)).GetName().Version;
+                return $"Kotor Randomizer (v{v.Major}.{v.Minor})";
+                //return $"Kotor Randomizer (v{v.Major}.{v.Minor}.{v.Build})";
+            }
+        }
+
         public bool PointClicked
         {
             get => (bool)GetValue(PointClickedProperty);
@@ -130,13 +140,6 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         public static readonly DependencyProperty PointClickedProperty = DependencyProperty.Register("PointClicked", typeof(bool), typeof(MainWindow));
-
-        //private bool _pointClicked;
-        //public bool PointClicked
-        //{
-        //    get => _pointClicked;
-        //    set => SetField(ref _pointClicked, value);
-        //}
 
         public Point LastPoint
         {
@@ -146,13 +149,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         public static readonly DependencyProperty LastPointProperty = DependencyProperty.Register("LastPoint", typeof(Point), typeof(MainWindow));
 
-        //private Point _lastPoint;
-        //public Point LastPoint
-        //{
-        //    get => _lastPoint;
-        //    set => SetField(ref _lastPoint, value);
-        //}
-
         public Point LastModuleCoords
         {
             get => (Point)GetValue(LastModuleCoordsProperty);
@@ -160,13 +156,6 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         public static readonly DependencyProperty LastModuleCoordsProperty = DependencyProperty.Register("LastModuleCoords", typeof(Point), typeof(MainWindow));
-
-        //private Point _lastModuleCoords;
-        //public Point LastModuleCoords
-        //{
-        //    get => _lastModuleCoords;
-        //    set => SetField(ref _lastModuleCoords, value);
-        //}
 
         public bool IsBusy
         {
@@ -176,13 +165,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         public static readonly DependencyProperty IsBusyProperty = DependencyProperty.Register("IsBusy", typeof(bool), typeof(MainWindow));
 
-        //private bool _isBusy;
-        //public bool IsBusy
-        //{
-        //    get => _isBusy;
-        //    set => SetField(ref _isBusy, value);
-        //}
-
         public string SelectedGame
         {
             get => (string)GetValue(SelectedGameProperty);
@@ -190,13 +172,6 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         public static readonly DependencyProperty SelectedGameProperty = DependencyProperty.Register("SelectedGame", typeof(string), typeof(MainWindow), new PropertyMetadata(DEFAULT));
-
-        //private string _selectedGame = DEFAULT;
-        //public string SelectedGame
-        //{
-        //    get => _selectedGame;
-        //    set => SetField(ref _selectedGame, value);
-        //}
 
         private ObservableCollection<string> _onNames;
         public ObservableCollection<string> OnNames
@@ -221,13 +196,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         public static readonly DependencyProperty LeftOffsetProperty = DependencyProperty.Register("LeftOffset", typeof(double), typeof(MainWindow));
 
-        //public double _leftOffset;
-        //public double LeftOffset
-        //{
-        //    get => _leftOffset;
-        //    set => SetField(ref _leftOffset, value);
-        //}
-
         public double BottomOffset
         {
             get => (double)GetValue(BottomOffsetProperty);
@@ -236,13 +204,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         public static readonly DependencyProperty BottomOffsetProperty = DependencyProperty.Register("BottomOffset", typeof(double), typeof(MainWindow));
 
-        //public double _bottomOffset;
-        //public double BottomOffset
-        //{
-        //    get => _bottomOffset;
-        //    set => SetField(ref _bottomOffset, value);
-        //}
-
         public static readonly DependencyProperty CurrentProgressProperty = DependencyProperty.Register(nameof(CurrentProgress), typeof(double), typeof(MainWindow));
         public double CurrentProgress
         {
@@ -250,6 +211,55 @@ namespace WalkmeshVisualizerWpf.Views
             set => Application.Current.Dispatcher.Invoke(() => SetValue(CurrentProgressProperty, value));
         }
         public string Game { get; private set; }
+
+        //private bool _pointClicked;
+        //public bool PointClicked
+        //{
+        //    get => _pointClicked;
+        //    set => SetField(ref _pointClicked, value);
+        //}
+
+        //private Point _lastPoint;
+        //public Point LastPoint
+        //{
+        //    get => _lastPoint;
+        //    set => SetField(ref _lastPoint, value);
+        //}
+
+        //private Point _lastModuleCoords;
+        //public Point LastModuleCoords
+        //{
+        //    get => _lastModuleCoords;
+        //    set => SetField(ref _lastModuleCoords, value);
+        //}
+
+        //private bool _isBusy;
+        //public bool IsBusy
+        //{
+        //    get => _isBusy;
+        //    set => SetField(ref _isBusy, value);
+        //}
+
+        //private string _selectedGame = DEFAULT;
+        //public string SelectedGame
+        //{
+        //    get => _selectedGame;
+        //    set => SetField(ref _selectedGame, value);
+        //}
+
+        //public double _leftOffset;
+        //public double LeftOffset
+        //{
+        //    get => _leftOffset;
+        //    set => SetField(ref _leftOffset, value);
+        //}
+
+        //public double _bottomOffset;
+        //public double BottomOffset
+        //{
+        //    get => _bottomOffset;
+        //    set => SetField(ref _bottomOffset, value);
+        //}
 
         #endregion // END REGION DataBinding Members
 
@@ -456,15 +466,13 @@ namespace WalkmeshVisualizerWpf.Views
             doubleClickPoint.Y -= BottomOffset;
             LastModuleCoords = doubleClickPoint;
 
-            walkmeshPoint.Visibility = Visibility.Visible;
-            content.Children.Remove(walkmeshPoint);
-            content.Children.Add(walkmeshPoint);
-
-            pointCoords.Visibility = Visibility.Visible;
-            content.Children.Remove(pointCoords);
-            content.Children.Add(pointCoords);
-
             PointClicked = true;
+
+            content.Children.Remove(walkmeshPoint);
+            _ = content.Children.Add(walkmeshPoint);
+
+            content.Children.Remove(pointCoords);
+            _ = content.Children.Add(pointCoords);
         }
 
         /// <summary>
@@ -1005,7 +1013,6 @@ namespace WalkmeshVisualizerWpf.Views
         private void LvOff_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             IsBusy = true;
-            //content.Visibility = Visibility.Hidden;
 
             // Move the clicked item from OFF to ON.
             var name = (string)(sender as ListViewItem).Content;
@@ -1130,15 +1137,15 @@ namespace WalkmeshVisualizerWpf.Views
                 // If added to the canvas before, find most frequent brushes.
                 var max = PolyBrushCount.Where(kvp => kvp.Value == PolyBrushCount.Values.Max()).ToDictionary(kvp => kvp.Key);
 
+                // If not all brushes are equal AND last used brush is in max frequency, get a new brush.
                 if (max.Count != PolyBrushCount.Count && max.ContainsKey(RimToBrushUsed[rimToAdd]))
                 {
-                    // If not all brushes are equal AND last used brush is in max frequency, get a new brush.
                     brush = GetNextBrush();
                     PolyBrushCount[brush]++;
                 }
+                // Else, don't change the brush.
                 else
                 {
-                    // Else, don't change the brush.
                     brush = RimToBrushUsed[rimToAdd];
                     brushChanged = false;
                     PolyBrushCount[brush]++;
@@ -1160,9 +1167,9 @@ namespace WalkmeshVisualizerWpf.Views
                 RimToBrushUsed.Add(rimToAdd, brush);
             }
 
-            // Add walkable surfaces to the canvas.
-            var polygons = RimPolyLookup[rimToAdd].ToList();
-            var unpolygons = RimOutlinePolyLookup[rimToAdd].ToList();
+            // Add all surfaces to the canvas.
+            var polygons = RimPolyLookup[rimToAdd].ToList();    // walkable
+            var unpolygons = RimOutlinePolyLookup[rimToAdd].ToList();   // non-walkable
             var i = 0;
             if (RimPolysCreated.Contains(rimToAdd))
             {
@@ -1177,7 +1184,7 @@ namespace WalkmeshVisualizerWpf.Views
                             p.Fill = brush; p.Visibility = Visibility.Visible;
                         });
                     });
-                    i = 0;
+                    i = 0;  // reset count
                     unpolygons.ForEach((Polygon p) =>
                     {
                         content.Dispatcher.Invoke(() =>
@@ -1212,7 +1219,7 @@ namespace WalkmeshVisualizerWpf.Views
                         p.Fill = brush; _ = content.Children.Add(p);
                     });
                 });
-                i = 0;
+                i = 0;  // reset count
                 unpolygons.ForEach((Polygon p) =>
                 {
                     content.Dispatcher.Invoke(() =>
@@ -1222,40 +1229,6 @@ namespace WalkmeshVisualizerWpf.Views
                     });
                 });
             }
-
-            //// Add walkable surfaces to the canvas.
-            //var polygons = RimPolyLookup[rimToAdd].ToList();
-            //for (var i = 0; i < polygons.Count; i++)
-            //{
-            //    AddPolyWorker.ReportProgress(100 * i / polygons.Count);
-
-            //    var p = polygons[i];
-            //    if (RimPolysCreated.Contains(rimToAdd)) // Polygons already added. Set them to visible.
-            //    {
-            //        Application.Current.Dispatcher.Invoke(() => { p.Fill = brush; p.Visibility = Visibility.Visible; });
-            //    }
-            //    else    // Polygons not added yet.
-            //    {
-            //        Application.Current.Dispatcher.Invoke(() => { p.Fill = brush; _ = content.Children.Add(p); });
-            //    }
-            //}
-
-            //// Add unwalkable surfaces to the canvas.
-            //var unpolygons = RimOutlinePolyLookup[rimToAdd].ToList();
-            //for (var i = 0; i < unpolygons.Count; i++)
-            //{
-            //    AddPolyWorker.ReportProgress(100 * i / unpolygons.Count);
-
-            //    var p = unpolygons[i];
-            //    if (RimPolysCreated.Contains(rimToAdd)) // Polygons already added. Set them to visible.
-            //    {
-            //        Application.Current.Dispatcher.Invoke(() => { p.Stroke = brush; p.Visibility = Visibility.Visible; });
-            //    }
-            //    else    // Polygons not added yet.
-            //    {
-            //        Application.Current.Dispatcher.Invoke(() => { p.Stroke = brush; _ = content.Children.Add(p); });
-            //    }
-            //}
 
             // Remember that the polygons have been added to the canvas.
             if (!RimPolysCreated.Contains(rimToAdd))
@@ -1283,7 +1256,6 @@ namespace WalkmeshVisualizerWpf.Views
         private void LvOn_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             IsBusy = true;
-            //content.Visibility = Visibility.Hidden;
 
             // Move the clicked item from ON to OFF.
             var name = (string)(sender as ListViewItem).Content;
@@ -1322,10 +1294,10 @@ namespace WalkmeshVisualizerWpf.Views
             // Adjust count of times this rim's brush was used.
             PolyBrushCount[RimToBrushUsed[rimToRemove]]--;
 
-            var polys = RimPolyLookup[rimToRemove].ToList();
-            polys.AddRange(RimOutlinePolyLookup[rimToRemove]);
+            var polys = RimPolyLookup[rimToRemove].ToList();    // walkable
+            polys.AddRange(RimOutlinePolyLookup[rimToRemove]);  // non-walkable
 
-            // Hide walkable faces.
+            // Hide all walkmesh faces.
             content.Dispatcher.Invoke(() =>
             {
                 polys.ForEach((Polygon p) =>
@@ -1333,26 +1305,11 @@ namespace WalkmeshVisualizerWpf.Views
                     p.Visibility = Visibility.Hidden;
                 });
             });
-
-            //// Hide walkable faces.
-            //var polys = RimPolyLookup[rimToRemove].ToList();
-            //for (var i = 0; i < polys.Count; i++)
-            //{
-            //    RemovePolyWorker.ReportProgress(100 * i / polys.Count);
-            //    Application.Current.Dispatcher.Invoke(() =>
-            //        { polys[i].Visibility = Visibility.Collapsed; });
-            //}
-
-            //// Hide unwalkable faces.
-            //polys = RimOutlinePolyLookup[rimToRemove].ToList();
-            //for (var i = 0; i < polys.Count; i++)
-            //{
-            //    RemovePolyWorker.ReportProgress(100 * i / polys.Count);
-            //    Application.Current.Dispatcher.Invoke(() =>
-            //        { polys[i].Visibility = Visibility.Collapsed; });
-            //}
         }
 
+        /// <summary>
+        /// Delete all walkmesh faces associated with a specific RIM file.
+        /// </summary>
         private void DeleteWalkmeshFromCanvas(string rimToRemove)
         {
             // Adjust count of times this rim's brush was used.
@@ -1381,25 +1338,7 @@ namespace WalkmeshVisualizerWpf.Views
                 });
             });
 
-            //for (int i = 0; i < polys.Count; i++)
-            //{
-            //    RemovePolyWorker.ReportProgress(100 * i / polys.Count);
-            //    Application.Current.Dispatcher.Invoke(() =>
-            //    {
-            //        var rt = polys[i].RenderTransform as TransformGroup;
-            //        polys[i].Visibility = Visibility.Collapsed;
-
-            //        // Remove bindings for each of the transforms.
-            //        foreach (var transform in rt.Children)
-            //        {
-            //            BindingOperations.ClearAllBindings(transform);
-            //        }
-
-            //        // Remove bindings on the polygon.
-            //        BindingOperations.ClearBinding(polys[i], RenderTransformProperty);
-            //    });
-            //}
-
+            // Remove all polygons from the canvas.
             content.Dispatcher.Invoke(() =>
             {
                 content.Children.RemoveRange(content.Children.IndexOf(polys[0]), polys.Count);
@@ -1437,7 +1376,7 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide all polygons in the canvas.
             content.Dispatcher.Invoke(() =>
             {
-                foreach (FrameworkElement child in content.Children)
+                foreach (var child in content.Children.OfType<Polygon>())
                 {
                     child.Visibility = Visibility.Hidden;
                 }
@@ -1526,16 +1465,25 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region Find Matching Coord Methods
 
+        /// <summary>
+        /// Perform steps to find modules with matching coordinates.
+        /// </summary>
         private void FindMatchingCoords_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             FindMatchingCoords();
         }
 
+        /// <summary>
+        /// Find matching coords can execute if a point has been selected and there are any modules currently displayed.
+        /// </summary>
         private void FindMatchingCoords_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = PointClicked && (OnNames?.Any() ?? false);
         }
 
+        /// <summary>
+        /// Find all modules whose walkmesh contains the currently selected point.
+        /// </summary>
         private void FindMatchingCoords()
         {
             // Search walkmeshes for walkable coordinates at LastModuleCoords
@@ -1599,7 +1547,6 @@ namespace WalkmeshVisualizerWpf.Views
         {
             IsBusy = false;
             CurrentProgress = 0;
-            //content.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -1611,98 +1558,6 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion // END REGION Common Background Worker Methods
-
-        #region Unused Methods
-
-        //private void DrawAllActiveWalkmeshes()
-        //{
-        //    // Draw selected walkmeshes.
-        //    for (var i = 0; i < OnNames.Count; i++)
-        //    {
-        //        // Add all polys for this RIM to the canvas.
-        //        var polys = RimPolyLookup[OnNames[i]].ToList();
-        //        for (var j = 0; j < polys.Count; j++)
-        //        {
-        //            // Reset the polygon fill color.
-        //            RemovePolyWorker.ReportProgress(100 * j / OnNames.Count);
-        //            var min = PolyBrushCount.Values.Min();
-        //            var brush = PolyBrushCount.First(pair => pair.Value == min).Key;
-        //            PolyBrushCount[brush]++;
-        //            RimToBrushUsed.Add(OnNames[i], brush);
-
-        //            Application.Current.Dispatcher.Invoke(() =>
-        //            {
-        //                var poly = polys[j];
-        //                poly.Fill = brush;
-        //                _ = content.Children.Add(poly);
-        //            });
-        //        }
-        //    }
-        //}
-
-        //private void ClearMapsAndNames()
-        //{
-        //    PointClicked = false;
-
-        //    // Remove polygons from canvas.
-        //    content.Dispatcher.Invoke(() =>
-        //    {
-        //        content.Children.Clear();
-        //    });
-
-        //    // Clear map names.
-        //    OnNames.Clear();
-        //    OffNames.Clear();
-        //}
-
-        //private void BuildOnlyWalkablePolygons()
-        //{
-        //    // Build unbuilt RIM walkmeshes.
-        //    var unbuilt = OnNames.Where(n => !RimPolyLookup.ContainsKey(n)).ToList();
-        //    for (var i = 0; i < unbuilt.Count; i++)
-        //    {
-        //        var name = unbuilt[i];
-
-        //        // Select all faces from mesh.
-        //        var allfaces = RimWoksLookup[name].SelectMany(w => w.Faces).ToList();
-
-        //        var faces = new List<WOK.Face>();
-        //        for (var j = 0; j < RimWoksLookup[name].Count(); j++)
-        //        {
-        //            AddPolyWorker.ReportProgress(100 * j / RimWoksLookup[name].Count());
-        //            var wok = RimWoksLookup[name].ElementAt(j);
-        //            var walkable = wok.Faces.Where(f => f.IsWalkable);
-        //            if (walkable.Any()) faces.AddRange(walkable);
-        //        }
-
-        //        // Select walkable faces from mesh.
-        //        for (var j = 0; j < RimWoksLookup[name].Count(); j++)
-        //        {
-        //            AddPolyWorker.ReportProgress(100 * j / RimWoksLookup[name].Count());
-        //            var wok = RimWoksLookup[name].ElementAt(j);
-        //            var walkable = wok.Faces.Where(f => f.IsWalkable);
-        //            if (walkable.Any()) faces.AddRange(walkable);
-        //        }
-
-        //        // Create a polygon for each face.
-        //        var polys = new List<Polygon>();
-        //        for (var j = 0; j < faces.Count; j++)
-        //        {
-        //            AddPolyWorker.ReportProgress(100 * j / faces.Count);
-        //            Application.Current.Dispatcher.Invoke(new Action(() =>
-        //            {
-        //                polys.Add(new Polygon
-        //                {
-        //                    Points = new PointCollection(faces[j].ToPoints()),
-        //                });
-        //            }));
-        //        }
-
-        //        RimPolyLookup.Add(name, polys);
-        //    }
-        //}
-
-        #endregion // END REGION Unused Methods
 
         #region INotifyPropertyChanged Implementation
 

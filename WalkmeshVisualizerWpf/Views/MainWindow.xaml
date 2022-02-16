@@ -5,7 +5,7 @@
     xmlns:local="clr-namespace:WalkmeshVisualizerWpf"
     xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
     xmlns:ZoomAndPan="clr-namespace:ZoomAndPan;assembly=ZoomAndPan"
-    Title="Walkmesh Visualizer (v0.3)"
+    Title="{Binding WindowTitle, RelativeSource={RelativeSource Self}, Mode=OneTime}"
     MinHeight="600"
     MinWidth="800"
     Height="600"
