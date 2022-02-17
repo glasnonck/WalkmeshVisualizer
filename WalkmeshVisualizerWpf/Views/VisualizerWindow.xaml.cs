@@ -29,10 +29,64 @@ using ZoomAndPan;
 namespace WalkmeshVisualizerWpf.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for VisualizerWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class VisualizerWindow : Window, INotifyPropertyChanged
     {
+        #region Constructors
+
+        public VisualizerWindow()
+        {
+            InitializeComponent();
+            XmlGameData.Initialize();
+
+            // Hide selected game label.
+            pnlSelectedGame.Visibility = Visibility.Collapsed;
+
+            // Set up GameDataWorker
+            GameDataWorker.WorkerReportsProgress = true;
+            GameDataWorker.ProgressChanged += Bw_ProgressChanged;
+            GameDataWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
+            GameDataWorker.DoWork += GameDataWorker_DoWork;
+
+            // Set up AddPolyWorker
+            AddPolyWorker.WorkerReportsProgress = true;
+            AddPolyWorker.ProgressChanged += Bw_ProgressChanged;
+            AddPolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
+            AddPolyWorker.DoWork += AddPolyWorker_DoWork;
+
+            // Set up RemovePolyWorker
+            RemovePolyWorker.WorkerReportsProgress = true;
+            RemovePolyWorker.ProgressChanged += Bw_ProgressChanged;
+            RemovePolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
+            RemovePolyWorker.DoWork += RemovePolyWorker_DoWork;
+
+            // Set up ClearCacheWorker
+            ClearCacheWorker.WorkerReportsProgress = true;
+            ClearCacheWorker.ProgressChanged += Bw_ProgressChanged;
+            ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
+            ClearCacheWorker.DoWork += ClearCacheWorker_DoWork;
+
+            DataContext = this;
+        }
+
+        /// <summary>
+        /// Event raised when the Window has loaded.
+        /// </summary>
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            var htw = new HelpTextWindow
+            {
+                Left = Left + Width + 5,
+                Top = Top,
+                Owner = this
+            };
+            htw.Show();
+        }
+
+
+        #endregion // END REGION Constructors
+
         #region ZoomAndPanControl Members
 
         /// <summary>
@@ -114,6 +168,10 @@ namespace WalkmeshVisualizerWpf.Views
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker ClearCacheWorker { get; set; } = new BackgroundWorker();
 
+        public bool K1Loaded { get; set; }
+        public bool K2Loaded { get; set; }
+        public XmlGame CurrentGame { get; set; }
+
         private readonly Point BaseOffset = new Point(20, 20);
         public const string DEFAULT = "N/A";
         public const string LOADING = "Loading";
@@ -127,192 +185,88 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region DataBinding Members
 
+        public string Game { get; private set; }
+
         public string WindowTitle
         {
             get
             {
                 var v = System.Reflection.Assembly.GetAssembly(typeof(MainWindow)).GetName().Version;
-                return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor})";
-                //return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
+                return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
             }
         }
 
-        public bool PointClicked
+        private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
+        public ObservableCollection<RimModel> OnRims
         {
-            get => (bool)GetValue(PointClickedProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(PointClickedProperty, value));
+            get => _onRims;
+            set => SetField(ref _onRims, value);
         }
 
-        public static readonly DependencyProperty PointClickedProperty = DependencyProperty.Register("PointClicked", typeof(bool), typeof(MainWindow));
-
-        public Point LastPoint
+        private ObservableCollection<RimModel> _offRims = new ObservableCollection<RimModel>();
+        public ObservableCollection<RimModel> OffRims
         {
-            get => (Point)GetValue(LastPointProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(LastPointProperty, value));
+            get => _offRims;
+            set => SetField(ref _offRims, value);
         }
 
-        public static readonly DependencyProperty LastPointProperty = DependencyProperty.Register("LastPoint", typeof(Point), typeof(MainWindow));
-
-        public Point LastModuleCoords
-        {
-            get => (Point)GetValue(LastModuleCoordsProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(LastModuleCoordsProperty, value));
-        }
-
-        public static readonly DependencyProperty LastModuleCoordsProperty = DependencyProperty.Register("LastModuleCoords", typeof(Point), typeof(MainWindow));
-
-        public bool IsBusy
-        {
-            get => (bool)GetValue(IsBusyProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(IsBusyProperty, value));
-        }
-
-        public static readonly DependencyProperty IsBusyProperty = DependencyProperty.Register("IsBusy", typeof(bool), typeof(MainWindow));
-
-        public string SelectedGame
-        {
-            get => (string)GetValue(SelectedGameProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(SelectedGameProperty, value));
-        }
-
-        public static readonly DependencyProperty SelectedGameProperty = DependencyProperty.Register("SelectedGame", typeof(string), typeof(MainWindow), new PropertyMetadata(DEFAULT));
-
-        private ObservableCollection<string> _onNames;
-        public ObservableCollection<string> OnNames
-        {
-            get => _onNames;
-            set => SetField(ref _onNames, value);
-        }
-
-        private ObservableCollection<string> _offNames;
-
-        public ObservableCollection<string> OffNames
-        {
-            get => _offNames;
-            set => SetField(ref _offNames, value);
-        }
-
-        public double LeftOffset
-        {
-            get => (double)GetValue(LeftOffsetProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(LeftOffsetProperty, value));
-        }
-
-        public static readonly DependencyProperty LeftOffsetProperty = DependencyProperty.Register("LeftOffset", typeof(double), typeof(MainWindow));
-
-        public double BottomOffset
-        {
-            get => (double)GetValue(BottomOffsetProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(BottomOffsetProperty, value));
-        }
-
-        public static readonly DependencyProperty BottomOffsetProperty = DependencyProperty.Register("BottomOffset", typeof(double), typeof(MainWindow));
-
-        public static readonly DependencyProperty CurrentProgressProperty = DependencyProperty.Register(nameof(CurrentProgress), typeof(double), typeof(MainWindow));
+        private double _currentProgress;
         public double CurrentProgress
         {
-            get => (double)GetValue(CurrentProgressProperty);
-            set => Application.Current.Dispatcher.Invoke(() => SetValue(CurrentProgressProperty, value));
+            get => _currentProgress;
+            set => SetField(ref _currentProgress, value);
         }
-        public string Game { get; private set; }
 
-        //private bool _pointClicked;
-        //public bool PointClicked
-        //{
-        //    get => _pointClicked;
-        //    set => SetField(ref _pointClicked, value);
-        //}
+        private bool _pointClicked;
+        public bool PointClicked
+        {
+            get => _pointClicked;
+            set => SetField(ref _pointClicked, value);
+        }
 
-        //private Point _lastPoint;
-        //public Point LastPoint
-        //{
-        //    get => _lastPoint;
-        //    set => SetField(ref _lastPoint, value);
-        //}
+        private Point _lastPoint;
+        public Point LastPoint
+        {
+            get => _lastPoint;
+            set => SetField(ref _lastPoint, value);
+        }
 
-        //private Point _lastModuleCoords;
-        //public Point LastModuleCoords
-        //{
-        //    get => _lastModuleCoords;
-        //    set => SetField(ref _lastModuleCoords, value);
-        //}
+        private Point _lastModuleCoords;
+        public Point LastModuleCoords
+        {
+            get => _lastModuleCoords;
+            set => SetField(ref _lastModuleCoords, value);
+        }
 
-        //private bool _isBusy;
-        //public bool IsBusy
-        //{
-        //    get => _isBusy;
-        //    set => SetField(ref _isBusy, value);
-        //}
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set => SetField(ref _isBusy, value);
+        }
 
-        //private string _selectedGame = DEFAULT;
-        //public string SelectedGame
-        //{
-        //    get => _selectedGame;
-        //    set => SetField(ref _selectedGame, value);
-        //}
+        private string _selectedGame = DEFAULT;
+        public string SelectedGame
+        {
+            get => _selectedGame;
+            set => SetField(ref _selectedGame, value);
+        }
 
-        //public double _leftOffset;
-        //public double LeftOffset
-        //{
-        //    get => _leftOffset;
-        //    set => SetField(ref _leftOffset, value);
-        //}
+        public double _leftOffset;
+        public double LeftOffset
+        {
+            get => _leftOffset;
+            set => SetField(ref _leftOffset, value);
+        }
 
-        //public double _bottomOffset;
-        //public double BottomOffset
-        //{
-        //    get => _bottomOffset;
-        //    set => SetField(ref _bottomOffset, value);
-        //}
+        public double _bottomOffset;
+        public double BottomOffset
+        {
+            get => _bottomOffset;
+            set => SetField(ref _bottomOffset, value);
+        }
 
         #endregion // END REGION DataBinding Members
-
-        #region Constructors
-
-        public MainWindow()
-        {
-            InitializeComponent();
-
-            OnNames = new ObservableCollection<string>();
-            OffNames = new ObservableCollection<string>();
-
-            GameDataWorker.WorkerReportsProgress = true;
-            GameDataWorker.ProgressChanged += Bw_ProgressChanged;
-            GameDataWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-            GameDataWorker.DoWork += GameDataWorker_DoWork;
-
-            AddPolyWorker.WorkerReportsProgress = true;
-            AddPolyWorker.ProgressChanged += Bw_ProgressChanged;
-            AddPolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-            AddPolyWorker.DoWork += AddPolyWorker_DoWork;
-
-            RemovePolyWorker.WorkerReportsProgress = true;
-            RemovePolyWorker.ProgressChanged += Bw_ProgressChanged;
-            RemovePolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-            RemovePolyWorker.DoWork += RemovePolyWorker_DoWork;
-
-            ClearCacheWorker.WorkerReportsProgress = true;
-            ClearCacheWorker.ProgressChanged += Bw_ProgressChanged;
-            ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-            ClearCacheWorker.DoWork += ClearCacheWorker_DoWork;
-        }
-
-        /// <summary>
-        /// Event raised when the Window has loaded.
-        /// </summary>
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            var htw = new HelpTextWindow
-            {
-                Left = Left + Width + 5,
-                Top = Top,
-                Owner = this
-            };
-            htw.Show();
-        }
-
-
-        #endregion // END REGION Constructors
 
         #region ZoomAndPanControl
 
@@ -693,9 +647,14 @@ namespace WalkmeshVisualizerWpf.Views
         private void LoadK1_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (Directory.Exists(K1_DEFAULT_PATH))
+            {
+                CurrentGame = XmlGameData.Kotor1Data;
                 LoadGameFiles(K1_DEFAULT_PATH, K1_NAME);
+            }
             else
+            {
                 _ = MessageBox.Show("Default KotOR 1 path not found. Please use the 'Custom' option instead.");
+            }
         }
 
         /// <summary>
@@ -712,9 +671,14 @@ namespace WalkmeshVisualizerWpf.Views
         private void LoadK2_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (Directory.Exists(K2_DEFAULT_PATH))
+            {
+                CurrentGame = XmlGameData.Kotor2Data;
                 LoadGameFiles(K2_DEFAULT_PATH, K2_NAME);
+            }
             else
+            {
                 _ = MessageBox.Show("Default KotOR 2 path not found. Please use the 'Custom' option instead.");
+            }
         }
 
         /// <summary>
@@ -744,8 +708,16 @@ namespace WalkmeshVisualizerWpf.Views
                         fi.Name.ToLower() == "swkotor.exe" ||
                         fi.Name.ToLower() == "swkotor2.exe");
                 if (exe == null) return;
-                if (exe.Name.ToLower() == "swkotor.exe") LoadGameFiles(dir.FullName, K1_NAME);
-                if (exe.Name.ToLower() == "swkotor2.exe") LoadGameFiles(dir.FullName, K2_NAME);
+                if (exe.Name.ToLower() == "swkotor.exe")
+                {
+                    CurrentGame = XmlGameData.Kotor1Data;
+                    LoadGameFiles(dir.FullName, K1_NAME);
+                }
+                if (exe.Name.ToLower() == "swkotor2.exe")
+                {
+                    CurrentGame = XmlGameData.Kotor2Data;
+                    LoadGameFiles(dir.FullName, K2_NAME);
+                }
             }
         }
 
@@ -767,23 +739,20 @@ namespace WalkmeshVisualizerWpf.Views
             Game = name;
 
             // If any walkmeshes are active, remove them.
-            if (OnNames.Any()) RemoveAll_Executed(this, null);
+            if (OnRims.Any()) RemoveAll_Executed(this, null);
 
             // Clear the cache before loading game files.
             IsBusy = true;
-            ClearCacheWorker.RunWorkerCompleted -= Bw_RunWorkerCompleted;
-            ClearCacheWorker.RunWorkerCompleted += ClearAndLoad_RunWorkerCompleted;
-            ClearCacheWorker.RunWorkerAsync(name);
+            GameDataWorker.RunWorkerAsync(name);
         }
 
+        /// <summary>
+        /// Show the selected game panel and hide the game selection button panel.
+        /// </summary>
         private void HideGameButtons()
         {
-            bSetGameK1.Visibility = Visibility.Collapsed;
-            bSetGameK2.Visibility = Visibility.Collapsed;
-            bSetGameCustom.Visibility = Visibility.Collapsed;
-            txtGameSelectText.Visibility = Visibility.Collapsed;
-            pbLoading.Visibility = Visibility.Visible;
-            bFindMatchingCoords.Visibility = Visibility.Visible;
+            pnlSelectGame.Visibility = Visibility.Collapsed;
+            pnlSelectedGame.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -802,31 +771,55 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void GameDataWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            ClearGameData();
+            //ClearGameData();
 
             // Create the KEY file.
             GameDataWorker.ReportProgress(25);
             var key = new KEY(Paths.chitin);
-
             var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Woks");
-            if (Directory.Exists(path))
+
+            var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
+            if (!thisGameLoaded)
             {
-                ReadWokFiles(path);
-            }
-            else
-            {
-                FetchWokFiles(key);
-                GetRimData(key);
+                if (Directory.Exists(path))
+                {
+                    ReadWokFiles(path);
+                }
+                else
+                {
+                    FetchWokFiles(key);
+                    GetRimData(key);
+                }
             }
 
-            OffNames = new ObservableCollection<string>(RimNamesLookup.Keys);
+            // Set up game data.
+            var rimModels = new List<RimModel>();
+            foreach (var xmlrim in CurrentGame.Rims)
+            {
+                Brush brush = null;
+                if (RimToBrushUsed.ContainsKey(xmlrim.FileName))
+                    brush = RimToBrushUsed[xmlrim.FileName];
+
+                rimModels.Add(new RimModel
+                {
+                    FileName = xmlrim.FileName,
+                    Planet = xmlrim.Planet,
+                    CommonName = xmlrim.CommonName,
+                    MeshColor = brush,
+                });
+            }
+
+            OffRims = new ObservableCollection<RimModel>(rimModels);
 
             SelectedGame = e.Argument?.ToString() ?? DEFAULT;
 
-            if ((Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
+            if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
             {
                 SaveWokFiles(path);
             }
+
+            if (Game == K1_NAME) K1Loaded = true;
+            if (Game == K2_NAME) K2Loaded = true;
         }
 
         /// <summary>
@@ -862,8 +855,9 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var gameDir = Directory.CreateDirectory(path);
             var count = 0;
-            var totalWoks = RimWoksLookup.Sum(kvp => kvp.Value.Count());
-            foreach (var rim in RimWoksLookup)
+            var rimwoks = RimWoksLookup.Where(kvp => OffRims.Any(rm => rm.FileName == kvp.Key));
+            var totalWoks = rimwoks.Sum(kvp => kvp.Value.Count());
+            foreach (var rim in rimwoks)
             {
                 var rimDir = gameDir.CreateSubdirectory(rim.Key);
                 foreach (var wok in rim.Value)
@@ -871,7 +865,7 @@ namespace WalkmeshVisualizerWpf.Views
                     GameDataWorker.ReportProgress(100 * count++ / totalWoks);
                     var wokPath = System.IO.Path.Combine(rimDir.FullName, $"{wok.RoomName}.wok");
                     if (File.Exists(wokPath))
-                        throw new Exception();
+                        throw new Exception($"Save WOK files error: File already exists at '{wokPath}'");
                     else
                         wok.WriteToFile(wokPath);
                 }
@@ -1009,6 +1003,41 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Game Selection Methods
 
+        #region Swap Game Methods
+
+        /// <summary>
+        /// Perform steps to allow the user to swap to a different game.
+        /// </summary>
+        private void SwapGame_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            // If any walkmeshes are active, remove them.
+            if (OnRims.Any()) RemoveAll_Executed(this, null);
+
+            // Reset values.
+            OffRims.Clear();
+            SelectedGame = DEFAULT;
+            ShowGameButtons();
+        }
+
+        /// <summary>
+        /// Show the game selection button panel and hide the selected game panel.
+        /// </summary>
+        private void ShowGameButtons()
+        {
+            pnlSelectedGame.Visibility = Visibility.Collapsed;
+            pnlSelectGame.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Swap Game can execute if the Selected Game panel is visible (i.e., a game is selected).
+        /// </summary>
+        private void SwapGame_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = pnlSelectedGame.Visibility == Visibility.Visible;
+        }
+
+        #endregion // END REGION Swap Game Methods
+
         #region Add Polygon Methods
 
         /// <summary>
@@ -1019,18 +1048,18 @@ namespace WalkmeshVisualizerWpf.Views
             IsBusy = true;
 
             // Move the clicked item from OFF to ON.
-            var name = (string)(sender as ListViewItem).Content;
-            _ = OffNames.Remove(name);
-            var sorted = OnNames.ToList();
-            sorted.Add(name);
+            var rim = (RimModel)(sender as ListViewItem).Content;
+            _ = OffRims.Remove(rim);
+            var sorted = OnRims.ToList();
+            sorted.Add(rim);
 
             // Sort the ON list and update collection.
             sorted.Sort();
-            OnNames = new ObservableCollection<string>(sorted);
+            OnRims = new ObservableCollection<RimModel>(sorted);
 
             // Start worker to add polygons to the canvas.
             _ = content.Focus();
-            AddPolyWorker.RunWorkerAsync(name);
+            AddPolyWorker.RunWorkerAsync(rim);
         }
 
         /// <summary>
@@ -1039,7 +1068,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void AddPolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             PointClicked = false;   // hide point
-            var rimToAdd = (string)e.Argument;  // grab rim name
+            var rimToAdd = (RimModel)e.Argument;  // grab rim info
 
             BuildNewWalkmeshes();
 
@@ -1054,10 +1083,10 @@ namespace WalkmeshVisualizerWpf.Views
         private void BuildNewWalkmeshes()
         {
             // Build unbuilt RIM walkmeshes.
-            var unbuilt = OnNames.Where(n => !RimPolyLookup.ContainsKey(n)).ToList();
+            var unbuilt = OnRims.Where(n => !RimPolyLookup.ContainsKey(n.FileName)).ToList();
             for (var i = 0; i < unbuilt.Count; i++)
             {
-                var name = unbuilt[i];
+                var name = unbuilt[i].FileName;
 
                 // Select all faces from mesh.
                 var allfaces = RimWoksLookup[name].SelectMany(w => w.Faces).ToList();
@@ -1104,7 +1133,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             // Determine size of canvas and offset.
             var woks = RimWoksLookup
-                .Where(kvp => OnNames.Contains(kvp.Key))
+                .Where(kvp => OnRims.Any(r => r.FileName == kvp.Key))
                 .SelectMany(kvp => kvp.Value);
 
             // Do nothing if there is no visible walkmesh.
@@ -1131,18 +1160,19 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Add or make visible all faces in the newly active walkmesh.
         /// </summary>
-        private void AddWalkmeshToCanvas(string rimToAdd)
+        //private void AddWalkmeshToCanvas(string rimToAdd)
+        private void AddWalkmeshToCanvas(RimModel rimToAdd)
         {
             // Determine next brush to use.
             var brushChanged = true;
             Brush brush;
-            if (RimToBrushUsed.ContainsKey(rimToAdd))
+            if (RimToBrushUsed.ContainsKey(rimToAdd.FileName))
             {
                 // If added to the canvas before, find most frequent brushes.
                 var max = PolyBrushCount.Where(kvp => kvp.Value == PolyBrushCount.Values.Max()).ToDictionary(kvp => kvp.Key);
 
                 // If not all brushes are equal AND last used brush is in max frequency, get a new brush.
-                if (max.Count != PolyBrushCount.Count && max.ContainsKey(RimToBrushUsed[rimToAdd]))
+                if (max.Count != PolyBrushCount.Count && max.ContainsKey(RimToBrushUsed[rimToAdd.FileName]))
                 {
                     brush = GetNextBrush();
                     PolyBrushCount[brush]++;
@@ -1150,7 +1180,7 @@ namespace WalkmeshVisualizerWpf.Views
                 // Else, don't change the brush.
                 else
                 {
-                    brush = RimToBrushUsed[rimToAdd];
+                    brush = RimToBrushUsed[rimToAdd.FileName];
                     brushChanged = false;
                     PolyBrushCount[brush]++;
                 }
@@ -1162,20 +1192,21 @@ namespace WalkmeshVisualizerWpf.Views
             }
 
             // Remember which brush was used.
-            if (RimToBrushUsed.ContainsKey(rimToAdd))
+            rimToAdd.MeshColor = brush;
+            if (RimToBrushUsed.ContainsKey(rimToAdd.FileName))
             {
-                RimToBrushUsed[rimToAdd] = brush;
+                RimToBrushUsed[rimToAdd.FileName] = brush;
             }
             else
             {
-                RimToBrushUsed.Add(rimToAdd, brush);
+                RimToBrushUsed.Add(rimToAdd.FileName, brush);
             }
 
             // Add all surfaces to the canvas.
-            var polygons = RimPolyLookup[rimToAdd].ToList();    // walkable
-            var unpolygons = RimOutlinePolyLookup[rimToAdd].ToList();   // non-walkable
+            var polygons = RimPolyLookup[rimToAdd.FileName].ToList();    // walkable
+            var unpolygons = RimOutlinePolyLookup[rimToAdd.FileName].ToList();   // non-walkable
             var i = 0;
-            if (RimPolysCreated.Contains(rimToAdd))
+            if (RimPolysCreated.Contains(rimToAdd.FileName))
             {
                 if (brushChanged)
                 {
@@ -1235,9 +1266,9 @@ namespace WalkmeshVisualizerWpf.Views
             }
 
             // Remember that the polygons have been added to the canvas.
-            if (!RimPolysCreated.Contains(rimToAdd))
+            if (!RimPolysCreated.Contains(rimToAdd.FileName))
             {
-                RimPolysCreated.Add(rimToAdd);
+                RimPolysCreated.Add(rimToAdd.FileName);
             }
         }
 
@@ -1262,18 +1293,18 @@ namespace WalkmeshVisualizerWpf.Views
             IsBusy = true;
 
             // Move the clicked item from ON to OFF.
-            var name = (string)(sender as ListViewItem).Content;
-            _ = OnNames.Remove(name);
-            var sorted = OffNames.ToList();
-            sorted.Add(name);
+            var rim = (RimModel)(sender as ListViewItem).Content;
+            _ = OnRims.Remove(rim);
+            var sorted = OffRims.ToList();
+            sorted.Add(rim);
 
             // Sort the OFF list and update collection.
             sorted.Sort();
-            OffNames = new ObservableCollection<string>(sorted);
+            OffRims = new ObservableCollection<RimModel>(sorted);
 
             // Start worker to remove polygons from the canvas.
             _ = content.Focus();
-            RemovePolyWorker.RunWorkerAsync(name);
+            RemovePolyWorker.RunWorkerAsync(rim);
         }
 
         /// <summary>
@@ -1282,10 +1313,10 @@ namespace WalkmeshVisualizerWpf.Views
         private void RemovePolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             PointClicked = false;   // hide point
-            var rimToRemove = (string)e.Argument;   // grab rim name
+            var rimToRemove = (RimModel)e.Argument;   // grab rim info
 
             //DeleteWalkmeshFromCanvas(rimToRemove);
-            RemoveWalkmeshFromCanvas(rimToRemove);
+            RemoveWalkmeshFromCanvas(rimToRemove.FileName);
 
             ResizeCanvas();
         }
@@ -1366,16 +1397,16 @@ namespace WalkmeshVisualizerWpf.Views
             PointClicked = false;   // hide point
 
             // Move all ON names to the OFF collection.
-            foreach (var name in OnNames)
+            foreach (var rim in OnRims)
             {
-                OffNames.Add(name);
+                OffRims.Add(rim);
             }
-            OnNames.Clear();
+            OnRims.Clear();
 
             // Sort the OFF collection.
-            var sorted = OffNames.ToList();
+            var sorted = OffRims.ToList();
             sorted.Sort();
-            OffNames = new ObservableCollection<string>(sorted);
+            OffRims = new ObservableCollection<RimModel>(sorted);
 
             // Hide all polygons in the canvas.
             content.Dispatcher.Invoke(() =>
@@ -1398,7 +1429,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemoveAll_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = !IsBusy && (OnNames?.Any() ?? false);
+            e.CanExecute = !IsBusy && (OnRims?.Any() ?? false);
         }
 
         #endregion // END REGION Remove All Methods
@@ -1411,7 +1442,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void ClearCache_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             IsBusy = true;
-            OnNames.Clear();
+            OnRims.Clear();
             _ = content.Focus();
             ClearCacheWorker.RunWorkerAsync();
         }
@@ -1421,7 +1452,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void ClearCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = (!IsBusy) && (!OnNames?.Any() ?? false) && (RimPolysCreated?.Any() ?? false);
+            e.CanExecute = (!IsBusy) && (!OnRims?.Any() ?? false) && (RimPolysCreated?.Any() ?? false);
         }
 
         /// <summary>
@@ -1462,7 +1493,7 @@ namespace WalkmeshVisualizerWpf.Views
 
             // Clear the canvas.
             Application.Current.Dispatcher.Invoke(() =>
-                { content.Children.Clear(); });
+            { content.Children.Clear(); });
         }
 
         #endregion // END REGION Clear Cache Methods
@@ -1482,7 +1513,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = PointClicked && (OnNames?.Any() ?? false);
+            e.CanExecute = PointClicked && (OnRims?.Any() ?? false);
         }
 
         /// <summary>
@@ -1492,9 +1523,10 @@ namespace WalkmeshVisualizerWpf.Views
         {
             // Search walkmeshes for walkable coordinates at LastModuleCoords
             var matching = new List<string>();
-            foreach (var rimKvp in RimWoksLookup)
+            var rimwoks = RimWoksLookup.Where(kvp => CurrentGame.Rims.Any(xr => xr.FileName == kvp.Key));
+            foreach (var rimKvp in rimwoks)
             {
-                var displayed = OnNames.Contains(rimKvp.Key) ? "(displayed)" : "";
+                var displayed = OnRims.Any(r => r.FileName == rimKvp.Key) ? "(displayed)" : "";
                 foreach (var wok in rimKvp.Value)
                 {
                     if (wok.ContainsWalkablePoint((float)LastModuleCoords.X, (float)LastModuleCoords.Y))

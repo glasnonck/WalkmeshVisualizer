@@ -61,7 +61,9 @@
     </ApplicationDefinition>
     <Compile Include="Helpers\ExtensionMethods.cs" />
     <Compile Include="Models\GameData.cs" />
+    <Compile Include="Models\XmlGameData.cs" />
     <Compile Include="Models\ModuleWalkmesh.cs" />
+    <Compile Include="Models\RimModel.cs" />
     <Compile Include="Views\HelpTextWindow.xaml.cs">
       <DependentUpon>HelpTextWindow.xaml</DependentUpon>
     </Compile>
@@ -69,6 +71,9 @@
     <Compile Include="Helpers\Converters.cs" />
     <Compile Include="Views\MatchingWindow.xaml.cs">
       <DependentUpon>MatchingWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\VisualizerWindow.xaml.cs">
+      <DependentUpon>VisualizerWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="Views\HelpText.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -91,6 +96,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\MatchingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VisualizerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -127,7 +136,11 @@
       <Name>ZoomAndPan</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Resources\GameData.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icon.png" />
   </ItemGroup>

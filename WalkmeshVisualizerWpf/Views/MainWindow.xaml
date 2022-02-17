@@ -357,6 +357,11 @@
                             </Style>
                         </Canvas.Resources>
 
+                        <!--
+                        This Ellipse and StackPanel act as the point and text field for users to check map coordinates.
+                        To maintain these data bindings, they will be saved in case the canvas is cleared.
+                        If a module is added or removed, both will be hidden using the PointClicked boolean.
+                        -->
                         <Ellipse
                             x:Name="walkmeshPoint"
                             Width="1" Height="1" Fill="Black"

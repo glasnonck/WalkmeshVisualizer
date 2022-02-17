@@ -11,16 +11,24 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using WalkmeshVisualizerWpf.Helpers;
 
 namespace WalkmeshCompareWpf.Models
 {
     public class ModuleWalkmesh : INotifyPropertyChanged
     {
+        #region Fields
+
         private string rimName;
         private string commonName;
+        private Brush meshBrush;
         private ObservableCollection<WOK> walkmeshes;
         private ObservableCollection<Polygon> walkablePolygons;
         private ObservableCollection<Polygon> nonWalkablePolygons;
+
+        #endregion
+
+        #region Properties
 
         public string RimName
         {
@@ -32,6 +40,12 @@ namespace WalkmeshCompareWpf.Models
         {
             get => commonName;
             set => SetField(ref commonName, value);
+        }
+
+        public Brush MeshBrush
+        {
+            get => meshBrush;
+            set => SetField(ref meshBrush, value);
         }
 
         public ObservableCollection<WOK> Walkmeshes
@@ -52,12 +66,40 @@ namespace WalkmeshCompareWpf.Models
             set => SetField(ref nonWalkablePolygons, value);
         }
 
+        #endregion
+
+        #region Methods
+
         public void CreatePolygons(BackgroundWorker bw)
         {
             // Return if polygons already created.
-            if (WalkablePolygons.Any()) return;
+            if (WalkablePolygons.Any() || NonWalkablePolygons.Any()) return;
 
-            //
+            // Select all faces from mesh.
+            var count = 0;
+            var allFaces = Walkmeshes.SelectMany(w => w.Faces).ToList();
+            allFaces.ForEach((WOK.Face f) =>
+            {
+                bw.ReportProgress(100 * count++ / allFaces.Count);
+                var points = f.ToPoints();
+
+                // Create polygons, sorted based on walkability.
+                if (f.IsWalkable)
+                {
+                    WalkablePolygons.Add(new Polygon
+                    {
+                        Points = new PointCollection(points)
+                    });
+                }
+                else
+                {
+                    NonWalkablePolygons.Add(new Polygon
+                    {
+                        Points = new PointCollection(points),
+                        StrokeThickness = .05
+                    });
+                }
+            });
         }
 
         public void SetPolygonVisibility(Visibility visibility, BackgroundWorker bw)
@@ -100,6 +142,8 @@ namespace WalkmeshCompareWpf.Models
             WalkablePolygons.Clear();
             NonWalkablePolygons.Clear();
         }
+
+        #endregion
 
         #region INotifyPropertyChanged Implementation
 

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Games>
+    <Game Name="KotOR 1">
+        <Rims>
+            <Rim FileName="danm13" Planet="Dantooine" CommonName="Jedi Enclave" />
+            <Rim FileName="danm14aa" Planet="Dantooine" CommonName="Courtyard" />
+            <Rim FileName="danm14ab" Planet="Dantooine" CommonName="Matale Grounds" />
+            <Rim FileName="danm14ac" Planet="Dantooine" CommonName="Grove" />
+            <Rim FileName="danm14ad" Planet="Dantooine" CommonName="Sandral Grounds" />
+            <Rim FileName="danm14ae" Planet="Dantooine" CommonName="Crystal Cave" />
+            <Rim FileName="danm15" Planet="Dantooine" CommonName="Ruins" />
+            <Rim FileName="danm16" Planet="Dantooine" CommonName="Sandral Estate" />
+            <Rim FileName="ebo_m12aa" Planet="Ebon Hawk" CommonName="Interior" />
+            <Rim FileName="ebo_m40aa" Planet="Ebon Hawk" CommonName="Lev Game Plan" />
+            <Rim FileName="ebo_m40ad" Planet="Ebon Hawk" CommonName="Escape from Leviathan" />
+            <Rim FileName="ebo_m41aa" Planet="Ebon Hawk" CommonName="Lehon Hawk" />
+            <Rim FileName="ebo_m46ab" Planet="Ebon Hawk" CommonName="Mystery Box" />
+            <Rim FileName="end_m01aa" Planet="Endar Spire" CommonName="Command Module" />
+            <Rim FileName="end_m01ab" Planet="Endar Spire" CommonName="Starboard Section" />
+            <Rim FileName="kas_m22aa" Planet="Kashyyyk" CommonName="Czerka Landing Port" />
+            <Rim FileName="kas_m22ab" Planet="Kashyyyk" CommonName="Great Walkway" />
+            <Rim FileName="kas_m23aa" Planet="Kashyyyk" CommonName="Village of Rwookrrorro" />
+            <Rim FileName="kas_m23ab" Planet="Kashyyyk" CommonName="Woorwill's Home" />
+            <Rim FileName="kas_m23ac" Planet="Kashyyyk" CommonName="Worrroznor's Home" />
+            <Rim FileName="kas_m23ad" Planet="Kashyyyk" CommonName="Chieftain's Hall" />
+            <Rim FileName="kas_m24aa" Planet="Kashyyyk" CommonName="Upper Shadowlands" />
+            <Rim FileName="kas_m25aa" Planet="Kashyyyk" CommonName="Lower Shadowlands" />
+            <Rim FileName="korr_m33aa" Planet="Korriban" CommonName="Dreshdae" />
+            <Rim FileName="korr_m33ab" Planet="Korriban" CommonName="Sith Academy Entrance" />
+            <Rim FileName="korr_m34aa" Planet="Korriban" CommonName="Shyrack Caves" />
+            <Rim FileName="korr_m35aa" Planet="Korriban" CommonName="Sith Academy" />
+            <Rim FileName="korr_m36aa" Planet="Korriban" CommonName="Valley of Dark Lords" />
+            <Rim FileName="korr_m37aa" Planet="Korriban" CommonName="Tomb of Ajunta Pall" />
+            <Rim FileName="korr_m38aa" Planet="Korriban" CommonName="Tomb of Marka Ragnos" />
+            <Rim FileName="korr_m38ab" Planet="Korriban" CommonName="Tomb of Tulak Hord" />
+            <Rim FileName="korr_m39aa" Planet="Korriban" CommonName="Tomb of Naga Sadow" />
+            <Rim FileName="lev_m40aa" Planet="Leviathan" CommonName="Prison Block" />
+            <Rim FileName="lev_m40ab" Planet="Leviathan" CommonName="Command Deck" />
+            <Rim FileName="lev_m40ac" Planet="Leviathan" CommonName="Hangar" />
+            <Rim FileName="lev_m40ad" Planet="Leviathan" CommonName="Bridge" />
+            <Rim FileName="liv_m99aa" Planet="Yavin IV" CommonName="Station" />
+            <Rim FileName="m12ab" Planet="Ebon Hawk" CommonName="Fighter Skirmish" />
+            <Rim FileName="manm26aa" Planet="Manaan" CommonName="Ahto West" />
+            <Rim FileName="manm26ab" Planet="Manaan" CommonName="Ahto East" />
+            <Rim FileName="manm26ac" Planet="Manaan" CommonName="West Central" />
+            <Rim FileName="manm26ad" Planet="Manaan" CommonName="Docking Bay" />
+            <Rim FileName="manm26ae" Planet="Manaan" CommonName="East Central" />
+            <Rim FileName="manm26mg" Planet="Manaan" CommonName="Swoop Track" />
+            <Rim FileName="manm27aa" Planet="Manaan" CommonName="Sith Base" />
+            <Rim FileName="manm28aa" Planet="Manaan" CommonName="Hrakert Station" />
+            <Rim FileName="manm28ab" Planet="Manaan" CommonName="Sea Floor" />
+            <Rim FileName="manm28ac" Planet="Manaan" CommonName="Kolto Control" />
+            <Rim FileName="manm28ad" Planet="Manaan" CommonName="Hrakert Rift" />
+            <Rim FileName="sta_m45aa" Planet="Star Forge" CommonName="Deck 1" />
+            <Rim FileName="sta_m45ab" Planet="Star Forge" CommonName="Deck 2" />
+            <Rim FileName="sta_m45ac" Planet="Star Forge" CommonName="Command Center" />
+            <Rim FileName="sta_m45ad" Planet="Star Forge" CommonName="Viewing Platform" />
+            <Rim FileName="stunt_00" Planet="Cutscene" CommonName="Dream Sequence" />
+            <Rim FileName="stunt_03a" Planet="Cutscene" CommonName="Taris Destruction Order" />
+            <Rim FileName="stunt_06" Planet="Cutscene" CommonName="Taris Destruction Update" />
+            <Rim FileName="stunt_07" Planet="Cutscene" CommonName="Escape from Taris" />
+            <Rim FileName="stunt_12" Planet="Cutscene" CommonName="Calo Nord is Alive" />
+            <Rim FileName="stunt_14" Planet="Cutscene" CommonName="Darth Bandon Recruited" />
+            <Rim FileName="stunt_16" Planet="Cutscene" CommonName="My Old Mentor" />
+            <Rim FileName="stunt_18" Planet="Cutscene" CommonName="Bastila's Torture" />
+            <Rim FileName="stunt_19" Planet="Cutscene" CommonName="Jaw Drop" />
+            <Rim FileName="stunt_31b" Planet="Cutscene" CommonName="Revan Reveal" />
+            <Rim FileName="stunt_34" Planet="Cutscene" CommonName="Star Forge Arrival" />
+            <Rim FileName="stunt_35" Planet="Cutscene" CommonName="Lehon Disruptor Field" />
+            <Rim FileName="stunt_42" Planet="Cutscene" CommonName="Star Forge Plan LS" />
+            <Rim FileName="stunt_44" Planet="Cutscene" CommonName="Star Forge Plan DS" />
+            <Rim FileName="stunt_50a" Planet="Cutscene" CommonName="Green Squadron" />
+            <Rim FileName="stunt_51a" Planet="Cutscene" CommonName="Bastila Destroys Fleet" />
+            <Rim FileName="stunt_54a" Planet="Cutscene" CommonName="Republic Doomed" />
+            <Rim FileName="stunt_55a" Planet="Cutscene" CommonName="All Hail Lord Revan" />
+            <Rim FileName="stunt_56a" Planet="Cutscene" CommonName="Star Forge Destroyed" />
+            <Rim FileName="stunt_57" Planet="Cutscene" CommonName="Sith Defeated" />
+            <Rim FileName="tar_m02aa" Planet="Taris" CommonName="Upper South Apartments" />
+            <Rim FileName="tar_m02ab" Planet="Taris" CommonName="Upper City North" />
+            <Rim FileName="tar_m02ac" Planet="Taris" CommonName="Upper City South" />
+            <Rim FileName="tar_m02ad" Planet="Taris" CommonName="Upper North Apartments" />
+            <Rim FileName="tar_m02ae" Planet="Taris" CommonName="Upper City Cantina" />
+            <Rim FileName="tar_m02af" Planet="Taris" CommonName="Hideout" />
+            <Rim FileName="tar_m03aa" Planet="Taris" CommonName="Lower City" />
+            <Rim FileName="tar_m03ab" Planet="Taris" CommonName="Lower West Apartments" />
+            <Rim FileName="tar_m03ad" Planet="Taris" CommonName="Lower East Apartments" />
+            <Rim FileName="tar_m03ae" Planet="Taris" CommonName="Javyar's Cantina" />
+            <Rim FileName="tar_m03af" Planet="Taris" CommonName="Swoop Platform" />
+            <Rim FileName="tar_m03mg" Planet="Taris" CommonName="Swoop Track" />
+            <Rim FileName="tar_m04aa" Planet="Taris" CommonName="Undercity" />
+            <Rim FileName="tar_m05aa" Planet="Taris" CommonName="Lower Sewers" />
+            <Rim FileName="tar_m05ab" Planet="Taris" CommonName="Upper Sewers" />
+            <Rim FileName="tar_m08aa" Planet="Taris" CommonName="Davik's Estate" />
+            <Rim FileName="tar_m09aa" Planet="Taris" CommonName="Sith Base" />
+            <Rim FileName="tar_m09ab" Planet="Taris" CommonName="Governor Office" />
+            <Rim FileName="tar_m10aa" Planet="Taris" CommonName="Vulkar Base" />
+            <Rim FileName="tar_m10ab" Planet="Taris" CommonName="Spice Lab" />
+            <Rim FileName="tar_m10ac" Planet="Taris" CommonName="Garage" />
+            <Rim FileName="tar_m11aa" Planet="Taris" CommonName="Bek Base" />
+            <Rim FileName="tar_m11ab" Planet="Taris" CommonName="Gadon's Office" />
+            <Rim FileName="tat_m17aa" Planet="Tatooine" CommonName="Anchorhead" />
+            <Rim FileName="tat_m17ab" Planet="Tatooine" CommonName="Docking Bay" />
+            <Rim FileName="tat_m17ac" Planet="Tatooine" CommonName="Droid Shop" />
+            <Rim FileName="tat_m17ad" Planet="Tatooine" CommonName="Hunting Lodge" />
+            <Rim FileName="tat_m17ae" Planet="Tatooine" CommonName="Swoop Registration" />
+            <Rim FileName="tat_m17af" Planet="Tatooine" CommonName="Cantina" />
+            <Rim FileName="tat_m17ag" Planet="Tatooine" CommonName="Czerka Office" />
+            <Rim FileName="tat_m17mg" Planet="Tatooine" CommonName="Swoop Track" />
+            <Rim FileName="tat_m18aa" Planet="Tatooine" CommonName="Dune Sea" />
+            <Rim FileName="tat_m18ab" Planet="Tatooine" CommonName="Sand People Territory" />
+            <Rim FileName="tat_m18ac" Planet="Tatooine" CommonName="Eastern Dune Sea" />
+            <Rim FileName="tat_m20aa" Planet="Tatooine" CommonName="Sand People Enclave" />
+            <Rim FileName="unk_m41aa" Planet="Unknown World" CommonName="Central Beach" />
+            <Rim FileName="unk_m41ab" Planet="Unknown World" CommonName="South Beach" />
+            <Rim FileName="unk_m41ac" Planet="Unknown World" CommonName="North Beach" />
+            <Rim FileName="unk_m41ad" Planet="Unknown World" CommonName="Temple Exterior" />
+            <Rim FileName="unk_m42aa" Planet="Unknown World" CommonName="Elder Settlement" />
+            <Rim FileName="unk_m43aa" Planet="Unknown World" CommonName="Rakatan Settlement" />
+            <Rim FileName="unk_m44aa" Planet="Unknown World" CommonName="Temple Main Floor" />
+            <Rim FileName="unk_m44ab" Planet="Unknown World" CommonName="Temple Catacombs" />
+            <Rim FileName="unk_m44ac" Planet="Unknown World" CommonName="Temple Summit" />
+        </Rims>
+    </Game>
+    <Game Name="KotOR 2">
+        <Rims>
+            <Rim FileName="001ebo" Planet="Prologue" CommonName="Interior" />
+            <Rim FileName="002ebo" Planet="Prologue" CommonName="Exterior Hull" />
+            <Rim FileName="003ebo" Planet="Ebon Hawk" CommonName="Interior" />
+            <Rim FileName="004ebo" Planet="Ebon Hawk" CommonName="Red Eclipse Invasion" />
+            <Rim FileName="005ebo" Planet="Ebon Hawk" CommonName="Escape from Peragus" />
+            <Rim FileName="006ebo" Planet="Ebon Hawk" CommonName="Kreia Leaves" />
+            <Rim FileName="007ebo" Planet="Ebon Hawk" CommonName="Goto's Yacht Destroyed" />
+            <Rim FileName="101per" Planet="Peragus" CommonName="Administration Level" />
+            <Rim FileName="102per" Planet="Peragus" CommonName="Mining Tunnels" />
+            <Rim FileName="103per" Planet="Peragus" CommonName="Fuel Depot" />
+            <Rim FileName="104per" Planet="Peragus" CommonName="Asteroid Exterior" />
+            <Rim FileName="105per" Planet="Peragus" CommonName="Dormitories" />
+            <Rim FileName="106per" Planet="Peragus" CommonName="Hangar Bay" />
+            <Rim FileName="107per" Planet="Peragus" CommonName="Turret Minigame" />
+            <Rim FileName="151har" Planet="Harbinger" CommonName="Command Deck" />
+            <Rim FileName="152har" Planet="Harbinger" CommonName="Crew Quarters" />
+            <Rim FileName="153har" Planet="Harbinger" CommonName="Engine Deck" />
+            <Rim FileName="154har" Planet="Harbinger" CommonName="Command Deck (Sion)" />
+            <Rim FileName="201tel" Planet="Citadel Station" CommonName="Dock Module" />
+            <Rim FileName="202tel" Planet="Citadel Station" CommonName="Entertainment Module" />
+            <Rim FileName="203tel" Planet="Citadel Station" CommonName="Residential East" />
+            <Rim FileName="204tel" Planet="Citadel Station" CommonName="Residential West" />
+            <Rim FileName="205tel" Planet="Citadel Station" CommonName="Cutscene with Carth Onasi" />
+            <Rim FileName="207tel" Planet="Citadel Station" CommonName="Cantina" />
+            <Rim FileName="208tel" Planet="Citadel Station" CommonName="Bumani Exchange Corp." />
+            <Rim FileName="209tel" Planet="Citadel Station" CommonName="Czerka Offices" />
+            <Rim FileName="211tel" Planet="Citadel Station" CommonName="Swoop Track" />
+            <Rim FileName="220tel" Planet="Citadel Station" CommonName="(ALT) Residential West" />
+            <Rim FileName="221tel" Planet="Citadel Station" CommonName="(ALT) Residential East" />
+            <Rim FileName="222tel" Planet="Citadel Station" CommonName="(ALT) Entertainment Module" />
+            <Rim FileName="231tel" Planet="Telos" CommonName="Restoration Zone" />
+            <Rim FileName="232tel" Planet="Telos" CommonName="Underground Base" />
+            <Rim FileName="233tel" Planet="Telos" CommonName="Czerka Site" />
+            <Rim FileName="261tel" Planet="Telos" CommonName="Polar Plateau" />
+            <Rim FileName="262tel" Planet="Telos" CommonName="Secret Academy" />
+            <Rim FileName="301nar" Planet="Nar Shaddaa" CommonName="Refugee Landing Pad" />
+            <Rim FileName="302nar" Planet="Nar Shaddaa" CommonName="Refugee Quad" />
+            <Rim FileName="303nar" Planet="Nar Shaddaa" CommonName="Docks" />
+            <Rim FileName="304nar" Planet="Nar Shaddaa" CommonName="Jekk'Jekk Tarr" />
+            <Rim FileName="305nar" Planet="Nar Shaddaa" CommonName="Jekk'Jekk Tarr Tunnels" />
+            <Rim FileName="306nar" Planet="Nar Shaddaa" CommonName="Entertainment Promenade" />
+            <Rim FileName="351nar" Planet="Nar Shaddaa" CommonName="Goto's Yacht" />
+            <Rim FileName="352nar" Planet="Nar Shaddaa" CommonName="Bounty Hunter Cutscene" />
+            <Rim FileName="371nar" Planet="Nar Shaddaa" CommonName="Swoop Track" />
+            <Rim FileName="401dxn" Planet="Dxun" CommonName="Jungle Landing" />
+            <Rim FileName="402dxn" Planet="Dxun" CommonName="Jungle" />
+            <Rim FileName="403dxn" Planet="Dxun" CommonName="Mandalorian Ruins" />
+            <Rim FileName="404dxn" Planet="Dxun" CommonName="Mandalorian Cache" />
+            <Rim FileName="410dxn" Planet="Dxun" CommonName="Jungle Tomb" />
+            <Rim FileName="411dxn" Planet="Dxun" CommonName="Sith Tomb" />
+            <Rim FileName="421dxn" Planet="Dxun" CommonName="Blockade Turret" />
+            <Rim FileName="501ond" Planet="Onderon" CommonName="Iziz Spaceport" />
+            <Rim FileName="502ond" Planet="Onderon" CommonName="Iziz Merchant Quarter" />
+            <Rim FileName="503ond" Planet="Onderon" CommonName="Iziz Cantina" />
+            <Rim FileName="504ond" Planet="Onderon" CommonName="Sky Ramp" />
+            <Rim FileName="505ond" Planet="Onderon" CommonName="Turret Minigame" />
+            <Rim FileName="506ond" Planet="Onderon" CommonName="Royal Palace" />
+            <Rim FileName="510ond" Planet="Onderon" CommonName="Swoop Track" />
+            <Rim FileName="511ond" Planet="Onderon" CommonName="(ALT) Merchant Quarter" />
+            <Rim FileName="512ond" Planet="Onderon" CommonName="(ALT) Western Square" />
+            <Rim FileName="601dan" Planet="Dantooine" CommonName="Khoonda Plains" />
+            <Rim FileName="602dan" Planet="Dantooine" CommonName="Khoonda" />
+            <Rim FileName="603dan" Planet="Dantooine" CommonName="Khoonda Plains Cutscene" />
+            <Rim FileName="604dan" Planet="Dantooine" CommonName="Crystal Cave" />
+            <Rim FileName="605dan" Planet="Dantooine" CommonName="Enclave Courtyard" />
+            <Rim FileName="610dan" Planet="Dantooine" CommonName="Enclave Sublevel" />
+            <Rim FileName="650dan" Planet="Dantooine" CommonName="Rebuilt Jedi Enclave" />
+            <Rim FileName="701kor" Planet="Korriban" CommonName="Valley of Dark Lords" />
+            <Rim FileName="702kor" Planet="Korriban" CommonName="Sith Academy" />
+            <Rim FileName="710kor" Planet="Korriban" CommonName="Shyrack Cave" />
+            <Rim FileName="711kor" Planet="Korriban" CommonName="Secret Tomb" />
+            <Rim FileName="851nih" Planet="Ravager" CommonName="Command Deck" />
+            <Rim FileName="852nih" Planet="Ravager" CommonName="Bridge" />
+            <Rim FileName="853nih" Planet="Ravager" CommonName="Nihilus/Visas Cutscene" />
+            <Rim FileName="901mal" Planet="Malachor V" CommonName="Surface" />
+            <Rim FileName="902mal" Planet="Malachor V" CommonName="Depths" />
+            <Rim FileName="903mal" Planet="Malachor V" CommonName="Trayus Academy" />
+            <Rim FileName="904mal" Planet="Malachor V" CommonName="Trayus Core" />
+            <Rim FileName="905mal" Planet="Malachor V" CommonName="Trayus Crescent" />
+            <Rim FileName="906mal" Planet="Malachor V" CommonName="Trayus Proving Grounds " />
+            <Rim FileName="907mal" Planet="Malachor V" CommonName="Kreia/Sion Cutscene" />
+            <Rim FileName="950cor" Planet="Ebon Hawk" CommonName="Escape from Telos Cutscene" />
+        </Rims>
+    </Game>
+</Games>
