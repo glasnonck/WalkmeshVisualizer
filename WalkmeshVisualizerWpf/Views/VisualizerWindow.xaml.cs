@@ -1146,6 +1146,13 @@ namespace WalkmeshVisualizerWpf.Views
             // Reset values.
             OffRims.Clear();
             SelectedGame = DEFAULT;
+
+            // Reset coordinate matches.
+            LeftPointMatches.Clear();
+            RightPointMatches.Clear();
+            BothPointMatches.Clear();
+            LeftClickPoint = RightClickPoint = LastLeftClickModuleCoords = LastRightClickModuleCoords = new Point();
+
             ShowGameButtons();
         }
 
@@ -1638,8 +1645,12 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            if (!LeftClickPointVisible) LeftClickModuleCoords = new Point();
+            if (!RightClickPointVisible) RightClickModuleCoords = new Point();
+
             LastLeftClickModuleCoords = LeftClickModuleCoords;
             LastRightClickModuleCoords = RightClickModuleCoords;
+
             FindMatchingCoords();
         }
 
