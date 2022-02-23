@@ -210,6 +210,27 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _offRims, value);
         }
 
+        private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
+        public ObservableCollection<WalkabilityModel> LeftPointMatches
+        {
+            get => _leftPointMatches;
+            set => SetField(ref _leftPointMatches, value);
+        }
+
+        private ObservableCollection<WalkabilityModel> _rightPointMatches = new ObservableCollection<WalkabilityModel>();
+        public ObservableCollection<WalkabilityModel> RightPointMatches
+        {
+            get => _rightPointMatches;
+            set => SetField(ref _rightPointMatches, value);
+        }
+
+        private ObservableCollection<WalkabilityModel> _bothPointMatches = new ObservableCollection<WalkabilityModel>();
+        public ObservableCollection<WalkabilityModel> BothPointMatches
+        {
+            get => _bothPointMatches;
+            set => SetField(ref _bothPointMatches, value);
+        }
+
         private double _currentProgress;
         public double CurrentProgress
         {
@@ -217,25 +238,60 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _currentProgress, value);
         }
 
-        private bool _pointClicked;
-        public bool PointClicked
+        private bool _leftClickPointVisible;
+        public bool LeftClickPointVisible
         {
-            get => _pointClicked;
-            set => SetField(ref _pointClicked, value);
+            get => _leftClickPointVisible;
+            set => SetField(ref _leftClickPointVisible, value);
         }
 
-        private Point _lastPoint;
-        public Point LastPoint
+        private Point _leftClickPoint;
+        public Point LeftClickPoint
         {
-            get => _lastPoint;
-            set => SetField(ref _lastPoint, value);
+            get => _leftClickPoint;
+            set => SetField(ref _leftClickPoint, value);
         }
 
-        private Point _lastModuleCoords;
-        public Point LastModuleCoords
+        private Point _leftClickModuleCoords;
+        public Point LeftClickModuleCoords
         {
-            get => _lastModuleCoords;
-            set => SetField(ref _lastModuleCoords, value);
+            get => _leftClickModuleCoords;
+            set => SetField(ref _leftClickModuleCoords, value);
+        }
+
+        private Point _lastLeftClickModuleCoords;
+        public Point LastLeftClickModuleCoords
+        {
+            get => _lastLeftClickModuleCoords;
+            set => SetField(ref _lastLeftClickModuleCoords, value);
+        }
+
+        private bool _rightClickPointVisible;
+        public bool RightClickPointVisible
+        {
+            get => _rightClickPointVisible;
+            set => SetField(ref _rightClickPointVisible, value);
+        }
+
+        private Point _rightClickPoint;
+        public Point RightClickPoint
+        {
+            get => _rightClickPoint;
+            set => SetField(ref _rightClickPoint, value);
+        }
+
+        private Point _rightClickModuleCoords;
+        public Point RightClickModuleCoords
+        {
+            get => _rightClickModuleCoords;
+            set => SetField(ref _rightClickModuleCoords, value);
+        }
+
+        private Point _lastRightClickModuleCoords;
+        public Point LastRightClickModuleCoords
+        {
+            get => _lastRightClickModuleCoords;
+            set => SetField(ref _lastRightClickModuleCoords, value);
         }
 
         private bool _isBusy;
@@ -310,20 +366,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (mouseHandlingMode != MouseHandlingMode.None)
             {
-                if (mouseHandlingMode == MouseHandlingMode.Zooming)
-                {
-                    if (mouseButtonDown == MouseButton.Left)
-                    {
-                        // Shift + left-click zooms in on the content.
-                        ZoomIn(origContentMouseDownPoint);
-                    }
-                    else if (mouseButtonDown == MouseButton.Right)
-                    {
-                        // Shift + left-click zooms out from the content.
-                        ZoomOut(origContentMouseDownPoint);
-                    }
-                }
-                else if (mouseHandlingMode == MouseHandlingMode.DragZooming)
+                if (mouseHandlingMode == MouseHandlingMode.DragZooming)
                 {
                     //
                     // When drag-zooming has finished we zoom in on the rectangle that was highlighted
@@ -415,22 +458,108 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void zoomAndPanControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            {
+                if (e.ChangedButton == MouseButton.Left)
+                {
+                    HideLeftClickPoint();
+                }
+                else if (e.ChangedButton == MouseButton.Right)
+                {
+                    HideRightClickPoint();
+                }
+            }
+            else
+            {
+                if (e.ChangedButton == MouseButton.Left)
+                {
+                    HandleLeftDoubleClick(sender, e);
+                }
+                else if (e.ChangedButton == MouseButton.Right)
+                {
+                    HandleRightDoubleClick(sender, e);
+                }
+            }
+
+            UpdatePointMatchRows();
+        }
+
+        private void HideLeftClickPoint()
+        {
+            LeftClickPointVisible = false;
+        }
+
+        private void HideRightClickPoint()
+        {
+            RightClickPointVisible = false;
+        }
+
+        private void UpdatePointMatchRows()
+        {
+            if (LeftClickPointVisible && RightClickPointVisible)
+            {
+                rowLeftMatches.Height = new GridLength(1, GridUnitType.Star);
+                rowRightMatches.Height = new GridLength(1, GridUnitType.Star);
+                rowBothMatches.Height = new GridLength(1, GridUnitType.Star);
+            }
+            else if (LeftClickPointVisible)
+            {
+                rowLeftMatches.Height = new GridLength(1, GridUnitType.Star);
+                rowRightMatches.Height = new GridLength(1, GridUnitType.Auto);
+                rowBothMatches.Height = new GridLength(1, GridUnitType.Auto);
+            }
+            else if (RightClickPointVisible)
+            {
+                rowLeftMatches.Height = new GridLength(1, GridUnitType.Auto);
+                rowRightMatches.Height = new GridLength(1, GridUnitType.Star);
+                rowBothMatches.Height = new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+        /// <summary>
+        /// Handle left double click event.
+        /// </summary>
+        private void HandleLeftDoubleClick(object sender, MouseButtonEventArgs e)
+        {
             var doubleClickPoint = e.GetPosition(content);
             doubleClickPoint.Y = theGrid.Height - doubleClickPoint.Y - .5;
             doubleClickPoint.X -= .5;
-            LastPoint = doubleClickPoint;
+            LeftClickPoint = doubleClickPoint;
 
             doubleClickPoint.X -= LeftOffset;
             doubleClickPoint.Y -= BottomOffset;
-            LastModuleCoords = doubleClickPoint;
+            LeftClickModuleCoords = doubleClickPoint;
 
-            PointClicked = true;
+            LeftClickPointVisible = true;
 
-            content.Children.Remove(walkmeshPoint);
-            _ = content.Children.Add(walkmeshPoint);
+            content.Children.Remove(leftClickEllipse);
+            _ = content.Children.Add(leftClickEllipse);
 
-            content.Children.Remove(pointCoords);
-            _ = content.Children.Add(pointCoords);
+            content.Children.Remove(leftClickCoords);
+            _ = content.Children.Add(leftClickCoords);
+        }
+
+        /// <summary>
+        /// Handle right double click event.
+        /// </summary>
+        private void HandleRightDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var doubleClickPoint = e.GetPosition(content);
+            doubleClickPoint.Y = theGrid.Height - doubleClickPoint.Y - .5;
+            doubleClickPoint.X -= .5;
+            RightClickPoint = doubleClickPoint;
+
+            doubleClickPoint.X -= LeftOffset;
+            doubleClickPoint.Y -= BottomOffset;
+            RightClickModuleCoords = doubleClickPoint;
+
+            RightClickPointVisible = true;
+
+            content.Children.Remove(rightClickEllipse);
+            _ = content.Children.Add(rightClickEllipse);
+
+            content.Children.Remove(rightClickCoords);
+            _ = content.Children.Add(rightClickCoords);
         }
 
         /// <summary>
@@ -879,7 +1008,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void ClearGameData()
         {
-            PointClicked = false;
+            LeftClickPointVisible = false;
+            RightClickPointVisible = false;
             RimNamesLookup.Clear();
             RimWoksLookup.Clear();
             RoomWoksLookup.Clear();
@@ -1067,7 +1197,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void AddPolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            PointClicked = false;   // hide point
+            LeftClickPointVisible = false;  // hide point
+            RightClickPointVisible = false; // hide point
             var rimToAdd = (RimModel)e.Argument;  // grab rim info
 
             BuildNewWalkmeshes();
@@ -1312,7 +1443,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemovePolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            PointClicked = false;   // hide point
+            LeftClickPointVisible = false;  // hide point
+            RightClickPointVisible = false; // hide point
             var rimToRemove = (RimModel)e.Argument;   // grab rim info
 
             //DeleteWalkmeshFromCanvas(rimToRemove);
@@ -1394,7 +1526,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemoveAll_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            PointClicked = false;   // hide point
+            LeftClickPointVisible = false;  // hide point
+            RightClickPointVisible = false; // hide point
 
             // Move all ON names to the OFF collection.
             foreach (var rim in OnRims)
@@ -1505,6 +1638,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            LastLeftClickModuleCoords = LeftClickModuleCoords;
+            LastRightClickModuleCoords = RightClickModuleCoords;
             FindMatchingCoords();
         }
 
@@ -1513,7 +1648,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = PointClicked && (OnRims?.Any() ?? false);
+            e.CanExecute = (LeftClickPointVisible || RightClickPointVisible) && (OnRims?.Any() ?? false);
         }
 
         /// <summary>
@@ -1521,54 +1656,65 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords()
         {
-            // Search walkmeshes for walkable coordinates at LastModuleCoords
-            var matching = new List<string>();
+            // Initialize values and lists used for this code.
+            LeftPointMatches.Clear();
+            RightPointMatches.Clear();
+            BothPointMatches.Clear();
+            bool foundLeftPoint, foundRightPoint;
+            WalkabilityModel left, right;
+            var allRims = OnRims.Concat(OffRims);
+
+            // Determine each rim to see if it contains the active points.
             var rimwoks = RimWoksLookup.Where(kvp => CurrentGame.Rims.Any(xr => xr.FileName == kvp.Key));
             foreach (var rimKvp in rimwoks)
             {
-                var displayed = OnRims.Any(r => r.FileName == rimKvp.Key) ? "(displayed)" : "";
+                foundLeftPoint = foundRightPoint = false;
+                left = right = null;
+
+                // Check each room walkmesh within the rim.
                 foreach (var wok in rimKvp.Value)
                 {
-                    if (wok.ContainsWalkablePoint((float)LastModuleCoords.X, (float)LastModuleCoords.Y))
+                    // Left point.
+                    if (LeftClickPointVisible && !foundLeftPoint &&
+                        wok.FaceAtPoint((float)LeftClickModuleCoords.X, (float)LeftClickModuleCoords.Y) is WOK.Face fl)
                     {
-                        matching.Add($" [w] = {rimKvp.Key} {displayed}");
-                        break;
+                        left = new WalkabilityModel
+                        {
+                            Rim = allRims.First(r => r.FileName == rimKvp.Key),
+                            Walkability = fl.IsWalkable ? "w" : "n",
+                        };
+                        LeftPointMatches.Add(left);
+                        foundLeftPoint = true;
                     }
-                    if (wok.ContainsNonWalkablePoint((float)LastModuleCoords.X, (float)LastModuleCoords.Y))
+
+                    // Right point.
+                    if (RightClickPointVisible && !foundRightPoint &&
+                        wok.FaceAtPoint((float)RightClickModuleCoords.X, (float)RightClickModuleCoords.Y) is WOK.Face fr)
                     {
-                        matching.Add($" [n] = {rimKvp.Key} {displayed}");
+                        right = new WalkabilityModel
+                        {
+                            Rim = allRims.First(r => r.FileName == rimKvp.Key),
+                            Walkability = fr.IsWalkable ? "w" : "n",
+                        };
+                        RightPointMatches.Add(right);
+                        foundRightPoint = true;
+                    }
+
+                    // Both points.
+                    if (foundLeftPoint && foundRightPoint)
+                    {
+                        BothPointMatches.Add(new WalkabilityModel
+                        {
+                            Rim = left.Rim,
+                            Walkability = left.Walkability == right.Walkability
+                                ? left.Walkability  // left and white match
+                                : left.Walkability == "w"
+                                    ? "w|n"         // left walkable, right not
+                                    : "n|w"         // right walkable, left not
+                        });
                         break;
                     }
                 }
-            }
-
-            // Build a string of all the matching modules.
-            var sb = new StringBuilder();
-            _ = sb.AppendLine($"The following modules have a walkmesh face at the point ({LastModuleCoords.X:N2}, {LastModuleCoords.Y:N2}):")
-                  .AppendLine(" [n] = non-walkable")
-                  .AppendLine(" [w] = walkable")
-                  .AppendLine(" - - - - - - - - - - - - - -");
-
-            matching.ForEach((string s) =>
-            {
-                _ = sb.AppendLine(s);
-            });
-
-            // Display matching modules in a new window.
-            var mws = OwnedWindows.OfType<MatchingWindow>();
-            if (mws.Any())
-            {
-                mws.First().UpdateMessage(sb.ToString());
-            }
-            else
-            {
-                var mw = new MatchingWindow(sb.ToString())
-                {
-                    Left = Left + Width + 5,
-                    Top = Top,
-                    Owner = this
-                };
-                mw.Show();
             }
         }
 

@@ -43,6 +43,8 @@
         <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <help:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
         <help:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
+        <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
 
     </Window.Resources>
 
@@ -135,6 +137,233 @@
     </Window.CommandBindings>
 
     <DockPanel>
+        <Expander
+            DockPanel.Dock="Left"
+            Grid.Column="0"
+            ExpandDirection="Right"
+            FontSize="14"
+            >
+            <Expander.Header>
+                <TextBlock Text="Match Coordinates" Margin="0,5">
+                    <TextBlock.LayoutTransform>
+                        <RotateTransform Angle="-90" />
+                    </TextBlock.LayoutTransform>
+                </TextBlock>
+            </Expander.Header>
+
+            <Border 
+                BorderBrush="Black"
+                BorderThickness="0,0,1,0"
+                Padding="0,5"
+                >
+                <Grid Width="300">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" x:Name="rowLeftMatches" />
+                        <RowDefinition Height="*" x:Name="rowRightMatches" />
+                        <RowDefinition Height="*" x:Name="rowBothMatches" />
+                    </Grid.RowDefinitions>
+                    <Grid.Resources>
+                        <Style TargetType="Expander">
+                            <!--<Setter Property="BorderBrush" Value="Black" />-->
+                            <Setter Property="Margin" Value="5,5,5,0" />
+                            <Setter Property="Padding" Value="1" />
+                            <Setter Property="Width" Value="290" />
+                        </Style>
+                        <Style TargetType="ListView">
+                            <Setter Property="Margin" Value="0,5,0,0" />
+                            <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
+                            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+                            <Setter Property="FontSize" Value="12" />
+                        </Style>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="FontSize" Value="12" />
+                            <Setter Property="Foreground" Value="Black" />
+                        </Style>
+                        <Style TargetType="Rectangle" x:Key="colorRectangle">
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="Height" Value="14" />
+                            <Setter Property="Width" Value="14" />
+                            <Setter Property="Fill" Value="{Binding Rim.MeshColor}" />
+                            <Setter Property="Stroke" Value="Black" />
+                            <Setter Property="StrokeThickness" Value="0.5" />
+                        </Style>
+                    </Grid.Resources>
+
+                    <!-- Match coordinates button. -->
+                    <Button
+                        Grid.Row="0"
+                        Content="Match Coords"
+                        Margin="5,0"
+                        Width="290"
+                        Command="{StaticResource Commands.FindMatchingCoords}"
+                        />
+
+                    <!-- No point set text. -->
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="5,5,5,0"
+                        Text="Place a point by double clicking to begin matching walkmesh coordinates."
+                        TextWrapping="Wrap"
+                        Width="290"
+                        >
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource OrInverseBoolToVisibilityMultiConverter}">
+                                <Binding Path="LeftClickPointVisible" />
+                                <Binding Path="RightClickPointVisible" />
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <!-- Modules matching left click point. -->
+                    <Grid x:Name="exLeftClickPoint" Grid.Row="1" Margin="5,5,5,0"
+                          Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                          >
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                            
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5,0">
+                            <Ellipse Height="8" Width="8" Fill="Black" Stroke="Black" Margin="0,0,5,0" />
+                            <TextBlock Text="Black Point" FontWeight="SemiBold" />
+                        </StackPanel>
+                            
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5,0">
+                            <TextBlock Text="(" />
+                            <TextBlock Text="{Binding LastLeftClickModuleCoords.X, StringFormat=N2}" />
+                            <TextBlock Text=", " />
+                            <TextBlock Text="{Binding LastLeftClickModuleCoords.Y, StringFormat=N2}" />
+                            <TextBlock Text=")" />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" x:Name="lvLeftPointMatches" ItemsSource="{Binding LeftPointMatches}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18" Header="">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Rectangle Style="{StaticResource colorRectangle}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="30" Header="">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Walkability}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
+                                    <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
+                                    <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+
+                    <!-- Modules matching right click point. -->
+                    <Grid x:Name="exRightClickPoint" Grid.Row="2" Margin="5,5,5,0"
+                          Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                          >
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5,0">
+                            <Ellipse Height="8" Width="8" Fill="White" Stroke="Black" Margin="0,0,5,0" />
+                            <TextBlock Text="White Point" FontWeight="SemiBold" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5,0">
+                            <TextBlock Text="(" />
+                            <TextBlock Text="{Binding LastRightClickModuleCoords.X, StringFormat=N2}" />
+                            <TextBlock Text=", " />
+                            <TextBlock Text="{Binding LastRightClickModuleCoords.Y, StringFormat=N2}" />
+                            <TextBlock Text=")" />
+                        </StackPanel>
+
+                        <ListView Grid.Row="2" x:Name="lvRightPointMatches" ItemsSource="{Binding RightPointMatches}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18" Header="">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Rectangle Style="{StaticResource colorRectangle}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="30" Header="">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Walkability}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
+                                    <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
+                                    <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+
+                    <!-- Modules matching both left and right click points. -->
+                    <Grid x:Name="exBothPoints" Grid.Row="3" Margin="5,5,5,0">
+                        <Grid.Visibility>
+                            <MultiBinding Converter="{StaticResource AndBoolToVisibilityMultiConverter}">
+                                <Binding Path="LeftClickPointVisible" />
+                                <Binding Path="RightClickPointVisible" />
+                            </MultiBinding>
+                        </Grid.Visibility>
+                        
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5,0">
+                            <Ellipse Height="8" Width="8" Fill="Black" Stroke="Black" Margin="0,0,5,0" />
+                            <Ellipse Height="8" Width="8" Fill="White" Stroke="Black" Margin="0,0,5,0" />
+                            <TextBlock Text="Both Points" FontWeight="SemiBold" />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" x:Name="lvBothPointMatches" ItemsSource="{Binding BothPointMatches}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18" Header="">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Rectangle Style="{StaticResource colorRectangle}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="30" Header="">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Walkability}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
+                                    <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
+                                    <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Expander>
+
         <!-- 
         Grid placed below the zoom and pan control that contains the zoom slider, zoom label and
         some button.
@@ -152,7 +381,8 @@
                 </StackPanel.Resources>
 
                 <Button x:Name="bFindMatchingCoords" Content="Match Coords" Width="90"
-                        Command="{StaticResource Commands.FindMatchingCoords}" />
+                        Command="{StaticResource Commands.FindMatchingCoords}"
+                        Visibility="Collapsed" />
 
                 <ProgressBar
                     x:Name="pbLoading"
@@ -200,11 +430,21 @@
             </StackPanel>
         </Grid>
 
+        <!--<Menu x:Name="Menu" DockPanel.Dock="Top">
+            <Menu.Resources>
+                <Style TargetType="MenuItem">
+                    <Setter Property="FontFamily" Value="Microsoft Sans Serif" />
+                    <Setter Property="FontSize" Value="14" />
+                    <Setter Property="Padding" Value="6,2" />
+                </Style>
+            </Menu.Resources>
+        </Menu>-->
+
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />      <!-- Canvas -->
+                <ColumnDefinition Width="Auto" />   <!-- GridSplitter -->
+                <ColumnDefinition Width="Auto" />   <!-- Options Panel -->
             </Grid.ColumnDefinitions>
 
             <GridSplitter
@@ -318,7 +558,7 @@
                         >
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Width="22">
+                                <GridViewColumn Width="18">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Color" Content="" />
                                     </GridViewColumn.Header>
@@ -346,7 +586,7 @@
                                         <GridViewColumnHeader Tag="Planet" Content="Planet" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
+                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Common" Content="Common Name" />
                                     </GridViewColumn.Header>
@@ -387,7 +627,7 @@
                         >
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Width="22">
+                                <GridViewColumn Width="18">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Color" Content="" />
                                     </GridViewColumn.Header>
@@ -415,7 +655,7 @@
                                         <GridViewColumnHeader Tag="Planet" Content="Planet" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
+                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Common" Content="Common Name" />
                                     </GridViewColumn.Header>
@@ -436,6 +676,7 @@
             -->
             <ScrollViewer
                 x:Name="scroller"
+                Grid.Column="0"
                 CanContentScroll="True"
                 VerticalScrollBarVisibility="Visible"
                 HorizontalScrollBarVisibility="Visible"
@@ -490,17 +731,18 @@
                             If a module is added or removed, both will be hidden using the PointClicked boolean.
                             -->
                             <Ellipse
-                                x:Name="walkmeshPoint"
-                                Width="1" Height="1" Fill="Black"
-                                Visibility="{Binding PointClicked, Converter={StaticResource BoolToVisibilityConverter}}"
-                                Canvas.Left="{Binding LastPoint.X}"
-                                Canvas.Bottom="{Binding LastPoint.Y}"
+                                x:Name="leftClickEllipse"
+                                Fill="Black" Width="1" Height="1"
+                                Stroke="Black" StrokeThickness=".1"
+                                Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Canvas.Left="{Binding LeftClickPoint.X}"
+                                Canvas.Bottom="{Binding LeftClickPoint.Y}"
                                 />
                             <StackPanel
-                                x:Name="pointCoords" Orientation="Horizontal"
-                                Visibility="{Binding PointClicked, Converter={StaticResource BoolToVisibilityConverter}}"
-                                Canvas.Left="{Binding LastPoint.X}"
-                                Canvas.Bottom="{Binding LastPoint.Y}"
+                                x:Name="leftClickCoords" Orientation="Horizontal"
+                                Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Canvas.Left="{Binding LeftClickPoint.X}"
+                                Canvas.Bottom="{Binding LeftClickPoint.Y}"
                                 Margin="0,0,0,0"
                                 >
                                 <StackPanel.RenderTransform>
@@ -513,9 +755,40 @@
                                 </StackPanel.Resources>
 
                                 <TextBlock Text="(" />
-                                <TextBlock Text="{Binding LastModuleCoords.X, StringFormat=N2}" />
+                                <TextBlock Text="{Binding LeftClickModuleCoords.X, StringFormat=N2}" />
                                 <TextBlock Text=", " />
-                                <TextBlock Text="{Binding LastModuleCoords.Y, StringFormat=N2}" />
+                                <TextBlock Text="{Binding LeftClickModuleCoords.Y, StringFormat=N2}" />
+                                <TextBlock Text=")" />
+                            </StackPanel>
+
+                            <Ellipse
+                                x:Name="rightClickEllipse"
+                                Fill="White" Width="1" Height="1"
+                                Stroke="Black" StrokeThickness=".1"
+                                Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Canvas.Left="{Binding RightClickPoint.X}"
+                                Canvas.Bottom="{Binding RightClickPoint.Y}"
+                                />
+                            <StackPanel
+                                x:Name="rightClickCoords" Orientation="Horizontal"
+                                Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Canvas.Left="{Binding RightClickPoint.X}"
+                                Canvas.Bottom="{Binding RightClickPoint.Y}"
+                                Margin="0,0,0,0"
+                                >
+                                <StackPanel.RenderTransform>
+                                    <TranslateTransform X="2" Y="1.5" />
+                                </StackPanel.RenderTransform>
+                                <StackPanel.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontSize" Value="4" />
+                                    </Style>
+                                </StackPanel.Resources>
+
+                                <TextBlock Text="(" />
+                                <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
+                                <TextBlock Text=", " />
+                                <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
                                 <TextBlock Text=")" />
                             </StackPanel>
                         </Canvas>

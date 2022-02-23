@@ -29,6 +29,42 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
     }
 
+    public class AndBoolToVisibilityMultiConverter : IMultiValueConverter
+    {
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+            var combined = true;
+            foreach (var value in values) combined &= (bool)value;
+            return combined ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+    }
+
+    public class OrInverseBoolToVisibilityMultiConverter : IMultiValueConverter
+    {
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+            var combined = false;
+            foreach (var value in values) combined |= (bool)value;
+            return combined ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+    }
+
     [ValueConversion(typeof(bool), typeof(Visibility))]
     public class BoolToVisibilityConverter : IValueConverter
     {

@@ -20,52 +20,47 @@
         <List>
             <ListItem>
                 <Paragraph>
-                    Plus key = zoom in
+                    Pan View = left-drag
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Minus key = zoom out
+                    Zoom In = plus key, mouse wheel up
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Left-drag = panning
+                    Zoom Out = minus key, mouse wheel down
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Shift + left-drag = drag out a rectangle to zoom to
+                    Rectangle Zoom = shift + left-drag
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Backspace = jump back to previous zoom level
+                    Previous Zoom = backspace
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Shift + left-click = zoom in
+                    Set Black Point = double-left-click
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Shift + right-click = zoom out
+                    Set White Point = double-right-click
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Double-left-click = set a point and get coordinates
+                    Clear Black Point = shift + left-double-click
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Mouse wheel up = zoom in
-                </Paragraph>
-            </ListItem>
-            <ListItem>
-                <Paragraph>
-                    Mouse wheel down = zoom out
+                    Clear White Point = shift + right-double-click
                 </Paragraph>
             </ListItem>
         </List>
