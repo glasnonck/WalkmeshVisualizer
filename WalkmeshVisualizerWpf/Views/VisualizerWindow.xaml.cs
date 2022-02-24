@@ -791,7 +791,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK1_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = SelectedGame == K2_NAME || SelectedGame == DEFAULT;
+            e.CanExecute = !IsBusy && (SelectedGame == K2_NAME || SelectedGame == DEFAULT);
         }
 
         /// <summary>
@@ -815,7 +815,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK2_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = SelectedGame == K1_NAME || SelectedGame == DEFAULT;
+            e.CanExecute = !IsBusy && (SelectedGame == K1_NAME || SelectedGame == DEFAULT);
         }
 
         /// <summary>
@@ -852,7 +852,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void LoadCustom_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = SelectedGame == DEFAULT;
+            e.CanExecute = !IsBusy && SelectedGame == DEFAULT;
         }
 
         /// <summary>
@@ -900,55 +900,71 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void GameDataWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            //ClearGameData();
-
-            // Create the KEY file.
-            GameDataWorker.ReportProgress(25);
-            var key = new KEY(Paths.chitin);
-            var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Woks");
-
-            var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
-            if (!thisGameLoaded)
+            try
             {
-                if (Directory.Exists(path))
+                // Create the KEY file.
+                GameDataWorker.ReportProgress(25);
+                var key = new KEY(Paths.chitin);
+                var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Woks");
+
+                var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
+                if (!thisGameLoaded)
                 {
-                    ReadWokFiles(path);
+                    if (Directory.Exists(path))
+                    {
+                        ReadWokFiles(path);
+                    }
+                    else
+                    {
+                        FetchWokFiles(key);
+                        GetRimData(key);
+                    }
                 }
-                else
+
+                // Set up game data.
+                var rimModels = new List<RimModel>();
+                foreach (var xmlrim in CurrentGame.Rims)
                 {
-                    FetchWokFiles(key);
-                    GetRimData(key);
+                    Brush brush = null;
+                    if (RimToBrushUsed.ContainsKey(xmlrim.FileName))
+                        brush = RimToBrushUsed[xmlrim.FileName];
+
+                    rimModels.Add(new RimModel
+                    {
+                        FileName = xmlrim.FileName,
+                        Planet = xmlrim.Planet,
+                        CommonName = xmlrim.CommonName,
+                        MeshColor = brush,
+                    });
                 }
-            }
 
-            // Set up game data.
-            var rimModels = new List<RimModel>();
-            foreach (var xmlrim in CurrentGame.Rims)
-            {
-                Brush brush = null;
-                if (RimToBrushUsed.ContainsKey(xmlrim.FileName))
-                    brush = RimToBrushUsed[xmlrim.FileName];
+                OffRims = new ObservableCollection<RimModel>(rimModels);
 
-                rimModels.Add(new RimModel
+                SelectedGame = e.Argument?.ToString() ?? DEFAULT;
+
+                if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
                 {
-                    FileName = xmlrim.FileName,
-                    Planet = xmlrim.Planet,
-                    CommonName = xmlrim.CommonName,
-                    MeshColor = brush,
-                });
+                    SaveWokFiles(path);
+                }
+
+                if (Game == K1_NAME) K1Loaded = true;
+                if (Game == K2_NAME) K2Loaded = true;
             }
-
-            OffRims = new ObservableCollection<RimModel>(rimModels);
-
-            SelectedGame = e.Argument?.ToString() ?? DEFAULT;
-
-            if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
+            catch (Exception ex)
             {
-                SaveWokFiles(path);
-            }
+                var sb = new StringBuilder();
+                _ = sb.AppendLine("An unexpected error occurred while loading game data.")
+                      .AppendLine($"-- {ex.Message}");
+                if (ex.InnerException != null)
+                    _ = sb.AppendLine($"-- {ex.InnerException.Message}");
 
-            if (Game == K1_NAME) K1Loaded = true;
-            if (Game == K2_NAME) K2Loaded = true;
+                _ = MessageBox.Show(
+                    this,
+                    sb.ToString(),
+                    "Loading Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -1170,7 +1186,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void SwapGame_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = pnlSelectedGame.Visibility == Visibility.Visible;
+            e.CanExecute = !IsBusy && pnlSelectedGame.Visibility == Visibility.Visible;
         }
 
         #endregion // END REGION Swap Game Methods
@@ -1182,21 +1198,31 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LvOff_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            IsBusy = true;
+            if (IsBusy) return;
 
-            // Move the clicked item from OFF to ON.
-            var rim = (RimModel)(sender as ListViewItem).Content;
-            _ = OffRims.Remove(rim);
-            var sorted = OnRims.ToList();
-            sorted.Add(rim);
+            try
+            {
+                IsBusy = true;
 
-            // Sort the ON list and update collection.
-            sorted.Sort();
-            OnRims = new ObservableCollection<RimModel>(sorted);
+                // Move the clicked item from OFF to ON.
+                var rim = (RimModel)(sender as ListViewItem).Content;
+                _ = OffRims.Remove(rim);
+                var sorted = OnRims.ToList();
+                sorted.Add(rim);
 
-            // Start worker to add polygons to the canvas.
-            _ = content.Focus();
-            AddPolyWorker.RunWorkerAsync(rim);
+                // Sort the ON list and update collection.
+                sorted.Sort();
+                OnRims = new ObservableCollection<RimModel>(sorted);
+
+                // Start worker to add polygons to the canvas.
+                _ = content.Focus();
+                AddPolyWorker.RunWorkerAsync(rim);
+            }
+            catch (InvalidCastException)
+            {
+                // Ignore this request and reset IsBusy.
+                IsBusy = false;
+            }
         }
 
         /// <summary>
@@ -1428,21 +1454,31 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LvOn_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            IsBusy = true;
+            if (IsBusy) return;
 
-            // Move the clicked item from ON to OFF.
-            var rim = (RimModel)(sender as ListViewItem).Content;
-            _ = OnRims.Remove(rim);
-            var sorted = OffRims.ToList();
-            sorted.Add(rim);
+            try
+            {
+                IsBusy = true;
 
-            // Sort the OFF list and update collection.
-            sorted.Sort();
-            OffRims = new ObservableCollection<RimModel>(sorted);
+                // Move the clicked item from ON to OFF.
+                var rim = (RimModel)(sender as ListViewItem).Content;
+                _ = OnRims.Remove(rim);
+                var sorted = OffRims.ToList();
+                sorted.Add(rim);
 
-            // Start worker to remove polygons from the canvas.
-            _ = content.Focus();
-            RemovePolyWorker.RunWorkerAsync(rim);
+                // Sort the OFF list and update collection.
+                sorted.Sort();
+                OffRims = new ObservableCollection<RimModel>(sorted);
+
+                // Start worker to remove polygons from the canvas.
+                _ = content.Focus();
+                RemovePolyWorker.RunWorkerAsync(rim);
+            }
+            catch (InvalidCastException)
+            {
+                // Ignore this request and reset IsBusy.
+                IsBusy = false;
+            }
         }
 
         /// <summary>
@@ -1533,6 +1569,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemoveAll_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            IsBusy = true;
+
             LeftClickPointVisible = false;  // hide point
             RightClickPointVisible = false; // hide point
 
@@ -1562,6 +1600,8 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 PolyBrushCount[key] = 0;
             }
+
+            IsBusy = false;
         }
 
         /// <summary>
@@ -1645,6 +1685,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            IsBusy = true;
+
             if (!LeftClickPointVisible) LeftClickModuleCoords = new Point();
             if (!RightClickPointVisible) RightClickModuleCoords = new Point();
 
@@ -1652,6 +1694,8 @@ namespace WalkmeshVisualizerWpf.Views
             LastRightClickModuleCoords = RightClickModuleCoords;
 
             FindMatchingCoords();
+
+            IsBusy = false;
         }
 
         /// <summary>
@@ -1659,7 +1703,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void FindMatchingCoords_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = (LeftClickPointVisible || RightClickPointVisible) && (OnRims?.Any() ?? false);
+            e.CanExecute = !IsBusy && (LeftClickPointVisible || RightClickPointVisible) && (OnRims?.Any() ?? false);
         }
 
         /// <summary>
@@ -1770,5 +1814,132 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion // END REGION INotifyPropertyChanged Implementation
+
+        #region Menu Related Command Methods
+
+        private void ExitCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void ExitCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
+        }
+
+        private void SaveShownCanvas_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (zoomAndPanControl.ContentViewportWidth > theGrid.ActualWidth ||
+                zoomAndPanControl.ContentViewportHeight > theGrid.ActualHeight)
+            {
+                SaveImageFromCanvas(zoomAndPanControl.MaxContentScale);
+            }
+            else
+            {
+                var scale = zoomAndPanControl.MaxContentScale + zoomAndPanControl.ContentScale;
+                SaveImageFromCanvas(scale,
+                    new Int32Rect(
+                        (int)(zoomAndPanControl.ContentOffsetX * scale),
+                        (int)(zoomAndPanControl.ContentOffsetY * scale),
+                        (int)(zoomAndPanControl.ContentViewportWidth * scale),
+                        (int)(zoomAndPanControl.ContentViewportHeight * scale)));
+            }
+        }
+
+        private void SaveShownCanvas_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy && (OnRims?.Any() ?? false);
+        }
+
+        private void SaveEntireCanvas_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            SaveImageFromCanvas(zoomAndPanControl.MaxContentScale);
+        }
+
+        private void SaveEntireCanvas_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy && (OnRims?.Any() ?? false);
+        }
+
+        private string GetImagePath()
+        {
+            var sfd = new SaveFileDialog
+            {
+                Title = "Save Image As",
+                InitialDirectory = Environment.CurrentDirectory,
+                Filter = "PNG File|*.png",
+            };
+            return sfd.ShowDialog() == true ? sfd.FileName : null;
+        }
+
+        private void SaveImageFromCanvas(double zoom, Int32Rect? cropRect = null)
+        {
+            try
+            {
+                // request save path from user
+                var path = GetImagePath();
+                if (string.IsNullOrEmpty(path)) return;
+
+                // render the canvas
+                var rect = new Rect(new Size(theGrid.ActualWidth * zoom, theGrid.ActualHeight * zoom));
+                var dpi = 96 * zoom;
+                var rtb = new RenderTargetBitmap((int)rect.Right, (int)rect.Bottom, dpi, dpi, PixelFormats.Default);
+                rtb.Render(theGrid);
+
+                // encode as png
+                var encoder = new PngBitmapEncoder();
+                if (cropRect.HasValue)
+                {
+                    // crop if requested
+                    var crop = new CroppedBitmap(rtb, cropRect.Value);
+                    encoder.Frames.Add(BitmapFrame.Create(crop));
+                }
+                else
+                {
+                    encoder.Frames.Add(BitmapFrame.Create(rtb));
+                }
+
+                // save to file
+                using (var fs = File.OpenWrite(path))
+                {
+                    encoder.Save(fs);
+                }
+            }
+            catch (Exception e)
+            {
+                _ = MessageBox.Show(
+                    this,
+                    $"Unexpected error encountered while saving.{Environment.NewLine}-- {e.Message}{Environment.NewLine}Please try again.",
+                    "Save Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        private void ViewHelpCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var htws = OwnedWindows.OfType<HelpTextWindow>();
+            if (htws.Any())
+            {
+                htws.First().Show();
+            }
+            else
+            {
+                var htw = new HelpTextWindow
+                {
+                    Left = Left + Width + 5,
+                    Top = Top,
+                    Owner = this
+                };
+                htw.Show();
+            }
+        }
+
+        private void ViewHelpCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        #endregion
     }
 }
