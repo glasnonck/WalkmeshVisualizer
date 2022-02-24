@@ -29,6 +29,28 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
     }
 
+    public class ScaleTextToPercentConverter : IValueConverter
+    {
+        /// <summary>
+        /// Convert a fraction to a percentage.
+        /// </summary>
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Display as percentage.
+            return $"{(double)value:P0}";
+        }
+
+        /// <summary>
+        /// Convert a percentage back to a fraction.
+        /// </summary>
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Round to an integer value whilst converting.
+            var str = value.ToString().Replace("%", "").Trim();
+            return !double.TryParse(str, out var dbl) ? 0 : (object)(double)(int)(dbl / 100.0);
+        }
+    }
+
     public class AndBoolToVisibilityMultiConverter : IMultiValueConverter
     {
         #region IMultiValueConverter Members

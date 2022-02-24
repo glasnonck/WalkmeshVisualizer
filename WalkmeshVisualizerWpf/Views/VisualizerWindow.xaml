@@ -20,14 +20,40 @@
     <Window.Resources>
 
         <!-- UI commands. -->
-        <RoutedUICommand x:Key="Commands.ZoomOut" />
-        <RoutedUICommand x:Key="Commands.ZoomIn" />
-        <RoutedUICommand x:Key="Commands.JumpBackToPrevZoom" />
-        <RoutedUICommand x:Key="Commands.Fill" />
-        <RoutedUICommand x:Key="Commands.OneHundredPercent" />
+        <RoutedUICommand x:Key="Commands.ZoomOut">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Minus</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.ZoomIn">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Plus</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.JumpBackToPrevZoom">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Backspace</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.Fill">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+F</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.OneHundredPercent">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+0</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
         <RoutedUICommand x:Key="Commands.FifteenHundredPercent" />
-        <RoutedUICommand x:Key="Commands.FindMatchingCoords" />
         
+        <!---->
+        <RoutedUICommand x:Key="Commands.FindMatchingCoords">
+            <!--<RoutedUICommand.InputGestures>
+                <KeyGesture>Space</KeyGesture>
+            </RoutedUICommand.InputGestures>-->
+        </RoutedUICommand>
+
         <RoutedUICommand x:Key="Commands.LoadK1" />
         <RoutedUICommand x:Key="Commands.LoadK2" />
         <RoutedUICommand x:Key="Commands.LoadCustom" />
@@ -43,19 +69,19 @@
                 <KeyGesture>Alt+F4</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
-        
+
         <RoutedUICommand x:Key="Commands.SaveShownCanvas">
             <RoutedUICommand.InputGestures>
                 <KeyGesture>Ctrl+S</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
-        
+
         <RoutedUICommand x:Key="Commands.SaveEntireCanvas">
             <RoutedUICommand.InputGestures>
                 <KeyGesture>Ctrl+Shift+S</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
-        
+
         <RoutedUICommand x:Key="Commands.ViewHelp">
             <RoutedUICommand.InputGestures>
                 <KeyGesture>Ctrl+F1</KeyGesture>
@@ -63,11 +89,10 @@
         </RoutedUICommand>
 
         <!--
-        This converts from a scale value to a percentage value.
-        It is used to convert the value of 'ContentScale' to the percentage zoom level that is
-        displayed in the UI.
+        Converters.
         -->
         <help:ScaleToPercentConverter x:Key="scaleToPercentConverter" />
+        <help:ScaleTextToPercentConverter x:Key="scaleTextToPercentConverter" />
         <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <help:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
         <help:InverseBooleanConverter x:Key="InverseBooleanConverter" />
@@ -75,26 +100,6 @@
         <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
 
     </Window.Resources>
-
-    <Window.InputBindings>
-
-        <!--
-        Bind keys to commands.
-        -->
-        <KeyBinding
-            Key="Minus"
-            Command="{StaticResource Commands.ZoomOut}"
-            />
-        <KeyBinding
-            Key="Plus"
-            Command="{StaticResource Commands.ZoomIn}"
-            />
-        <KeyBinding
-            Key="Backspace"
-            Command="{StaticResource Commands.JumpBackToPrevZoom}"
-            />
-        
-    </Window.InputBindings>
 
     <Window.CommandBindings>
 
@@ -161,7 +166,7 @@
             Command="{StaticResource Commands.FifteenHundredPercent}"
             Executed="FifteenHundredPercent_Executed"
             />
-        
+
         <!--
         Menu related command bindings.
         -->
@@ -207,11 +212,110 @@
                 <Separator />
                 <MenuItem Header="_Exit" Command="{StaticResource Commands.Exit}" />
             </MenuItem>
-            
+
+            <MenuItem Header="_View">
+                <MenuItem Header="_Zoom">
+                    <MenuItem Header="Zoom _In" Command="{StaticResource Commands.ZoomIn}" />
+                    <MenuItem Header="Zoom _Out" Command="{StaticResource Commands.ZoomOut}" />
+                    <Separator />
+                    <MenuItem Header="_Fit Entire Page" Command="{StaticResource Commands.Fill}" />
+                    <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
+                    <Separator />
+                    <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
+                </MenuItem>
+            </MenuItem>
+
             <MenuItem Header="_Help">
                 <MenuItem Header="_View Help" Command="{StaticResource Commands.ViewHelp}" />
             </MenuItem>
         </Menu>
+
+        <!-- 
+        Grid placed below the zoom and pan control that contains the zoom slider, zoom label and
+        some button.
+        -->
+        <Grid Margin="5" DockPanel.Dock="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ProgressBar
+                x:Name="pbLoading"
+                Width="200"
+                Margin="5,0"
+                Grid.Column="1"
+                Value="{Binding CurrentProgress}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                />
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="2">
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="Height" Value="20" />
+                        <Setter Property="Width" Value="20" />
+                        <Setter Property="Padding" Value="0,0,0,2" />
+                    </Style>
+                </StackPanel.Resources>
+
+                <!-- The content zoom selector. -->
+                <ComboBox
+                    IsEditable="True"
+                    Width="70"
+                    Text="{Binding
+                        ElementName=zoomAndPanControl,
+                        Path=ContentScale,
+                        Converter={StaticResource scaleTextToPercentConverter},
+                        Mode=TwoWay}"
+                    HorizontalContentAlignment="Right"
+                    Margin="10,0"
+                    Padding="0,2"
+                    >
+                    <ComboBox.Resources>
+                        <DataTemplate x:Key="PercentageTemplate">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding}" />
+                                <TextBlock Text=" %" />
+                            </StackPanel>
+                        </DataTemplate>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Right" />
+                            <Setter Property="Padding" Value="0,0" />
+                            <Setter Property="Margin" Value="0,0,5,0" />
+                            <Setter Property="ContentTemplate" Value="{StaticResource PercentageTemplate}" />
+                        </Style>
+                    </ComboBox.Resources>
+                    
+                    <ComboBoxItem>10</ComboBoxItem>
+                    <ComboBoxItem>100</ComboBoxItem>
+                    <ComboBoxItem>300</ComboBoxItem>
+                    <ComboBoxItem>1,000</ComboBoxItem>
+                    <ComboBoxItem>1,500</ComboBoxItem>
+                    <ComboBoxItem>2,000</ComboBoxItem>
+                </ComboBox>
+
+                <!-- Button to zoom out. -->
+                <Button Content="-" Margin="0"
+                        FontWeight="SemiBold" Foreground="Black"
+                        Command="{StaticResource Commands.ZoomOut}" />
+
+                <!-- Slider to change the current zoom level. -->
+                <Slider Minimum="10" Maximum="1500"
+                        SmallChange="10" LargeChange="20" 
+                        TickFrequency="100" TickPlacement="TopLeft"
+                        Width="150"
+                        Value="{Binding ElementName=zoomAndPanControl, Path=ContentScale,
+                                        Converter={StaticResource scaleToPercentConverter}}"
+                        />
+
+                <!-- Button to zoom in. -->
+                <Button Content="+" Margin="0,0,15,0"
+                        FontWeight="SemiBold" Foreground="Black"
+                        Command="{StaticResource Commands.ZoomIn}" />
+            </StackPanel>
+        </Grid>
 
         <!--
         Match coordinates expander allows the user to check modules for valid faces and
@@ -244,7 +348,7 @@
                         <RowDefinition Height="*" x:Name="rowRightMatches" />
                         <RowDefinition Height="*" x:Name="rowBothMatches" />
                     </Grid.RowDefinitions>
-                    
+
                     <Grid.Resources>
                         <Style TargetType="Grid">
                             <Setter Property="Margin" Value="5,5,5,0" />
@@ -313,12 +417,12 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                            
+
                         <StackPanel>
                             <Ellipse Fill="Black" />
                             <TextBlock Text="Black Point" FontWeight="SemiBold" />
                         </StackPanel>
-                            
+
                         <StackPanel HorizontalAlignment="Right">
                             <TextBlock Text="(" />
                             <TextBlock Text="{Binding LastLeftClickModuleCoords.X, StringFormat=N2}" />
@@ -411,7 +515,7 @@
                                 <Binding Path="RightClickPointVisible" />
                             </MultiBinding>
                         </Grid.Visibility>
-                        
+
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -452,69 +556,6 @@
                 </Grid>
             </Border>
         </Expander>
-
-        <!-- 
-        Grid placed below the zoom and pan control that contains the zoom slider, zoom label and
-        some button.
-        -->
-        <Grid Margin="5" DockPanel.Dock="Bottom">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <StackPanel.Resources>
-                    <Style TargetType="Button">
-                        <Setter Property="Margin" Value="5,0" />
-                        <Setter Property="Width" Value="40" />
-                    </Style>
-                </StackPanel.Resources>
-
-                <Button x:Name="bFindMatchingCoords" Content="Match Coords" Width="90"
-                        Command="{StaticResource Commands.FindMatchingCoords}"
-                        Visibility="Collapsed" />
-
-                <ProgressBar
-                    x:Name="pbLoading"
-                    Width="200"
-                    Margin="5,0"
-                    Value="{Binding CurrentProgress}"
-                    />
-
-                <Border BorderThickness="1" Width="2" BorderBrush="Gray" Margin="5,0" />
-
-                <!-- The 100% button.  Causes the content to be scaled to 100 percent. -->
-                <Button Content="300%"
-                        Command="{StaticResource Commands.OneHundredPercent}" />
-
-                <Button Content="1500%"
-                        Command="{StaticResource Commands.FifteenHundredPercent}" />
-
-                <!-- This is the label that shows what the current zoom level is while zooming in and out. -->
-                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right"
-                           Text="{Binding ElementName=zoomAndPanControl, Path=ContentScale, Converter={StaticResource scaleToPercentConverter}}"
-                           />
-                <TextBlock VerticalAlignment="Center" Text="%" />
-
-                <!-- Button to zoom out. -->
-                <Button Content="-"
-                        Width="20"
-                        Command="{StaticResource Commands.ZoomOut}" />
-
-                <!-- Slider to change the current zoom level. -->
-                <Slider Minimum="10" Maximum="1500"
-                        SmallChange="10" LargeChange="20" 
-                        TickFrequency="100" TickPlacement="TopLeft"
-                        Width="160"
-                        Value="{Binding ElementName=zoomAndPanControl, Path=ContentScale,
-                                        Converter={StaticResource scaleToPercentConverter}}"
-                        />
-
-                <!-- Button to zoom in. -->
-                <Button Content="+" Width="20" Margin="5,0,0,0"
-                        Command="{StaticResource Commands.ZoomIn}" />
-
-                <!-- Stick a resize grip in the bottom right corner of the window. -->
-                <ResizeGrip Visibility="Hidden" Margin="5,0,0,0" />
-
-            </StackPanel>
-        </Grid>
 
         <!--
         Grid containing the canvas and the options panel.
@@ -578,10 +619,10 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        
+
                         <TextBlock Text="Select Game: " FontWeight="Bold"
                                    HorizontalAlignment="Right" VerticalAlignment="Center" />
-                        
+
                         <StackPanel Grid.Column="2" HorizontalAlignment="Center"
                                     Orientation="Horizontal" VerticalAlignment="Center" >
                             <StackPanel.Resources>
@@ -595,7 +636,7 @@
                             <Button Content="Custom" Command="{StaticResource Commands.LoadCustom}" />
                         </StackPanel>
                     </Grid>
-                    
+
                     <Grid Margin="5,5,5,0" x:Name="pnlSelectedGame">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -609,10 +650,10 @@
                                 <Setter Property="VerticalAlignment" Value="Center" />
                             </Style>
                         </Grid.Resources>
-                        
+
                         <TextBlock Text="Selected Game: " />
                         <TextBlock Text="{Binding SelectedGame}" Grid.Column="2" Margin="0,0,10,0" />
-                        
+
                         <Button Content="Swap Game" Grid.Column="3" Width="75"
                                 Command="{StaticResource Commands.SwapGame}" />
                     </Grid>
@@ -792,16 +833,16 @@
                                     <ScaleTransform ScaleY="-1" />
                                     <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
                                 </TransformGroup>
-                                
+
                                 <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />
-                                
+
                                 <Style TargetType="Ellipse">
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
                                     <Setter Property="Stroke" Value="Black" />
                                     <Setter Property="StrokeThickness" Value=".1" />
                                 </Style>
-                                
+
                                 <Style TargetType="Polygon">
                                     <Setter Property="RenderTransform" Value="{StaticResource CartesianTransform}" />
                                 </Style>

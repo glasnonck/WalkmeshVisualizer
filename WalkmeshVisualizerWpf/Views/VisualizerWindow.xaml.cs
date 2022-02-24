@@ -487,11 +487,36 @@ namespace WalkmeshVisualizerWpf.Views
         private void HideLeftClickPoint()
         {
             LeftClickPointVisible = false;
+            ClearLeftPointMatches();
         }
 
         private void HideRightClickPoint()
         {
             RightClickPointVisible = false;
+            ClearRightPointMatches();
+        }
+
+        private void ClearLeftPointMatches()
+        {
+            LeftPointMatches.Clear();
+            BothPointMatches.Clear();
+            LastLeftClickModuleCoords = new Point();
+        }
+
+        private void ClearRightPointMatches()
+        {
+            RightPointMatches.Clear();
+            BothPointMatches.Clear();
+            LastRightClickModuleCoords = new Point();
+        }
+
+        private void ClearBothPointMatches()
+        {
+            LeftPointMatches.Clear();
+            RightPointMatches.Clear();
+            BothPointMatches.Clear();
+            LastLeftClickModuleCoords = new Point();
+            LastRightClickModuleCoords = new Point();
         }
 
         private void UpdatePointMatchRows()
@@ -1164,11 +1189,7 @@ namespace WalkmeshVisualizerWpf.Views
             SelectedGame = DEFAULT;
 
             // Reset coordinate matches.
-            LeftPointMatches.Clear();
-            RightPointMatches.Clear();
-            BothPointMatches.Clear();
-            LeftClickPoint = RightClickPoint = LastLeftClickModuleCoords = LastRightClickModuleCoords = new Point();
-
+            ClearBothPointMatches();
             ShowGameButtons();
         }
 
