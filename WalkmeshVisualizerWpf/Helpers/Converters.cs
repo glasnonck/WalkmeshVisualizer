@@ -2,6 +2,10 @@
 using System.Windows.Data;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Media;
+using WalkmeshVisualizerWpf.Models;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
@@ -78,6 +82,28 @@ namespace WalkmeshVisualizerWpf.Helpers
             var combined = false;
             foreach (var value in values) combined |= (bool)value;
             return combined ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+    }
+
+    public class MatchRectFillMultiConverter : IMultiValueConverter
+    {
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 2) return Brushes.Transparent;
+
+            var walk = values[0] as WalkabilityModel;
+            var onrims = values[1] as ObservableCollection<RimModel>;
+
+            if (walk == null || onrims == null) return Brushes.Transparent;
+
+            return onrims.Any(r => r.FileName == walk.Rim.FileName) ? walk.Rim.MeshColor : Brushes.Transparent;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

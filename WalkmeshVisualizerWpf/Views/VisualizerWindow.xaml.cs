@@ -75,13 +75,13 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var htw = new HelpTextWindow
-            {
-                Left = Left + Width + 5,
-                Top = Top,
-                Owner = this
-            };
-            htw.Show();
+            //var htw = new HelpTextWindow
+            //{
+            //    Left = Left + Width + 5,
+            //    Top = Top,
+            //    Owner = this
+            //};
+            //htw.Show();
         }
 
 
@@ -463,14 +463,20 @@ namespace WalkmeshVisualizerWpf.Views
                 if (e.ChangedButton == MouseButton.Left)
                 {
                     HideLeftClickPoint();
+                    ClearLeftPointMatches();
                 }
                 else if (e.ChangedButton == MouseButton.Right)
                 {
                     HideRightClickPoint();
+                    ClearRightPointMatches();
                 }
             }
             else
             {
+                // Don't set points if a game is not selected.
+                if (!(SelectedGame == K1_NAME || SelectedGame == K2_NAME)) return;
+
+                // Set left or right point.
                 if (e.ChangedButton == MouseButton.Left)
                 {
                     HandleLeftDoubleClick(sender, e);
@@ -487,13 +493,17 @@ namespace WalkmeshVisualizerWpf.Views
         private void HideLeftClickPoint()
         {
             LeftClickPointVisible = false;
-            ClearLeftPointMatches();
         }
 
         private void HideRightClickPoint()
         {
             RightClickPointVisible = false;
-            ClearRightPointMatches();
+        }
+
+        private void HideBothPoints()
+        {
+            HideLeftClickPoint();
+            HideRightClickPoint();
         }
 
         private void ClearLeftPointMatches()
@@ -557,11 +567,19 @@ namespace WalkmeshVisualizerWpf.Views
 
             LeftClickPointVisible = true;
 
-            content.Children.Remove(leftClickEllipse);
-            _ = content.Children.Add(leftClickEllipse);
+            BringLeftPointToTop();
+        }
 
-            content.Children.Remove(leftClickCoords);
-            _ = content.Children.Add(leftClickCoords);
+        private void BringLeftPointToTop()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                content.Children.Remove(leftClickEllipse);
+                _ = content.Children.Add(leftClickEllipse);
+
+                content.Children.Remove(leftClickCoords);
+                _ = content.Children.Add(leftClickCoords);
+            });
         }
 
         /// <summary>
@@ -580,11 +598,19 @@ namespace WalkmeshVisualizerWpf.Views
 
             RightClickPointVisible = true;
 
-            content.Children.Remove(rightClickEllipse);
-            _ = content.Children.Add(rightClickEllipse);
+            BringRightPointToTop();
+        }
 
-            content.Children.Remove(rightClickCoords);
-            _ = content.Children.Add(rightClickCoords);
+        private void BringRightPointToTop()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                content.Children.Remove(rightClickEllipse);
+                _ = content.Children.Add(rightClickEllipse);
+
+                content.Children.Remove(rightClickCoords);
+                _ = content.Children.Add(rightClickCoords);
+            });
         }
 
         /// <summary>
@@ -1049,8 +1075,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void ClearGameData()
         {
-            LeftClickPointVisible = false;
-            RightClickPointVisible = false;
+            HideBothPoints();
             RimNamesLookup.Clear();
             RimWoksLookup.Clear();
             RoomWoksLookup.Clear();
@@ -1189,7 +1214,9 @@ namespace WalkmeshVisualizerWpf.Views
             SelectedGame = DEFAULT;
 
             // Reset coordinate matches.
+            HideBothPoints();
             ClearBothPointMatches();
+
             ShowGameButtons();
         }
 
@@ -1223,10 +1250,24 @@ namespace WalkmeshVisualizerWpf.Views
 
             try
             {
+                AddRim((sender as ListViewItem).Content as RimModel);
+            }
+            catch (InvalidCastException)
+            {
+                // Ignore this request and reset IsBusy.
+                IsBusy = false;
+            }
+        }
+
+        private void AddRim(RimModel rim)
+        {
+            if (IsBusy) return;
+
+            try
+            {
                 IsBusy = true;
 
                 // Move the clicked item from OFF to ON.
-                var rim = (RimModel)(sender as ListViewItem).Content;
                 _ = OffRims.Remove(rim);
                 var sorted = OnRims.ToList();
                 sorted.Add(rim);
@@ -1239,10 +1280,23 @@ namespace WalkmeshVisualizerWpf.Views
                 _ = content.Focus();
                 AddPolyWorker.RunWorkerAsync(rim);
             }
-            catch (InvalidCastException)
+            catch (Exception ex)
             {
                 // Ignore this request and reset IsBusy.
                 IsBusy = false;
+
+                var sb = new StringBuilder();
+                _ = sb.AppendLine("An unexpected error occurred while adding walkmesh data.")
+                      .AppendLine($"-- {ex.Message}");
+                if (ex.InnerException != null)
+                    _ = sb.AppendLine($"-- {ex.InnerException.Message}");
+
+                _ = MessageBox.Show(
+                    this,
+                    sb.ToString(),
+                    "Add Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -1251,15 +1305,16 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void AddPolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            LeftClickPointVisible = false;  // hide point
-            RightClickPointVisible = false; // hide point
             var rimToAdd = (RimModel)e.Argument;  // grab rim info
 
             BuildNewWalkmeshes();
 
             ResizeCanvas();
 
-            AddWalkmeshToCanvas(rimToAdd);
+            ShowWalkmeshOnCanvas(rimToAdd);
+
+            if (LeftClickPointVisible) BringLeftPointToTop();
+            if (RightClickPointVisible) BringRightPointToTop();
         }
 
         /// <summary>
@@ -1338,15 +1393,23 @@ namespace WalkmeshVisualizerWpf.Views
             });
 
             // Offset the polygons so there is a whitespace border.
+            var prevLeftOffset = LeftOffset;
+            var prevBottomOffset = BottomOffset;
+
             LeftOffset = -MinX + BaseOffset.X;
             BottomOffset = -MinY + BaseOffset.Y;
+
+            var diffLeft = LeftOffset - prevLeftOffset;
+            var diffBottom = BottomOffset - prevBottomOffset;
+
+            LeftClickPoint = new Point(LeftClickPoint.X + diffLeft, LeftClickPoint.Y + diffBottom);
+            RightClickPoint = new Point(RightClickPoint.X + diffLeft, RightClickPoint.Y + diffBottom);
         }
 
         /// <summary>
         /// Add or make visible all faces in the newly active walkmesh.
         /// </summary>
-        //private void AddWalkmeshToCanvas(string rimToAdd)
-        private void AddWalkmeshToCanvas(RimModel rimToAdd)
+        private void ShowWalkmeshOnCanvas(RimModel rimToAdd)
         {
             // Determine next brush to use.
             var brushChanged = true;
@@ -1479,10 +1542,25 @@ namespace WalkmeshVisualizerWpf.Views
 
             try
             {
+                // Move the clicked item from ON to OFF.
+                RemoveRim((sender as ListViewItem).Content as RimModel);
+            }
+            catch (InvalidCastException)
+            {
+                // Ignore this request and reset IsBusy.
+                IsBusy = false;
+            }
+        }
+
+        private void RemoveRim(RimModel rim)
+        {
+            if (IsBusy) return;
+
+            try
+            {
                 IsBusy = true;
 
                 // Move the clicked item from ON to OFF.
-                var rim = (RimModel)(sender as ListViewItem).Content;
                 _ = OnRims.Remove(rim);
                 var sorted = OffRims.ToList();
                 sorted.Add(rim);
@@ -1495,10 +1573,23 @@ namespace WalkmeshVisualizerWpf.Views
                 _ = content.Focus();
                 RemovePolyWorker.RunWorkerAsync(rim);
             }
-            catch (InvalidCastException)
+            catch (Exception ex)
             {
                 // Ignore this request and reset IsBusy.
                 IsBusy = false;
+
+                var sb = new StringBuilder();
+                _ = sb.AppendLine("An unexpected error occurred while removing walkmesh data.")
+                      .AppendLine($"-- {ex.Message}");
+                if (ex.InnerException != null)
+                    _ = sb.AppendLine($"-- {ex.InnerException.Message}");
+
+                _ = MessageBox.Show(
+                    this,
+                    sb.ToString(),
+                    "Remove Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -1507,12 +1598,9 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemovePolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            LeftClickPointVisible = false;  // hide point
-            RightClickPointVisible = false; // hide point
             var rimToRemove = (RimModel)e.Argument;   // grab rim info
 
-            //DeleteWalkmeshFromCanvas(rimToRemove);
-            RemoveWalkmeshFromCanvas(rimToRemove.FileName);
+            HideWalkmeshOnCanvas(rimToRemove.FileName);
 
             ResizeCanvas();
         }
@@ -1520,7 +1608,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Hide all faces in the newly disabled walkmesh.
         /// </summary>
-        private void RemoveWalkmeshFromCanvas(string rimToRemove)
+        private void HideWalkmeshOnCanvas(string rimToRemove)
         {
             // Adjust count of times this rim's brush was used.
             PolyBrushCount[RimToBrushUsed[rimToRemove]]--;
@@ -1592,8 +1680,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             IsBusy = true;
 
-            LeftClickPointVisible = false;  // hide point
-            RightClickPointVisible = false; // hide point
+            HideBothPoints();
+            ClearBothPointMatches();
 
             // Move all ON names to the OFF collection.
             foreach (var rim in OnRims)
@@ -1794,6 +1882,27 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        /// <summary>
+        /// Toggle the selected item's visibility on the canvas.
+        /// </summary>
+        private void MatchItem_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // Get the selected RimModel.
+            var wm = (sender as ListViewItem).Content as WalkabilityModel;
+
+            // Is this rim in the OnRims list?
+            if (OnRims.FirstOrDefault(r => r.FileName == wm.Rim.FileName) is RimModel on)
+            {
+                // Remove the item from the ON list.
+                RemoveRim(on);
+            }
+            else if (OffRims.FirstOrDefault(r => r.FileName == wm.Rim.FileName) is RimModel off)
+            {
+                // Add the item to the ON list.
+                AddRim(off);
+            }
+        }
+
         #endregion Find Matching Coord Methods
 
         #region Common Background Worker Methods
@@ -1926,11 +2035,11 @@ namespace WalkmeshVisualizerWpf.Views
                     encoder.Save(fs);
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 _ = MessageBox.Show(
                     this,
-                    $"Unexpected error encountered while saving.{Environment.NewLine}-- {e.Message}{Environment.NewLine}Please try again.",
+                    $"Unexpected error encountered while saving.{Environment.NewLine}-- {ex.Message}{Environment.NewLine}Please try again.",
                     "Save Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);

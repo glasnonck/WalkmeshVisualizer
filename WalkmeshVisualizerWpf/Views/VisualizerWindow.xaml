@@ -98,7 +98,13 @@
         <help:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
         <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
+        <help:MatchRectFillMultiConverter x:Key="MatchRectFillMultiConverter" />
 
+        <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
     </Window.Resources>
 
     <Window.CommandBindings>
@@ -214,15 +220,13 @@
             </MenuItem>
 
             <MenuItem Header="_View">
-                <MenuItem Header="_Zoom">
-                    <MenuItem Header="Zoom _In" Command="{StaticResource Commands.ZoomIn}" />
-                    <MenuItem Header="Zoom _Out" Command="{StaticResource Commands.ZoomOut}" />
-                    <Separator />
-                    <MenuItem Header="_Fit Entire Page" Command="{StaticResource Commands.Fill}" />
-                    <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
-                    <Separator />
-                    <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
-                </MenuItem>
+                <MenuItem Header="Zoom _In" Command="{StaticResource Commands.ZoomIn}" />
+                <MenuItem Header="Zoom _Out" Command="{StaticResource Commands.ZoomOut}" />
+                <Separator />
+                <MenuItem Header="_Fit Entire Page" Command="{StaticResource Commands.Fill}" />
+                <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
+                <Separator />
+                <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
             </MenuItem>
 
             <MenuItem Header="_Help">
@@ -336,6 +340,12 @@
                 </TextBlock>
             </Expander.Header>
 
+            <Expander.Resources>
+                <Style TargetType="ListViewItem" x:Key="MatchItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                    <EventSetter Event="MouseDoubleClick" Handler="MatchItem_DoubleClick" />
+                </Style>
+            </Expander.Resources>
+
             <Border 
                 BorderBrush="Black"
                 BorderThickness="0,0,1,0"
@@ -378,7 +388,6 @@
                             <Setter Property="Margin" Value="0" />
                             <Setter Property="Height" Value="14" />
                             <Setter Property="Width" Value="14" />
-                            <Setter Property="Fill" Value="{Binding Rim.MeshColor}" />
                             <Setter Property="Stroke" Value="Black" />
                             <Setter Property="StrokeThickness" Value="0.5" />
                         </Style>
@@ -431,14 +440,28 @@
                             <TextBlock Text=")" />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="lvLeftPointMatches" ItemsSource="{Binding LeftPointMatches}">
+                        <ListView
+                            x:Name="lvLeftPointMatches"
+                            Grid.Row="1"
+                            ItemContainerStyle="{StaticResource MatchItemStyle}"
+                            ItemsSource="{Binding LeftPointMatches}"
+                            >
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="-4">
-                                                    <Rectangle Style="{StaticResource colorRectangle}" />
+                                                    <Rectangle Style="{StaticResource colorRectangle}">
+                                                        <Rectangle.Fill>
+                                                            <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                                <Binding />
+                                                                <Binding ElementName="thisWindow" Path="OnRims" />
+                                                                <Binding Path="Rim.MeshColor" />
+                                                                <Binding ElementName="thisWindow" Path="OffRims" />
+                                                            </MultiBinding>
+                                                        </Rectangle.Fill>
+                                                    </Rectangle>
                                                 </Grid>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
@@ -480,14 +503,28 @@
                             <TextBlock Text=")" />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="lvRightPointMatches" ItemsSource="{Binding RightPointMatches}">
+                        <ListView
+                            x:Name="lvRightPointMatches"
+                            Grid.Row="1"
+                            ItemContainerStyle="{StaticResource MatchItemStyle}"
+                            ItemsSource="{Binding RightPointMatches}"
+                            >
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="-4">
-                                                    <Rectangle Style="{StaticResource colorRectangle}" />
+                                                    <Rectangle Style="{StaticResource colorRectangle}">
+                                                        <Rectangle.Fill>
+                                                            <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                                <Binding />
+                                                                <Binding ElementName="thisWindow" Path="OnRims" />
+                                                                <Binding Path="Rim.MeshColor" />
+                                                                <Binding ElementName="thisWindow" Path="OffRims" />
+                                                            </MultiBinding>
+                                                        </Rectangle.Fill>
+                                                    </Rectangle>
                                                 </Grid>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
@@ -527,14 +564,28 @@
                             <TextBlock Text="Both Points" FontWeight="SemiBold" />
                         </StackPanel>
 
-                        <ListView Grid.Row="1" x:Name="lvBothPointMatches" ItemsSource="{Binding BothPointMatches}">
+                        <ListView
+                            x:Name="lvBothPointMatches"
+                            Grid.Row="1"
+                            ItemContainerStyle="{StaticResource MatchItemStyle}"
+                            ItemsSource="{Binding BothPointMatches}"
+                            >
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="-4">
-                                                    <Rectangle Style="{StaticResource colorRectangle}" />
+                                                    <Rectangle Style="{StaticResource colorRectangle}">
+                                                        <Rectangle.Fill>
+                                                            <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                                <Binding />
+                                                                <Binding ElementName="thisWindow" Path="OnRims" />
+                                                                <Binding Path="Rim.MeshColor" />
+                                                                <Binding ElementName="thisWindow" Path="OffRims" />
+                                                            </MultiBinding>
+                                                        </Rectangle.Fill>
+                                                    </Rectangle>
                                                 </Grid>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
@@ -593,17 +644,10 @@
                 </Grid.RowDefinitions>
 
                 <Grid.Resources>
-                    <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="FontSize" Value="12" />
-                        <Setter Property="Foreground" Value="Black" />
-                    </Style>
                     <Style TargetType="ListViewItem" x:Key="OnItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                        <Setter Property="Background" Value="Transparent" />
                         <EventSetter Event="MouseDoubleClick" Handler="LvOn_DoubleClick" />
                     </Style>
                     <Style TargetType="ListViewItem" x:Key="OffItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                        <Setter Property="Background" Value="Transparent" />
                         <EventSetter Event="MouseDoubleClick" Handler="LvOff_DoubleClick" />
                     </Style>
                 </Grid.Resources>
