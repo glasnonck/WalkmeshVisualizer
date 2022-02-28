@@ -20,6 +20,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using KotOR_IO;
+using KotOR_IO.GffFile;
 using KotOR_IO.Helpers;
 using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
@@ -73,16 +74,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Event raised when the Window has loaded.
         /// </summary>
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            //var htw = new HelpTextWindow
-            //{
-            //    Left = Left + Width + 5,
-            //    Top = Top,
-            //    Owner = this
-            //};
-            //htw.Show();
-        }
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e) { }
 
 
         #endregion // END REGION Constructors
@@ -129,7 +121,10 @@ namespace WalkmeshVisualizerWpf.Views
         #region KIO Members
 
         /// <summary> Lookup from RIM filename to the canvas containing its walkmesh. </summary>
-        private Dictionary<string, Canvas> RimCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimFullCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimWalkableCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimNonwalkableCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimTransAbortCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
         /// <summary> Lookup from a RIM filename to the WOKs it contains. </summary>
         private Dictionary<string, IEnumerable<WOK>> RimWoksLookup { get; set; } = new Dictionary<string, IEnumerable<WOK>>();
@@ -146,17 +141,23 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary> Lookup from RIM filename to a collection of unwalkable face polygons. </summary>
         private Dictionary<string, IEnumerable<Polygon>> RimOutlinePolyLookup { get; set; } = new Dictionary<string, IEnumerable<Polygon>>();
 
+        /// <summary> Lookup from RIM filename to the associated GIT file. </summary>
+        private Dictionary<string, GIT> RimGitLookup { get; set; } = new Dictionary<string, GIT>();
+
+        /// <summary> Lookup from RIM filename to a collection of trans_abort points. </summary>
+        private Dictionary<string, IEnumerable<Ellipse>> RimTransAborts { get; set; } = new Dictionary<string, IEnumerable<Ellipse>>();
+
         /// <summary>
         /// Lookup of the brushes used to draw and how many meshes are currently using them.
         /// </summary>
         private Dictionary<Brush, int> PolyBrushCount { get; set; } = new Dictionary<Brush, int>
         {
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xAA }), 0 },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xAA }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xAA }), 0 },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xAA }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xAA }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xAA }), 0 },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
         };
 
         private Dictionary<string, Brush> RimToBrushUsed { get; set; } = new Dictionary<string, Brush>();
@@ -177,8 +178,9 @@ namespace WalkmeshVisualizerWpf.Views
         public const string LOADING = "Loading";
         public const string K1_NAME = "KotOR 1";
         public const string K2_NAME = "KotOR 2";
-        private readonly string K1_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
-        private readonly string K2_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
+        private const string TRANS_ABORT_RESREF = "k_trans_abort";
+        private const string K1_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
+        private const string K2_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
@@ -556,17 +558,18 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void HandleLeftDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            // Adjust position to match center of ellipse.
             var doubleClickPoint = e.GetPosition(content);
             doubleClickPoint.Y = theGrid.Height - doubleClickPoint.Y - .5;
             doubleClickPoint.X -= .5;
             LeftClickPoint = doubleClickPoint;
 
-            doubleClickPoint.X -= LeftOffset;
-            doubleClickPoint.Y -= BottomOffset;
+            // Adjust to module coordinate space: PointPosition - (Offset - EllipseRadius)
+            doubleClickPoint.X -= LeftOffset - .5;
+            doubleClickPoint.Y -= BottomOffset - .5;
             LeftClickModuleCoords = doubleClickPoint;
 
             LeftClickPointVisible = true;
-
             BringLeftPointToTop();
         }
 
@@ -587,17 +590,18 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void HandleRightDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            // Adjust position to match center of ellipse.
             var doubleClickPoint = e.GetPosition(content);
             doubleClickPoint.Y = theGrid.Height - doubleClickPoint.Y - .5;
             doubleClickPoint.X -= .5;
             RightClickPoint = doubleClickPoint;
 
-            doubleClickPoint.X -= LeftOffset;
-            doubleClickPoint.Y -= BottomOffset;
+            // Adjust to module coordinate space: PointPosition - (Offset - EllipseRadius)
+            doubleClickPoint.X -= LeftOffset - .5;
+            doubleClickPoint.Y -= BottomOffset - .5;
             RightClickModuleCoords = doubleClickPoint;
 
             RightClickPointVisible = true;
-
             BringRightPointToTop();
         }
 
@@ -956,14 +960,14 @@ namespace WalkmeshVisualizerWpf.Views
                 // Create the KEY file.
                 GameDataWorker.ReportProgress(25);
                 var key = new KEY(Paths.chitin);
-                var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Woks");
+                var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Data");
 
                 var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
                 if (!thisGameLoaded)
                 {
                     if (Directory.Exists(path))
                     {
-                        ReadWokFiles(path);
+                        ReadRimFileCache(path);
                     }
                     else
                     {
@@ -995,7 +999,7 @@ namespace WalkmeshVisualizerWpf.Views
 
                 if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
                 {
-                    SaveWokFiles(path);
+                    SaveRimFileCache(path);
                 }
 
                 if (Game == K1_NAME) K1Loaded = true;
@@ -1021,7 +1025,7 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Read walkmesh files we saved previously.
         /// </summary>
-        private void ReadWokFiles(string path)
+        private void ReadRimFileCache(string path)
         {
             var gameDir = Directory.CreateDirectory(path);
             var count = 0;
@@ -1041,13 +1045,16 @@ namespace WalkmeshVisualizerWpf.Views
 
                 var nameFile = rimDir.EnumerateFiles("*.txt").First();
                 RimNamesLookup.Add(rimDir.Name, nameFile.Name.Replace(".txt", ""));
+
+                var gitFile = rimDir.EnumerateFiles("*.git").First();
+                RimGitLookup.Add(rimDir.Name, GIT.NewGIT(new GFF(gitFile.FullName)));
             }
         }
 
         /// <summary>
         /// Persist walkmesh files for future application use.
         /// </summary>
-        private void SaveWokFiles(string path)
+        private void SaveRimFileCache(string path)
         {
             var gameDir = Directory.CreateDirectory(path);
             var count = 0;
@@ -1061,12 +1068,13 @@ namespace WalkmeshVisualizerWpf.Views
                     GameDataWorker.ReportProgress(100 * count++ / totalWoks);
                     var wokPath = System.IO.Path.Combine(rimDir.FullName, $"{wok.RoomName}.wok");
                     if (File.Exists(wokPath))
-                        throw new Exception($"Save WOK files error: File already exists at '{wokPath}'");
+                        throw new Exception($"Save files error: File already exists at '{wokPath}'");
                     else
                         wok.WriteToFile(wokPath);
                 }
 
                 File.Create(System.IO.Path.Combine(rimDir.FullName, $"{RimNamesLookup[rim.Key]}.txt")).Close();
+                RimGitLookup[rim.Key].WriteToFile(System.IO.Path.Combine(rimDir.FullName, $"{rim.Key}.git"));
             }
         }
 
@@ -1133,6 +1141,9 @@ namespace WalkmeshVisualizerWpf.Views
                 // Create RIM object
                 var rim = new RIM(rimFiles[i].FullName);
                 var rimName = rimFiles[i].Name.Replace(".rim", "").ToLower();  // something akin to warp codes ("danm13")
+
+                // Store GIT file.
+                RimGitLookup.Add(rimName, rim.GitFile);
 
                 // Fetch ARE file
                 var rfile = rim.File_Table.First(rf => rf.TypeID == (int)ResourceType.ARE);
@@ -1334,6 +1345,7 @@ namespace WalkmeshVisualizerWpf.Views
                 // Create a polygon for each face.
                 var polys = new List<Polygon>();    // walkable polygons
                 var unpolys = new List<Polygon>();  // unwalkable polygons
+                var transaborts = new List<Ellipse>();
                 for (var j = 0; j < allfaces.Count; j++)
                 {
                     AddPolyWorker.ReportProgress(100 * j / allfaces.Count);
@@ -1354,15 +1366,36 @@ namespace WalkmeshVisualizerWpf.Views
                             unpolys.Add(new Polygon
                             {
                                 Points = new PointCollection(points),
-                                StrokeThickness = .05,
+                                StrokeThickness = .1,
                             });
                         });
                     }
                 }
 
+                foreach (var point in RimGitLookup[name].Placeables.Where(p => p.TemplateResRef == TRANS_ABORT_RESREF))
+                {
+                    // Create TransAbort points as ellipses.
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        var e = new Ellipse
+                        {
+                            Stroke = Brushes.Black,
+                            StrokeThickness = 0.25,
+                            Height = 2,
+                            Width = 2,
+                            RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                        };
+                        Canvas.SetLeft(e, point.X - (e.Width / 2));
+                        Canvas.SetTop(e, -point.Y + (e.Height / 2));
+                        transaborts.Add(e);
+                        Console.WriteLine($"TAP: {point.X:N2}, {point.Y:N2}");
+                    });
+                }
+
                 // Cache the created polygons.
                 RimPolyLookup.Add(name, polys);
                 RimOutlinePolyLookup.Add(name, unpolys);
+                RimTransAborts.Add(name, transaborts);
             }
         }
 
@@ -1450,9 +1483,11 @@ namespace WalkmeshVisualizerWpf.Views
                 RimToBrushUsed.Add(rimToAdd.FileName, brush);
             }
 
+
             // Add all surfaces to the canvas.
             var polygons = RimPolyLookup[rimToAdd.FileName].ToList();    // walkable
             var unpolygons = RimOutlinePolyLookup[rimToAdd.FileName].ToList();   // non-walkable
+            var points = RimTransAborts[rimToAdd.FileName].ToList();
             var i = 0;
             if (RimPolysCreated.Contains(rimToAdd.FileName))
             {
@@ -1476,17 +1511,28 @@ namespace WalkmeshVisualizerWpf.Views
                             p.Stroke = brush; p.Visibility = Visibility.Visible;
                         });
                     });
+                    i = 0;  // reset count
+                    points.ForEach((Ellipse e) =>
+                    {
+                        content.Dispatcher.Invoke(() =>
+                        {
+                            AddPolyWorker.ReportProgress(100 * i++ / points.Count);
+                            e.Fill = brush; e.Visibility = Visibility.Visible;
+                        });
+                    });
                 }
                 else
                 {
                     // If the brush is the same, just reveal the polygons.
-                    polygons.AddRange(unpolygons);
-                    polygons.ForEach((Polygon p) =>
+                    var shapes = new List<Shape>(polygons);
+                    shapes.AddRange(unpolygons);
+                    shapes.AddRange(points);
+                    shapes.ForEach((Shape s) =>
                     {
                         content.Dispatcher.Invoke(() =>
                         {
-                            AddPolyWorker.ReportProgress(100 * i++ / polygons.Count);
-                            p.Visibility = Visibility.Visible;
+                            AddPolyWorker.ReportProgress(100 * i++ / shapes.Count);
+                            s.Visibility = Visibility.Visible;
                         });
                     });
                 }
@@ -1511,6 +1557,15 @@ namespace WalkmeshVisualizerWpf.Views
                         p.Stroke = brush; _ = content.Children.Add(p);
                     });
                 });
+                i = 0;  // reset count
+                points.ForEach((Ellipse e) =>
+                {
+                    content.Dispatcher.Invoke(() =>
+                    {
+                        AddPolyWorker.ReportProgress(100 * i++ / points.Count);
+                        e.Fill = brush; _ = content.Children.Add(e);
+                    });
+                });
             }
 
             // Remember that the polygons have been added to the canvas.
@@ -1518,6 +1573,8 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 RimPolysCreated.Add(rimToAdd.FileName);
             }
+
+            Console.WriteLine($"OFF: {LeftOffset:N2}, {BottomOffset:N2}");
         }
 
         /// <summary>
@@ -1613,15 +1670,16 @@ namespace WalkmeshVisualizerWpf.Views
             // Adjust count of times this rim's brush was used.
             PolyBrushCount[RimToBrushUsed[rimToRemove]]--;
 
-            var polys = RimPolyLookup[rimToRemove].ToList();    // walkable
-            polys.AddRange(RimOutlinePolyLookup[rimToRemove]);  // non-walkable
+            var shapes = new List<Shape>(RimPolyLookup[rimToRemove]);   // walkable
+            shapes.AddRange(RimOutlinePolyLookup[rimToRemove]);         // non-walkable
+            shapes.AddRange(RimTransAborts[rimToRemove]);               // trans_abort
 
             // Hide all walkmesh faces.
             content.Dispatcher.Invoke(() =>
             {
-                polys.ForEach((Polygon p) =>
+                shapes.ForEach((Shape s) =>
                 {
-                    p.Visibility = Visibility.Hidden;
+                    s.Visibility = Visibility.Hidden;
                 });
             });
         }
@@ -1701,6 +1759,10 @@ namespace WalkmeshVisualizerWpf.Views
                 foreach (var child in content.Children.OfType<Polygon>())
                 {
                     child.Visibility = Visibility.Hidden;
+                }
+                foreach (var abort in RimTransAborts.SelectMany(kvp => kvp.Value))
+                {
+                    abort.Visibility = Visibility.Hidden;
                 }
             });
 

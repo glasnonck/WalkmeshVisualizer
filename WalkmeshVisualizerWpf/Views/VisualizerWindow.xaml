@@ -878,9 +878,11 @@
                                     <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
                                 </TransformGroup>
 
+                                <TranslateTransform x:Key="OffsetTransform" X="{Binding LeftOffset}" Y="{Binding BottomOffset}" />
+
                                 <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />
 
-                                <Style TargetType="Ellipse">
+                                <Style TargetType="Ellipse" x:Key="CoordPoint">
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
                                     <Setter Property="Stroke" Value="Black" />
@@ -889,6 +891,7 @@
 
                                 <Style TargetType="Polygon">
                                     <Setter Property="RenderTransform" Value="{StaticResource CartesianTransform}" />
+                                    <Setter Property="Opacity" Value=".7" />
                                 </Style>
 
                                 <Style TargetType="StackPanel">
@@ -912,6 +915,7 @@
                                 Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                 Canvas.Left="{Binding LeftClickPoint.X}"
                                 Canvas.Bottom="{Binding LeftClickPoint.Y}"
+                                Style="{StaticResource CoordPoint}"
                                 />
                             <StackPanel
                                 x:Name="leftClickCoords"
@@ -931,6 +935,7 @@
                                 Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                 Canvas.Left="{Binding RightClickPoint.X}"
                                 Canvas.Bottom="{Binding RightClickPoint.Y}"
+                                Style="{StaticResource CoordPoint}"
                                 />
                             <StackPanel
                                 x:Name="rightClickCoords"
