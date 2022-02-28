@@ -65,6 +65,9 @@
     <Compile Include="Models\XmlGameData.cs" />
     <Compile Include="Models\ModuleWalkmesh.cs" />
     <Compile Include="Models\RimModel.cs" />
+    <Compile Include="Views\CoordinateInputDialog.xaml.cs">
+      <DependentUpon>CoordinateInputDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\HelpTextWindow.xaml.cs">
       <DependentUpon>HelpTextWindow.xaml</DependentUpon>
     </Compile>
@@ -76,6 +79,10 @@
     <Compile Include="Views\VisualizerWindow.xaml.cs">
       <DependentUpon>VisualizerWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\CoordinateInputDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\HelpText.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

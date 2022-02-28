@@ -99,6 +99,7 @@
         <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
         <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
         <help:MatchRectFillMultiConverter x:Key="MatchRectFillMultiConverter" />
+        <help:PointToTextConverter x:Key="PointToTextConverter" />
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />
@@ -432,13 +433,14 @@
                             <TextBlock Text="Black Point" FontWeight="SemiBold" />
                         </StackPanel>
 
-                        <StackPanel HorizontalAlignment="Right">
-                            <TextBlock Text="(" />
-                            <TextBlock Text="{Binding LastLeftClickModuleCoords.X, StringFormat=N2}" />
-                            <TextBlock Text=", " />
-                            <TextBlock Text="{Binding LastLeftClickModuleCoords.Y, StringFormat=N2}" />
-                            <TextBlock Text=")" />
-                        </StackPanel>
+                        <Button
+                            HorizontalAlignment="Right"
+                            Background="Transparent"
+                            Padding="2,0"
+                            Width="140"
+                            Click="LeftCoordButton_Click"
+                            Content="{Binding LastLeftClickModuleCoords, Converter={StaticResource PointToTextConverter}}"
+                            />
 
                         <ListView
                             x:Name="lvLeftPointMatches"
@@ -495,13 +497,14 @@
                             <TextBlock Text="White Point" FontWeight="SemiBold" />
                         </StackPanel>
 
-                        <StackPanel HorizontalAlignment="Right">
-                            <TextBlock Text="(" />
-                            <TextBlock Text="{Binding LastRightClickModuleCoords.X, StringFormat=N2}" />
-                            <TextBlock Text=", " />
-                            <TextBlock Text="{Binding LastRightClickModuleCoords.Y, StringFormat=N2}" />
-                            <TextBlock Text=")" />
-                        </StackPanel>
+                        <Button
+                            HorizontalAlignment="Right"
+                            Background="Transparent"
+                            Padding="2,0"
+                            Width="140"
+                            Click="RightCoordButton_Click"
+                            Content="{Binding LastRightClickModuleCoords, Converter={StaticResource PointToTextConverter}}"
+                            />
 
                         <ListView
                             x:Name="lvRightPointMatches"

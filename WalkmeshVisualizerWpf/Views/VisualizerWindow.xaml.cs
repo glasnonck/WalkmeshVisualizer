@@ -481,11 +481,11 @@ namespace WalkmeshVisualizerWpf.Views
                 // Set left or right point.
                 if (e.ChangedButton == MouseButton.Left)
                 {
-                    HandleLeftDoubleClick(sender, e);
+                    HandleLeftDoubleClick(e.GetPosition(content));
                 }
                 else if (e.ChangedButton == MouseButton.Right)
                 {
-                    HandleRightDoubleClick(sender, e);
+                    HandleRightDoubleClick(e.GetPosition(content));
                 }
             }
 
@@ -556,21 +556,39 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Handle left double click event.
         /// </summary>
-        private void HandleLeftDoubleClick(object sender, MouseButtonEventArgs e)
+        private void HandleLeftDoubleClick(Point p)
         {
             // Adjust position to match center of ellipse.
-            var doubleClickPoint = e.GetPosition(content);
-            doubleClickPoint.Y = theGrid.Height - doubleClickPoint.Y - .5;
-            doubleClickPoint.X -= .5;
-            LeftClickPoint = doubleClickPoint;
+            p.Y = theGrid.Height - p.Y - .5;
+            p.X -= .5;
+            LeftClickPoint = p;
 
             // Adjust to module coordinate space: PointPosition - (Offset - EllipseRadius)
-            doubleClickPoint.X -= LeftOffset - .5;
-            doubleClickPoint.Y -= BottomOffset - .5;
-            LeftClickModuleCoords = doubleClickPoint;
+            p.X -= LeftOffset - .5;
+            p.Y -= BottomOffset - .5;
+            LeftClickModuleCoords = p;
 
             LeftClickPointVisible = true;
             BringLeftPointToTop();
+        }
+
+        /// <summary>
+        /// Handle right double click event.
+        /// </summary>
+        private void HandleRightDoubleClick(Point p)
+        {
+            // Adjust position to match center of ellipse.
+            p.Y = theGrid.Height - p.Y - .5;
+            p.X -= .5;
+            RightClickPoint = p;
+
+            // Adjust to module coordinate space: PointPosition - (Offset - EllipseRadius)
+            p.X -= LeftOffset - .5;
+            p.Y -= BottomOffset - .5;
+            RightClickModuleCoords = p;
+
+            RightClickPointVisible = true;
+            BringRightPointToTop();
         }
 
         private void BringLeftPointToTop()
@@ -583,26 +601,6 @@ namespace WalkmeshVisualizerWpf.Views
                 content.Children.Remove(leftClickCoords);
                 _ = content.Children.Add(leftClickCoords);
             });
-        }
-
-        /// <summary>
-        /// Handle right double click event.
-        /// </summary>
-        private void HandleRightDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            // Adjust position to match center of ellipse.
-            var doubleClickPoint = e.GetPosition(content);
-            doubleClickPoint.Y = theGrid.Height - doubleClickPoint.Y - .5;
-            doubleClickPoint.X -= .5;
-            RightClickPoint = doubleClickPoint;
-
-            // Adjust to module coordinate space: PointPosition - (Offset - EllipseRadius)
-            doubleClickPoint.X -= LeftOffset - .5;
-            doubleClickPoint.Y -= BottomOffset - .5;
-            RightClickModuleCoords = doubleClickPoint;
-
-            RightClickPointVisible = true;
-            BringRightPointToTop();
         }
 
         private void BringRightPointToTop()
@@ -1962,6 +1960,46 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 // Add the item to the ON list.
                 AddRim(off);
+            }
+        }
+
+        private void LeftCoordButton_Click(object sender, RoutedEventArgs e)
+        {
+            var cid = new CoordinateInputDialog(LeftClickModuleCoords.X, LeftClickModuleCoords.Y)
+            {
+                Owner = this,
+                PointName = "Black",
+                PointFill = Brushes.Black,
+                PointStroke = Brushes.Black,
+            };
+
+            if (cid.ShowDialog() == true)
+            {
+                ClearLeftPointMatches();
+                var x = double.Parse(cid.X) + LeftOffset;
+                var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
+                HandleLeftDoubleClick(new Point(x, y));
+                LastLeftClickModuleCoords = LeftClickModuleCoords;
+            }
+        }
+
+        private void RightCoordButton_Click(object sender, RoutedEventArgs e)
+        {
+            var cid = new CoordinateInputDialog(RightClickModuleCoords.X, RightClickModuleCoords.Y)
+            {
+                Owner = this,
+                PointName = "White",
+                PointFill = Brushes.White,
+                PointStroke = Brushes.Black,
+            };
+
+            if (cid.ShowDialog() == true)
+            {
+                ClearRightPointMatches();
+                var x = double.Parse(cid.X) + LeftOffset;
+                var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
+                HandleRightDoubleClick(new Point(x, y));
+                LastRightClickModuleCoords = RightClickModuleCoords;
             }
         }
 

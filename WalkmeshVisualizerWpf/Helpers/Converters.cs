@@ -113,6 +113,21 @@ namespace WalkmeshVisualizerWpf.Helpers
         #endregion
     }
 
+    public class PointToTextConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is Point p ? $"({p.X:N2}, {p.Y:N2})" : throw new InvalidOperationException("The value must be of type Point.");
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+    }
+
     [ValueConversion(typeof(bool), typeof(Visibility))]
     public class BoolToVisibilityConverter : IValueConverter
     {
