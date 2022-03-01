@@ -324,6 +324,27 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _bottomOffset, value);
         }
 
+        public bool ShowWalkableFaces
+        {
+            get => _showWalkableFaces;
+            set => SetField(ref _showWalkableFaces, value);
+        }
+        private bool _showWalkableFaces = true;
+
+        public bool ShowNonWalkableFaces
+        {
+            get => _showNonWalkableFaces;
+            set => SetField(ref _showNonWalkableFaces, value);
+        }
+        private bool _showNonWalkableFaces = false;
+
+        public bool ShowTransAbortPoints
+        {
+            get => _showTransAbortPoints;
+            set => SetField(ref _showTransAbortPoints, value);
+        }
+        private bool _showTransAbortPoints = false;
+
         #endregion // END REGION DataBinding Members
 
         #region ZoomAndPanControl
@@ -1268,6 +1289,9 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        /// <summary>
+        /// Moves RimModel to the On list and runs AddPolyWorker.
+        /// </summary>
         private void AddRim(RimModel rim)
         {
             if (IsBusy) return;
@@ -1336,6 +1360,22 @@ namespace WalkmeshVisualizerWpf.Views
             for (var i = 0; i < unbuilt.Count; i++)
             {
                 var name = unbuilt[i].FileName;
+                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, fullCanvas = null;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    walkCanvas = new Canvas
+                    {
+                        Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed
+                    };
+                    nonWalkCanvas = new Canvas
+                    {
+                        Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed
+                    };
+                    transAbortCanvas = new Canvas
+                    {
+                        Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed
+                    };
+                });
 
                 // Select all faces from mesh.
                 var allfaces = RimWoksLookup[name].SelectMany(w => w.Faces).ToList();
@@ -1354,18 +1394,22 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            polys.Add(new Polygon { Points = new PointCollection(points) });
+                            var poly = new Polygon { Points = new PointCollection(points) };
+                            polys.Add(poly);
+                            _ = walkCanvas.Children.Add(poly);
                         });
                     }
                     else
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            unpolys.Add(new Polygon
+                            var poly = new Polygon
                             {
                                 Points = new PointCollection(points),
                                 StrokeThickness = .1,
-                            });
+                            };
+                            unpolys.Add(poly);
+                            _ = nonWalkCanvas.Children.Add(poly);
                         });
                     }
                 }
@@ -1386,7 +1430,7 @@ namespace WalkmeshVisualizerWpf.Views
                         Canvas.SetLeft(e, point.X - (e.Width / 2));
                         Canvas.SetTop(e, -point.Y + (e.Height / 2));
                         transaborts.Add(e);
-                        Console.WriteLine($"TAP: {point.X:N2}, {point.Y:N2}");
+                        _ = transAbortCanvas.Children.Add(e);
                     });
                 }
 
@@ -1394,6 +1438,21 @@ namespace WalkmeshVisualizerWpf.Views
                 RimPolyLookup.Add(name, polys);
                 RimOutlinePolyLookup.Add(name, unpolys);
                 RimTransAborts.Add(name, transaborts);
+
+                // Cache the canvases.
+                RimWalkableCanvasLookup.Add(name, walkCanvas);
+                RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);
+                RimTransAbortCanvasLookup.Add(name, transAbortCanvas);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    fullCanvas = new Canvas();
+                    _ = fullCanvas.Children.Add(walkCanvas);
+                    _ = fullCanvas.Children.Add(nonWalkCanvas);
+                    _ = fullCanvas.Children.Add(transAbortCanvas);
+                });
+
+                RimFullCanvasLookup.Add(name, fullCanvas);
             }
         }
 
@@ -1481,88 +1540,43 @@ namespace WalkmeshVisualizerWpf.Views
                 RimToBrushUsed.Add(rimToAdd.FileName, brush);
             }
 
-
             // Add all surfaces to the canvas.
-            var polygons = RimPolyLookup[rimToAdd.FileName].ToList();    // walkable
-            var unpolygons = RimOutlinePolyLookup[rimToAdd.FileName].ToList();   // non-walkable
-            var points = RimTransAborts[rimToAdd.FileName].ToList();
+            var fills = RimPolyLookup[rimToAdd.FileName].Select(p => p as Shape).ToList();  // walkable
+            fills.AddRange(RimTransAborts[rimToAdd.FileName]);  // trans_abort points
+            var strokes = RimOutlinePolyLookup[rimToAdd.FileName].ToList();   // non-walkable
             var i = 0;
+
+            if (brushChanged)
+            {
+                // If the brush is different, update with new color.
+                fills.ForEach((Shape p) =>
+                {
+                    content.Dispatcher.Invoke(() =>
+                    {
+                        AddPolyWorker.ReportProgress(100 * i++ / fills.Count);
+                        p.Fill = brush;
+                    });
+                });
+                i = 0;  // reset count
+                strokes.ForEach((Polygon p) =>
+                {
+                    content.Dispatcher.Invoke(() =>
+                    {
+                        AddPolyWorker.ReportProgress(100 * i++ / strokes.Count);
+                        p.Stroke = brush;
+                    });
+                });
+            }
+
             if (RimPolysCreated.Contains(rimToAdd.FileName))
             {
-                if (brushChanged)
-                {
-                    // If the brush is different, update with new color.
-                    polygons.ForEach((Polygon p) =>
-                    {
-                        content.Dispatcher.Invoke(() =>
-                        {
-                            AddPolyWorker.ReportProgress(100 * i++ / polygons.Count);
-                            p.Fill = brush; p.Visibility = Visibility.Visible;
-                        });
-                    });
-                    i = 0;  // reset count
-                    unpolygons.ForEach((Polygon p) =>
-                    {
-                        content.Dispatcher.Invoke(() =>
-                        {
-                            AddPolyWorker.ReportProgress(100 * i++ / unpolygons.Count);
-                            p.Stroke = brush; p.Visibility = Visibility.Visible;
-                        });
-                    });
-                    i = 0;  // reset count
-                    points.ForEach((Ellipse e) =>
-                    {
-                        content.Dispatcher.Invoke(() =>
-                        {
-                            AddPolyWorker.ReportProgress(100 * i++ / points.Count);
-                            e.Fill = brush; e.Visibility = Visibility.Visible;
-                        });
-                    });
-                }
-                else
-                {
-                    // If the brush is the same, just reveal the polygons.
-                    var shapes = new List<Shape>(polygons);
-                    shapes.AddRange(unpolygons);
-                    shapes.AddRange(points);
-                    shapes.ForEach((Shape s) =>
-                    {
-                        content.Dispatcher.Invoke(() =>
-                        {
-                            AddPolyWorker.ReportProgress(100 * i++ / shapes.Count);
-                            s.Visibility = Visibility.Visible;
-                        });
-                    });
-                }
+                UpdateRimVisibility(rimToAdd);
             }
             else
             {
-                // If not yet used, update brush and add to canvas.
-                polygons.ForEach((Polygon p) =>
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    content.Dispatcher.Invoke(() =>
-                    {
-                        AddPolyWorker.ReportProgress(100 * i++ / polygons.Count);
-                        p.Fill = brush; _ = content.Children.Add(p);
-                    });
-                });
-                i = 0;  // reset count
-                unpolygons.ForEach((Polygon p) =>
-                {
-                    content.Dispatcher.Invoke(() =>
-                    {
-                        AddPolyWorker.ReportProgress(100 * i++ / unpolygons.Count);
-                        p.Stroke = brush; _ = content.Children.Add(p);
-                    });
-                });
-                i = 0;  // reset count
-                points.ForEach((Ellipse e) =>
-                {
-                    content.Dispatcher.Invoke(() =>
-                    {
-                        AddPolyWorker.ReportProgress(100 * i++ / points.Count);
-                        e.Fill = brush; _ = content.Children.Add(e);
-                    });
+                    _ = content.Children.Add(RimFullCanvasLookup[rimToAdd.FileName]);
                 });
             }
 
@@ -1654,32 +1668,18 @@ namespace WalkmeshVisualizerWpf.Views
         private void RemovePolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             var rimToRemove = (RimModel)e.Argument;   // grab rim info
-
-            HideWalkmeshOnCanvas(rimToRemove.FileName);
-
+            HideWalkmeshOnCanvas(rimToRemove);
             ResizeCanvas();
         }
 
         /// <summary>
         /// Hide all faces in the newly disabled walkmesh.
         /// </summary>
-        private void HideWalkmeshOnCanvas(string rimToRemove)
+        private void HideWalkmeshOnCanvas(RimModel rimToRemove)
         {
             // Adjust count of times this rim's brush was used.
-            PolyBrushCount[RimToBrushUsed[rimToRemove]]--;
-
-            var shapes = new List<Shape>(RimPolyLookup[rimToRemove]);   // walkable
-            shapes.AddRange(RimOutlinePolyLookup[rimToRemove]);         // non-walkable
-            shapes.AddRange(RimTransAborts[rimToRemove]);               // trans_abort
-
-            // Hide all walkmesh faces.
-            content.Dispatcher.Invoke(() =>
-            {
-                shapes.ForEach((Shape s) =>
-                {
-                    s.Visibility = Visibility.Hidden;
-                });
-            });
+            PolyBrushCount[RimToBrushUsed[rimToRemove.FileName]]--;
+            UpdateRimVisibility(rimToRemove);
         }
 
         /// <summary>
@@ -1754,13 +1754,9 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide all polygons in the canvas.
             content.Dispatcher.Invoke(() =>
             {
-                foreach (var child in content.Children.OfType<Polygon>())
+                foreach (var child in content.Children.OfType<Canvas>())
                 {
-                    child.Visibility = Visibility.Hidden;
-                }
-                foreach (var abort in RimTransAborts.SelectMany(kvp => kvp.Value))
-                {
-                    abort.Visibility = Visibility.Hidden;
+                    child.Visibility = Visibility.Collapsed;
                 }
             });
 
@@ -2168,6 +2164,84 @@ namespace WalkmeshVisualizerWpf.Views
         private void ViewHelpCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;
+        }
+
+        #endregion
+
+        #region Canvas Visibility
+
+        private void UpdateRimVisibility(RimModel rim)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RimFullCanvasLookup[rim.FileName].Visibility = OnRims.Contains(rim) ? Visibility.Visible : Visibility.Collapsed;
+            });
+        }
+
+        private void UpdateWalkableVisibility()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RimWalkableCanvasLookup.Values.ToList().ForEach((Canvas c) =>
+                {
+                    c.Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
+                });
+            });
+        }
+
+        private void UpdateNonWalkableVisibility()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RimNonwalkableCanvasLookup.Values.ToList().ForEach((Canvas c) =>
+                {
+                    c.Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
+                });
+            });
+        }
+
+        private void UpdateTransAbortVisibility()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RimTransAbortCanvasLookup.Values.ToList().ForEach((Canvas c) =>
+                {
+                    c.Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed;
+                });
+            });
+        }
+
+        private void ShowWalkableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is VisualizerWindow) ShowWalkableFaces = !ShowWalkableFaces;
+            UpdateWalkableVisibility();
+        }
+
+        private void ShowWalkableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
+        }
+
+        private void ShowNonWalkableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is VisualizerWindow) ShowNonWalkableFaces = !ShowNonWalkableFaces;
+            UpdateNonWalkableVisibility();
+        }
+
+        private void ShowNonWalkableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
+        }
+
+        private void ShowTransAbortCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is VisualizerWindow) ShowTransAbortPoints = !ShowTransAbortPoints;
+            UpdateTransAbortVisibility();
+        }
+
+        private void ShowTransAbortCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
         }
 
         #endregion

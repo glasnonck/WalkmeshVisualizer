@@ -148,6 +148,10 @@
     <Content Include="Resources\GameData.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\NonWalkIcon.png" />
+    <Resource Include="Resources\WalkIcon.png" />
+    <Resource Include="Resources\GatherPartyIcon.png" />
+    <Resource Include="Resources\TransAbortsAlpha.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icon.png" />

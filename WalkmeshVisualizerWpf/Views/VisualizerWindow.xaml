@@ -87,6 +87,27 @@
                 <KeyGesture>Ctrl+F1</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
+        
+        <!--
+        ToolBar related commands and keybinds.
+        -->
+        <RoutedUICommand x:Key="Commands.ShowWalkable">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+W</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowNonWalkable">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Shift+W</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowTransAbort">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+G</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
 
         <!--
         Converters.
@@ -197,6 +218,27 @@
             Executed="ViewHelpCommand_Executed"
             CanExecute="ViewHelpCommand_CanExecute"
             />
+        
+        <!--
+        ToolBar related command bindings.
+        -->
+        <CommandBinding
+            Command="{StaticResource Commands.ShowWalkable}"
+            Executed="ShowWalkableCommand_Executed"
+            CanExecute="ShowWalkableCommand_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowNonWalkable}"
+            Executed="ShowNonWalkableCommand_Executed"
+            CanExecute="ShowNonWalkableCommand_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowTransAbort}"
+            Executed="ShowTransAbortCommand_Executed"
+            CanExecute="ShowTransAbortCommand_CanExecute"
+            />
 
     </Window.CommandBindings>
 
@@ -224,10 +266,40 @@
                 <MenuItem Header="Zoom _In" Command="{StaticResource Commands.ZoomIn}" />
                 <MenuItem Header="Zoom _Out" Command="{StaticResource Commands.ZoomOut}" />
                 <Separator />
-                <MenuItem Header="_Fit Entire Page" Command="{StaticResource Commands.Fill}" />
+                <MenuItem Header="_Fill Page Zoom" Command="{StaticResource Commands.Fill}" />
                 <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
-                <Separator />
                 <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
+                <Separator />
+                <MenuItem
+                    Header="Show _Walkable Faces"
+                    Command="{StaticResource Commands.ShowWalkable}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/WalkIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                    Header="Show _Non-Walkable Faces"
+                    Command="{StaticResource Commands.ShowNonWalkable}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/NonWalkIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                    Header="Show _Gather Party Points"
+                    Command="{StaticResource Commands.ShowTransAbort}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/GatherPartyIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="_Help">
@@ -620,12 +692,17 @@
                 <ColumnDefinition Width="Auto" />   <!-- GridSplitter -->
                 <ColumnDefinition Width="Auto" />   <!-- Options Panel -->
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
             <!--
             Grid splitter allows the options panel to be resized.
             -->
             <GridSplitter
                 Grid.Column="1"
+                Grid.RowSpan="2"
                 Width="3"
                 Background="Gray"
                 HorizontalAlignment="Stretch"
@@ -637,7 +714,7 @@
             Grid placed to the right of the canvas containing the visualizer options. Modules can be added
             or removed from the canvas display.
             -->
-            <Grid x:Name="optionsGrid" Grid.Column="2" Margin="5,0,0,0">
+            <Grid x:Name="optionsGrid" Grid.Column="2" Grid.RowSpan="2" Margin="5,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -843,6 +920,47 @@
             </Grid>
 
             <!--
+            ToolBar with shortcut buttons for canvas display options.
+            -->
+            <ToolBarTray  Background="White">
+                <ToolBarTray.Resources>
+                    <Style TargetType="Image">
+                        <Setter Property="Height" Value="20" />
+                        <Setter Property="Width" Value="20" />
+                    </Style>
+                    <Style TargetType="ToggleButton">
+                        <Setter Property="Margin" Value="5,0" />
+                    </Style>
+                </ToolBarTray.Resources>
+                <ToolBar Background="GhostWhite">
+                    <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show walkable faces."
+                    IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowWalkable}"
+                    >
+                        <Image Source="../Resources/WalkIcon.png" />
+                    </ToggleButton>
+                    <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show non-walkable faces."
+                    IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowNonWalkable}"
+                    >
+                        <Image Source="../Resources/NonWalkIcon.png" />
+                    </ToggleButton>
+                    <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show gather party points."
+                    IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowTransAbort}"
+                    >
+                        <Image Source="../Resources/GatherPartyIcon.png" />
+                    </ToggleButton>
+                </ToolBar>
+            </ToolBarTray>
+
+            <!--
             Wrap the ZoomAndPanControl in a ScrollViewer.
             When the scaled content that is displayed in ZoomAndPanControl is larger than the viewport
             onto the content.
@@ -851,6 +969,7 @@
             <ScrollViewer
                 x:Name="scroller"
                 Grid.Column="0"
+                Grid.Row="1"
                 CanContentScroll="True"
                 VerticalScrollBarVisibility="Visible"
                 HorizontalScrollBarVisibility="Visible"
