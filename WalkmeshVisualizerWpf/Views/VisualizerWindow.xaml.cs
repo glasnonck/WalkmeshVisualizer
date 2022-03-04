@@ -124,7 +124,8 @@ namespace WalkmeshVisualizerWpf.Views
         private Dictionary<string, Canvas> RimFullCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimWalkableCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimNonwalkableCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
-        private Dictionary<string, Canvas> RimTransAbortCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimTransAbortPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimTransAbortRegionCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
         /// <summary> Lookup from a RIM filename to the WOKs it contains. </summary>
         private Dictionary<string, IEnumerable<WOK>> RimWoksLookup { get; set; } = new Dictionary<string, IEnumerable<WOK>>();
@@ -159,6 +160,10 @@ namespace WalkmeshVisualizerWpf.Views
             { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
             { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
         };
+
+        private Brush GrayScaleBrush { get; set; } = Brushes.White;
+
+        private Brush TransAbortBorderBrush { get; set; } = Brushes.White;
 
         private Dictionary<string, Brush> RimToBrushUsed { get; set; } = new Dictionary<string, Brush>();
 
@@ -344,6 +349,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showTransAbortPoints, value);
         }
         private bool _showTransAbortPoints = false;
+
+        public bool ShowTransAbortRegions
+        {
+            get => _showTransAbortRegions;
+            set => SetField(ref _showTransAbortRegions, value);
+        }
+        private bool _showTransAbortRegions = false;
 
         #endregion // END REGION DataBinding Members
 
@@ -1269,7 +1281,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Swap Game Methods
 
-        #region Add Polygon Methods
+        #region Add Methods
 
         /// <summary>
         /// Add a walkmesh to the display.
@@ -1299,6 +1311,13 @@ namespace WalkmeshVisualizerWpf.Views
             try
             {
                 IsBusy = true;
+
+                // Disable regions if needed.
+                if (ShowTransAbortRegions && OnRims.Count == 1)
+                {
+                    ShowTransAbortRegions = false;
+                    UpdateTransAbortRegionVisibility();
+                }
 
                 // Move the clicked item from OFF to ON.
                 _ = OffRims.Remove(rim);
@@ -1359,31 +1378,42 @@ namespace WalkmeshVisualizerWpf.Views
             var unbuilt = OnRims.Where(n => !RimPolyLookup.ContainsKey(n.FileName)).ToList();
             for (var i = 0; i < unbuilt.Count; i++)
             {
-                var name = unbuilt[i].FileName;
-                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, fullCanvas = null;
+                var rimmodel = unbuilt[i];
+                var name = rimmodel.FileName;
+                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, fullCanvas = null;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     walkCanvas = new Canvas
                     {
-                        Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed
+                        Opacity = 0.8,
+                        Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
                     };
                     nonWalkCanvas = new Canvas
                     {
-                        Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed
+                        Opacity = 0.8,
+                        Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
                     };
                     transAbortCanvas = new Canvas
                     {
-                        Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed
+                        Opacity = 0.8,
+                        Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed,
+                    };
+                    transBorderCanvas = new Canvas
+                    {
+                        Opacity = 0.5,
+                        Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed,
                     };
                 });
 
                 // Select all faces from mesh.
+                //var woks = RimWoksLookup[name];
                 var allfaces = RimWoksLookup[name].SelectMany(w => w.Faces).ToList();
 
                 // Create a polygon for each face.
                 var polys = new List<Polygon>();    // walkable polygons
                 var unpolys = new List<Polygon>();  // unwalkable polygons
-                var transaborts = new List<Ellipse>();
+                var tas = new List<Ellipse>();  // trans_abort points
+                //var tabs = new List<Line>();    // trans_abort borders
                 for (var j = 0; j < allfaces.Count; j++)
                 {
                     AddPolyWorker.ReportProgress(100 * j / allfaces.Count);
@@ -1414,7 +1444,19 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
 
-                foreach (var point in RimGitLookup[name].Placeables.Where(p => p.TemplateResRef == TRANS_ABORT_RESREF))
+                var taWaypoints = RimGitLookup[name].Waypoints.Structs.Where(s => s.Fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t && t.CEString == "wp_transabort").ToList();
+                var transAbortPoints = new List<Point>();
+                foreach (var waypoint in taWaypoints)
+                {
+                    var x = (waypoint.Fields.FirstOrDefault(f => f.Label == "XPosition") is GFF.FLOAT xf) ? xf.Value : double.NaN;
+                    var y = (waypoint.Fields.FirstOrDefault(f => f.Label == "YPosition") is GFF.FLOAT yf) ? yf.Value : double.NaN;
+                    var z = (waypoint.Fields.FirstOrDefault(f => f.Label == "ZPosition") is GFF.FLOAT zf) ? zf.Value : double.NaN;
+
+                    if (double.IsNaN(x) || double.IsNaN(y)) continue;
+                    transAbortPoints.Add(new Point(x, y));
+                }
+
+                foreach (var point in transAbortPoints)
                 {
                     // Create TransAbort points as ellipses.
                     Application.Current.Dispatcher.Invoke(() =>
@@ -1429,20 +1471,24 @@ namespace WalkmeshVisualizerWpf.Views
                         };
                         Canvas.SetLeft(e, point.X - (e.Width / 2));
                         Canvas.SetTop(e, -point.Y + (e.Height / 2));
-                        transaborts.Add(e);
+                        tas.Add(e);
                         _ = transAbortCanvas.Children.Add(e);
                     });
                 }
 
+                // Calculate border lines between each pair of trans_abort points.
+                CalculateTransAbortBorders(transBorderCanvas, name, transAbortPoints);
+
                 // Cache the created polygons.
                 RimPolyLookup.Add(name, polys);
                 RimOutlinePolyLookup.Add(name, unpolys);
-                RimTransAborts.Add(name, transaborts);
+                RimTransAborts.Add(name, tas);
 
                 // Cache the canvases.
                 RimWalkableCanvasLookup.Add(name, walkCanvas);
                 RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);
-                RimTransAbortCanvasLookup.Add(name, transAbortCanvas);
+                RimTransAbortPointCanvasLookup.Add(name, transAbortCanvas);
+                RimTransAbortRegionCanvasLookup.Add(name, transBorderCanvas);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -1450,9 +1496,242 @@ namespace WalkmeshVisualizerWpf.Views
                     _ = fullCanvas.Children.Add(walkCanvas);
                     _ = fullCanvas.Children.Add(nonWalkCanvas);
                     _ = fullCanvas.Children.Add(transAbortCanvas);
+                    _ = fullCanvas.Children.Add(transBorderCanvas);
                 });
 
                 RimFullCanvasLookup.Add(name, fullCanvas);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CalculateTransAbortBorders(Canvas transBorderCanvas, string rimName, List<Point> transAbortPoints)
+        {
+            // Calculate minimum and maximum x and y values of this module.
+            var woks = RimWoksLookup[rimName];
+            var minx = woks.Min(w => w.MinX);
+            var maxx = woks.Max(w => w.MaxX);
+            var miny = woks.Min(w => w.MinY);
+            var maxy = woks.Max(w => w.MaxY);
+
+            // Create collections to use later.
+            var equations = new List<List<GeneralLineEquation>>();
+            var regions = new List<List<Point>>();
+            var boundingBox = new List<GeneralLineEquation>
+            {
+                new GeneralLineEquation { A = 1, B = 0, C = -(minx - BaseOffset.X) },
+                new GeneralLineEquation { A = 0, B = 1, C = -(maxy + BaseOffset.Y) },
+                new GeneralLineEquation { A = 1, B = 0, C = -(maxx + BaseOffset.X) },
+                new GeneralLineEquation { A = 0, B = 1, C = -(miny - BaseOffset.Y) },
+            };
+
+            // Create an equation for each pair of trans_abort points.
+            for (var i = 0; i < transAbortPoints.Count; i++)
+            {
+                var iPoint = transAbortPoints[i];
+                var iEquations = new List<GeneralLineEquation>();
+                for (var j = 0; j < transAbortPoints.Count; j++)
+                {
+                    if (i == j)
+                    {
+                        iEquations.Add(null);   // skip self comparison
+                    }
+                    else
+                    {
+                        var jPoint = transAbortPoints[j];
+                        iEquations.Add(GeneralLineEquation.FindMidline(iPoint, jPoint));
+                    }
+                }
+                iEquations.AddRange(boundingBox);
+                equations.Add(iEquations);
+            }
+
+            // For each point, calculate the bouding region.
+            for (var i = 0; i < transAbortPoints.Count; i++)
+            {
+                var iPoint = transAbortPoints[i];
+                var searched = new bool[equations[i].Count];
+
+                // Find line L closest to point I.
+                GeneralLineEquation L = null;
+                var lineIndex = -1;
+                for (var j = 0; j < equations[i].Count; j++)
+                {
+                    if (i == j || equations[i][j] == null || !equations[i][j].IsALine)
+                    {
+                        searched[j] = true;
+                        continue;
+                    }
+                    if (L == null || (equations[i][j].Distance(iPoint) < L.Distance(iPoint)))
+                    {
+                        L = equations[i][j];
+                        lineIndex = j;
+                    }
+                }
+
+                if (L == null) continue;    // No line found.
+                searched[lineIndex] = true;
+                var mPoint = L.FindNearestPoint(iPoint).Value;
+                var thisLine = L;       // Current line.
+                var cPoint = iPoint;    // Compare point.
+                var regionPoints = new List<Point>();
+
+                // Going clockwise, check each other equation for the nearest intersection.
+                while (true)
+                {
+                    //var normalNullable = thisLine.NormalVector(iPoint);
+                    //if (!normalNullable.HasValue) continue;
+                    var normal = thisLine.NormalVector(iPoint).Value;
+                    normal.Normalize();
+                    //if (!normal.HasValue) continue;
+
+                    // Direction is based on the direction of the normal vector.
+                    var direction = thisLine.IsVertical
+                        ? Math.Sign(normal.X)
+                        : -Math.Sign(normal.Y);
+
+                    // Find next intersection in the current direction.
+                    var distance = double.NaN;
+                    Point? nextIntersect = null;
+                    GeneralLineEquation nextLine = null;
+                    var nextIndex = -1;
+                    for (var j = 0; j < equations[i].Count; j++)
+                    {
+                        if (i == j || equations[i][j] == null || thisLine == equations[i][j]) continue;   // skip self comparison
+                        if (searched[j] && L != equations[i][j]) continue;  // skip lines we've already hit, except the start line
+
+                        var thisIntersect = thisLine.Intersection(equations[i][j]);
+                        if (!thisIntersect.HasValue ||
+                            (thisIntersect.Value - mPoint).Length < GeneralLineEquation.SMALL_VALUE ||  // Don't stop at the same point.
+                            double.IsNaN(thisIntersect.Value.X) ||
+                            double.IsNaN(thisIntersect.Value.Y))
+                        {
+                            continue;
+                        }
+
+                        // Skip intersection if in the wrong direction.
+                        if (thisLine.IsVertical)
+                        {
+                            if (Math.Sign(thisIntersect.Value.Y - mPoint.Y) != direction) continue;
+                        }
+                        else
+                        {
+                            if (Math.Sign(thisIntersect.Value.X - mPoint.X) != direction) continue;
+                        }
+
+                        var thisDistance = mPoint.Distance(thisIntersect.Value);
+                        if (nextIntersect == null || thisDistance < distance)
+                        {
+                            distance = thisDistance;
+                            nextIntersect = thisIntersect;
+                            nextLine = equations[i][j];
+                            nextIndex = j;
+                        }
+                    }
+
+                    // Break out of search if no intersection was found.
+                    if (!nextIntersect.HasValue) break;
+
+                    // Save intersection point and new line.
+                    cPoint = mPoint;
+                    mPoint = nextIntersect.Value;
+                    regionPoints.Add(mPoint);
+                    thisLine = nextLine;
+                    searched[nextIndex] = true;
+
+                    // Break out if you've returned to the starting line.
+                    if (nextLine == L) break;
+                }
+
+                regions.Add(regionPoints);
+            }
+
+            //// Determine text for regions.
+            //var froms = RimGitLookup[rimName].Waypoints.Structs.Where(s => s.Fields.Any(
+            //    f => f is GFF.CExoString ces &&
+            //    (ces.CEString.ToLower().StartsWith("from") ||
+            //     ces.CEString.ToLower().Contains("ebon_hawk_transition"))));
+            //var fromLabels = new string[transAbortPoints.Count];
+            //for (var i = 0; i < transAbortPoints.Count; i++)
+            //{
+            //    var abortWP = transAbortPoints[i];
+            //    Point? fromWP = null;
+            //    string fromTag = null;
+            //    var distance = double.NaN;
+
+            //    // Find closest from waypoint.
+            //    foreach (var from in froms)
+            //    {
+            //        var x = (from.Fields.FirstOrDefault(f => f.Label == "XPosition") as GFF.FLOAT).Value;
+            //        var y = (from.Fields.FirstOrDefault(f => f.Label == "YPosition") as GFF.FLOAT).Value;
+            //        var thisWP = new Point(x, y);
+            //        var thisDistance = abortWP.Distance(thisWP);
+
+            //        if (!fromWP.HasValue || thisDistance < distance)
+            //        {
+            //            fromWP = thisWP;
+            //            distance = thisDistance;
+            //            fromTag = (from.Fields.First(f => f.Label == "Tag") as GFF.CExoString).CEString.ToLower();
+            //        }
+            //    }
+
+            //    // Determine label from closest waypoint tag.
+            //    if (fromTag.Contains("ebon_hawk_transition"))
+            //    {
+            //        fromLabels[i] = "Ebon Hawk";
+            //    }
+            //    else
+            //    {
+            //        fromTag = fromTag.Replace("from", "");  // Remove starting "from"
+            //        var fromNum = fromTag.Substring(0, 2);  // First two characters contain the number.
+            //        if (fromTag.Length == 2)
+            //        {
+            //            fromLabels[i] = $"m{fromNum}";
+            //        }
+            //        else
+            //        {
+            //            var fromLtr = fromTag.Substring(2, 1);  // Next character is the unique module letter.
+            //            fromLabels[i] = $"m{fromNum}a{fromLtr}";
+            //        }
+            //    }
+            //}
+
+            // Draw regions.
+            var fillIdx = 0;
+            //var foreIdx = 2;
+            //foreach (var region in regions)
+            for (var i = 0; i < regions.Count; i++)
+            {
+                var region = regions[i];
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var poly = new Polygon
+                    {
+                        Stroke = TransAbortBorderBrush,
+                        StrokeThickness = .3,
+                        Fill = PolyBrushCount.Keys.ElementAt(fillIdx),
+                        RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                        Points = new PointCollection(region),
+                    };
+                    _ = transBorderCanvas.Children.Add(poly);
+
+                    //var text = new TextBlock
+                    //{
+                    //    Text = "Hello world",
+                    //    FontSize = 4,
+                    //    Foreground = Brushes.White,
+                    //    Background = Brushes.Black,
+                    //    HorizontalAlignment = HorizontalAlignment.Center,
+                    //    TextAlignment = TextAlignment.Center,
+                    //    RenderTransform = content.Resources["OffsetTransform"] as Transform,
+                    //};
+                    //Canvas.SetLeft(text, transAbortPoints[i].X - (BaseOffset.X / 2));
+                    //Canvas.SetTop(text, -transAbortPoints[i].Y - BaseOffset.Y);
+                    //_ = transBorderCanvas.Children.Add(text);
+                });
+                fillIdx = (fillIdx + 1) % PolyBrushCount.Count;
+                //foreIdx = (foreIdx + 1) % PolyBrushCount.Count;
             }
         }
 
@@ -1540,34 +1819,20 @@ namespace WalkmeshVisualizerWpf.Views
                 RimToBrushUsed.Add(rimToAdd.FileName, brush);
             }
 
-            // Add all surfaces to the canvas.
-            var fills = RimPolyLookup[rimToAdd.FileName].Select(p => p as Shape).ToList();  // walkable
-            fills.AddRange(RimTransAborts[rimToAdd.FileName]);  // trans_abort points
-            var strokes = RimOutlinePolyLookup[rimToAdd.FileName].ToList();   // non-walkable
-            var i = 0;
-
+            // Update the fill color.
             if (brushChanged)
             {
-                // If the brush is different, update with new color.
-                fills.ForEach((Shape p) =>
+                if (ShowTransAbortRegions)
                 {
-                    content.Dispatcher.Invoke(() =>
-                    {
-                        AddPolyWorker.ReportProgress(100 * i++ / fills.Count);
-                        p.Fill = brush;
-                    });
-                });
-                i = 0;  // reset count
-                strokes.ForEach((Polygon p) =>
+                    UpdateRimFillColor(AddPolyWorker, GrayScaleBrush, rimToAdd);
+                }
+                else
                 {
-                    content.Dispatcher.Invoke(() =>
-                    {
-                        AddPolyWorker.ReportProgress(100 * i++ / strokes.Count);
-                        p.Stroke = brush;
-                    });
-                });
+                    UpdateRimFillColor(AddPolyWorker, brush, rimToAdd);
+                }
             }
 
+            // Add all surfaces to the canvas.
             if (RimPolysCreated.Contains(rimToAdd.FileName))
             {
                 UpdateRimVisibility(rimToAdd);
@@ -1590,6 +1855,36 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        private void UpdateRimFillColor(BackgroundWorker bw, Brush brush, RimModel rimModel)
+        {
+            var fills = RimPolyLookup[rimModel.FileName].Select(p => p as Shape).ToList();  // walkable
+            fills.AddRange(RimTransAborts[rimModel.FileName]);  // trans_abort points
+            var strokes = RimOutlinePolyLookup[rimModel.FileName].ToList();   // non-walkable
+            var i = 0;
+
+            // If the brush is different, update with new color.
+            fills.ForEach((Shape p) =>
+            {
+                content.Dispatcher.Invoke(() =>
+                {
+                    bw?.ReportProgress(100 * i++ / fills.Count);
+                    p.Fill = brush;
+                });
+            });
+            i = 0;  // reset count
+            strokes.ForEach((Polygon p) =>
+            {
+                content.Dispatcher.Invoke(() =>
+                {
+                    bw?.ReportProgress(100 * i++ / strokes.Count);
+                    p.Stroke = brush;
+                });
+            });
+        }
+
+        /// <summary>
         /// Determine next brush to use in sequence.
         /// </summary>
         private Brush GetNextBrush()
@@ -1598,9 +1893,9 @@ namespace WalkmeshVisualizerWpf.Views
             return PolyBrushCount.First(pair => pair.Value == min).Key;
         }
 
-        #endregion // END REGION Add Polygon Methods
+        #endregion // END REGION Add Methods
 
-        #region Remove Polygon Methods
+        #region Remove Methods
 
         /// <summary>
         /// Remove a walkmesh from the display.
@@ -1725,7 +2020,7 @@ namespace WalkmeshVisualizerWpf.Views
             _ = RimPolysCreated.Remove(rimToRemove);
         }
 
-        #endregion // END REGION Remove Polygon Methods
+        #endregion // END REGION Remove Methods
 
         #region Remove All Methods
 
@@ -2200,13 +2495,38 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
-        private void UpdateTransAbortVisibility()
+        private void UpdateTransAbortPointVisibility()
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                RimTransAbortCanvasLookup.Values.ToList().ForEach((Canvas c) =>
+                RimTransAbortPointCanvasLookup.Values.ToList().ForEach((Canvas c) =>
                 {
                     c.Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed;
+                });
+            });
+        }
+
+        private void UpdateTransAbortRegionVisibility()
+        {
+            var rimmodel = OnRims.FirstOrDefault();
+            if (ShowTransAbortRegions)
+            {
+                content.Background = Brushes.Black;
+                if (rimmodel == null) return;
+                UpdateRimFillColor(null, GrayScaleBrush, rimmodel);
+            }
+            else
+            {
+                content.Background = Brushes.White;
+                if (rimmodel == null) return;
+                UpdateRimFillColor(null, RimToBrushUsed[rimmodel.FileName], rimmodel);
+            }
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RimTransAbortRegionCanvasLookup.Values.ToList().ForEach((Canvas c) =>
+                {
+                    c.Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed;
                 });
             });
         }
@@ -2236,12 +2556,23 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowTransAbortCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowTransAbortPoints = !ShowTransAbortPoints;
-            UpdateTransAbortVisibility();
+            UpdateTransAbortPointVisibility();
         }
 
         private void ShowTransAbortCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = !IsBusy;
+        }
+
+        private void ShowTransAbortRegionCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is VisualizerWindow) ShowTransAbortRegions = !ShowTransAbortRegions;
+            UpdateTransAbortRegionVisibility();
+        }
+
+        private void ShowTransAbortRegionCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy && OnRims.Count < 2;
         }
 
         #endregion

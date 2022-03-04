@@ -61,6 +61,7 @@
     </ApplicationDefinition>
     <Compile Include="Helpers\ExtensionMethods.cs" />
     <Compile Include="Models\GameData.cs" />
+    <Compile Include="Models\GeneralLineEquation.cs" />
     <Compile Include="Models\WalkabilityModel.cs" />
     <Compile Include="Models\XmlGameData.cs" />
     <Compile Include="Models\ModuleWalkmesh.cs" />
@@ -148,6 +149,7 @@
     <Content Include="Resources\GameData.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\GatherPartyRegionIcon.png" />
     <Resource Include="Resources\NonWalkIcon.png" />
     <Resource Include="Resources\WalkIcon.png" />
     <Resource Include="Resources\GatherPartyIcon.png" />

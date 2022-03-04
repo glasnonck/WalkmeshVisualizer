@@ -109,6 +109,12 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
+        <RoutedUICommand x:Key="Commands.ShowTransAbortRegion">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Shift+G</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
         <!--
         Converters.
         -->
@@ -240,6 +246,12 @@
             CanExecute="ShowTransAbortCommand_CanExecute"
             />
 
+        <CommandBinding
+            Command="{StaticResource Commands.ShowTransAbortRegion}"
+            Executed="ShowTransAbortRegionCommand_Executed"
+            CanExecute="ShowTransAbortRegionCommand_CanExecute"
+            />
+
     </Window.CommandBindings>
 
     <DockPanel>
@@ -290,6 +302,7 @@
                         <Image Source="../Resources/NonWalkIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
+                <Separator />
                 <MenuItem
                     Header="Show _Gather Party Points"
                     Command="{StaticResource Commands.ShowTransAbort}"
@@ -298,6 +311,16 @@
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/GatherPartyIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                    Header="Show Gather Party _Regions"
+                    Command="{StaticResource Commands.ShowTransAbortRegion}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
@@ -927,6 +950,11 @@
                     <Style TargetType="Image">
                         <Setter Property="Height" Value="20" />
                         <Setter Property="Width" Value="20" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsEnabled}" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </DataTrigger>
+                        </Style.Triggers>
                     </Style>
                     <Style TargetType="ToggleButton">
                         <Setter Property="Margin" Value="5,0" />
@@ -934,28 +962,37 @@
                 </ToolBarTray.Resources>
                 <ToolBar Background="GhostWhite">
                     <ToggleButton
-                    Margin="2,0"
-                    ToolTip="Show walkable faces."
-                    IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
-                    Command="{StaticResource Commands.ShowWalkable}"
-                    >
+                        Margin="2,0"
+                        ToolTip="Show walkable faces."
+                        IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowWalkable}"
+                        >
                         <Image Source="../Resources/WalkIcon.png" />
                     </ToggleButton>
                     <ToggleButton
-                    Margin="2,0"
-                    ToolTip="Show non-walkable faces."
-                    IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
-                    Command="{StaticResource Commands.ShowNonWalkable}"
-                    >
+                        Margin="2,0"
+                        ToolTip="Show non-walkable faces."
+                        IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowNonWalkable}"
+                        >
                         <Image Source="../Resources/NonWalkIcon.png" />
                     </ToggleButton>
+                    <Separator />
                     <ToggleButton
-                    Margin="2,0"
-                    ToolTip="Show gather party points."
-                    IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
-                    Command="{StaticResource Commands.ShowTransAbort}"
-                    >
+                        Margin="2,0"
+                        ToolTip="Show gather party points."
+                        IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowTransAbort}"
+                        >
                         <Image Source="../Resources/GatherPartyIcon.png" />
+                    </ToggleButton>
+                    <ToggleButton
+                        Margin="2,0"
+                        ToolTip="Show gather party regions."
+                        IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowTransAbortRegion}"
+                        >
+                        <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </ToggleButton>
                 </ToolBar>
             </ToolBarTray>
@@ -1000,20 +1037,21 @@
                                     <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
                                 </TransformGroup>
 
-                                <TranslateTransform x:Key="OffsetTransform" X="{Binding LeftOffset}" Y="{Binding BottomOffset}" />
+                                <TransformGroup x:Key="OffsetTransform">
+                                    <TranslateTransform X="{Binding LeftOffset}" Y="{Binding BottomOffset}" />
+                                    <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
+                                </TransformGroup>
 
                                 <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />
 
                                 <Style TargetType="Ellipse" x:Key="CoordPoint">
                                     <Setter Property="Width" Value="1" />
                                     <Setter Property="Height" Value="1" />
-                                    <Setter Property="Stroke" Value="Black" />
                                     <Setter Property="StrokeThickness" Value=".1" />
                                 </Style>
 
                                 <Style TargetType="Polygon">
                                     <Setter Property="RenderTransform" Value="{StaticResource CartesianTransform}" />
-                                    <Setter Property="Opacity" Value=".7" />
                                 </Style>
 
                                 <Style TargetType="StackPanel">
@@ -1033,7 +1071,7 @@
                             If a module is added or removed, both will be hidden using the PointClicked boolean.
                             -->
                             <Ellipse
-                                x:Name="leftClickEllipse" Fill="Black"
+                                x:Name="leftClickEllipse" Fill="Black" Stroke="White"
                                 Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                 Canvas.Left="{Binding LeftClickPoint.X}"
                                 Canvas.Bottom="{Binding LeftClickPoint.Y}"
@@ -1053,7 +1091,7 @@
                             </StackPanel>
 
                             <Ellipse
-                                x:Name="rightClickEllipse" Fill="White"
+                                x:Name="rightClickEllipse" Fill="White" Stroke="Black"
                                 Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                 Canvas.Left="{Binding RightClickPoint.X}"
                                 Canvas.Bottom="{Binding RightClickPoint.Y}"
