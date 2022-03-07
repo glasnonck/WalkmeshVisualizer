@@ -1,7 +1,9 @@
 <h1> <img src="WalkmeshVisualizerWpf/Resources/Icon.png" height="40" width="40" align="top" /> KotOR Walkmesh Visualizer</h1>
 
-[![GitHub release](https://img.shields.io/github/v/release/Glasnonck/WalkmeshVisualizer.svg)](https://github.com/Glasnonck/WalkmeshVisualizer/releases/latest)
-[![GitHub issues](https://img.shields.io/github/issues/Glasnonck/WalkmeshVisualizer.svg)](https://github.com/Glasnonck/WalkmeshVisualizer/issues)
+[![GitHub release](https://img.shields.io/github/v/release/Glasnonck/WalkmeshVisualizer?display_name=tag&color=blueviolet)](https://github.com/Glasnonck/WalkmeshVisualizer/releases/latest)
+[![Bugs](https://img.shields.io/github/issues-search/Glasnonck/WalkmeshVisualizer?label=bugs&color=red&query=is%3Aopen+label%3Abug)](https://github.com/glasnonck/WalkmeshVisualizer/labels/bug)
+[![Enhancements](https://img.shields.io/github/issues-search/Glasnonck/WalkmeshVisualizer?label=enhancements&color=yellowgreen&query=is%3Aopen+label%3Aenhancement)](https://github.com/glasnonck/WalkmeshVisualizer/labels/enhancement)
+[![Other](https://img.shields.io/github/issues-search/Glasnonck/WalkmeshVisualizer?label=other&color=blue&query=is%3Aopen+label%3Abug+-label%3Aenhancement)](https://github.com/glasnonck/WalkmeshVisualizer/issues?q=is%3Aopen+-label%3Abug+-label%3Aenhancement)
 
 A visualizer for Star Wars: Knights of the Old Republic 1 and 2 that overlays module walkmeshes. This is intented to be used as an exploratory tool for speedrunners.
 
