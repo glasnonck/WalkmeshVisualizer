@@ -146,9 +146,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\DlzIcon.png" />
+    <Resource Include="Resources\DlzIcon2.png" />
     <Content Include="Resources\GameData.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\TriggerIcon.png" />
     <Resource Include="Resources\GatherPartyRegionIcon.png" />
     <Resource Include="Resources\NonWalkIcon.png" />
     <Resource Include="Resources\WalkIcon.png" />
