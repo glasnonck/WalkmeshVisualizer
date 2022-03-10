@@ -39,7 +39,6 @@ namespace WalkmeshVisualizerWpf.Views
         public VisualizerWindow()
         {
             InitializeComponent();
-            XmlGameData.Initialize();
 
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
@@ -845,7 +844,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (Directory.Exists(K1_DEFAULT_PATH))
             {
-                CurrentGame = XmlGameData.Kotor1Xml;
+                CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor1);
                 LoadGameFiles(K1_DEFAULT_PATH, K1_NAME);
             }
             else
@@ -869,7 +868,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (Directory.Exists(K2_DEFAULT_PATH))
             {
-                CurrentGame = XmlGameData.Kotor2Xml;
+                CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor2);
                 LoadGameFiles(K2_DEFAULT_PATH, K2_NAME);
             }
             else
@@ -907,12 +906,12 @@ namespace WalkmeshVisualizerWpf.Views
                 if (exe == null) return;
                 if (exe.Name.ToLower() == "swkotor.exe")
                 {
-                    CurrentGame = XmlGameData.Kotor1Xml;
+                    CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor1);
                     LoadGameFiles(dir.FullName, K1_NAME);
                 }
                 if (exe.Name.ToLower() == "swkotor2.exe")
                 {
-                    CurrentGame = XmlGameData.Kotor2Xml;
+                    CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor2);
                     LoadGameFiles(dir.FullName, K2_NAME);
                 }
             }

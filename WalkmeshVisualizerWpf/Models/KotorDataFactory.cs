@@ -109,7 +109,6 @@ namespace WalkmeshVisualizerWpf.Models
             if (k1Found && k2Found)
                 throw new NotSupportedException($"Both KotOR 1 and 2 executable files found. Simultaneous game data loading is not supported.");
 
-            XmlGameData.Initialize();
             report?.Invoke(25);
 
             var gameEnum = k1Found ? SupportedGame.Kotor1 : SupportedGame.Kotor2;
@@ -284,7 +283,7 @@ namespace WalkmeshVisualizerWpf.Models
             var lytFiles = FetchLayoutFiles(kdm, report);
 
             // Find the module (common) names
-            var xmlGame = kdm.GameName == K1_NAME ? XmlGameData.Kotor1Xml : XmlGameData.Kotor2Xml;
+            var xmlGame = XmlGameData.GetKotorXml(kdm.Game);
             kdm.RimNameToCommonName = xmlGame.Rims.ToDictionary(k => k.FileName, e => e.CommonName);
 
             // Parse RIMs for common name and LYTs in use.

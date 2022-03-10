@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using WalkmeshVisualizerWpf.Helpers;
 
 namespace WalkmeshVisualizerWpf.Models
 {
@@ -18,11 +19,33 @@ namespace WalkmeshVisualizerWpf.Models
         private const string XML_KOTOR2 = "KotOR 2";
         #endregion
 
-        public static XmlGame Kotor1Xml { get; private set; }
-        public static XmlGame Kotor2Xml { get; private set; }
+        private static XmlGame Kotor1Xml { get; set; }
+        private static XmlGame Kotor2Xml { get; set; }
+        private static bool IsInitialized { get; set; }
 
-        public static bool IsInitialized { get; private set; }
+        /// <summary>
+        /// Initializes XML data, if needed, and returns the requested game data.
+        /// </summary>
+        /// <exception cref="ArgumentException"/>
+        public static XmlGame GetKotorXml(SupportedGame game)
+        {
+            if (!IsInitialized) Initialize();
 
+            switch (game)
+            {
+                case SupportedGame.Kotor1:
+                    return Kotor1Xml;
+                case SupportedGame.Kotor2:
+                    return Kotor2Xml;
+                case SupportedGame.NotSupported:
+                default:
+                    throw new ArgumentException($"Game of requested type is not supported. Requested: '{game}'");
+            }
+        }
+
+        /// <summary>
+        /// Initializes XML game data.
+        /// </summary>
         public static void Initialize()
         {
             if (IsInitialized) return;
