@@ -62,12 +62,6 @@ namespace WalkmeshVisualizerWpf.Views
             RemovePolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
             RemovePolyWorker.DoWork += RemovePolyWorker_DoWork;
 
-            // Set up ClearCacheWorker
-            ClearCacheWorker.WorkerReportsProgress = true;
-            ClearCacheWorker.ProgressChanged += Bw_ProgressChanged;
-            ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-            ClearCacheWorker.DoWork += ClearCacheWorker_DoWork;
-
             DataContext = this;
         }
 
@@ -127,23 +121,14 @@ namespace WalkmeshVisualizerWpf.Views
         private Dictionary<string, Canvas> RimTransAbortPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimTransAbortRegionCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
-        /// <summary> Lookup from a RIM filename to the WOKs it contains. </summary>
-        private Dictionary<string, IEnumerable<WOK>> RimWoksLookup { get; set; } = new Dictionary<string, IEnumerable<WOK>>();
-
-        /// <summary> Lookup from a Room name to the room's walkmesh. </summary>
-        private Dictionary<string, WOK> RoomWoksLookup { get; set; } = new Dictionary<string, WOK>();
-
-        /// <summary> Lookup from RIM filename to a more readable Common Name. </summary>
-        private Dictionary<string, string> RimNamesLookup { get; set; } = new Dictionary<string, string>();
+        /// <summary> Data of the currently selected game. </summary>
+        private KotorDataModel CurrentGameData { get; set; }
 
         /// <summary> Lookup from RIM filename to a collection of walkmesh face polygons. </summary>
         private Dictionary<string, IEnumerable<Polygon>> RimPolyLookup { get; set; } = new Dictionary<string, IEnumerable<Polygon>>();
 
         /// <summary> Lookup from RIM filename to a collection of unwalkable face polygons. </summary>
         private Dictionary<string, IEnumerable<Polygon>> RimOutlinePolyLookup { get; set; } = new Dictionary<string, IEnumerable<Polygon>>();
-
-        /// <summary> Lookup from RIM filename to the associated GIT file. </summary>
-        private Dictionary<string, GIT> RimGitLookup { get; set; } = new Dictionary<string, GIT>();
 
         /// <summary> Lookup from RIM filename to a collection of trans_abort points. </summary>
         private Dictionary<string, IEnumerable<Ellipse>> RimTransAborts { get; set; } = new Dictionary<string, IEnumerable<Ellipse>>();
@@ -172,7 +157,6 @@ namespace WalkmeshVisualizerWpf.Views
         public BackgroundWorker GameDataWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker AddPolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
-        public BackgroundWorker ClearCacheWorker { get; set; } = new BackgroundWorker();
 
         public bool K1Loaded { get; set; }
         public bool K2Loaded { get; set; }
@@ -183,10 +167,8 @@ namespace WalkmeshVisualizerWpf.Views
         public const string LOADING = "Loading";
         public const string K1_NAME = "KotOR 1";
         public const string K2_NAME = "KotOR 2";
-        private const string TRANS_ABORT_RESREF = "k_trans_abort";
         private const string K1_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
         private const string K2_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
-        private KPaths Paths;
 
         #endregion // END REGION KIO Members
 
@@ -198,7 +180,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get
             {
-                var v = System.Reflection.Assembly.GetAssembly(typeof(MainWindow)).GetName().Version;
+                var v = System.Reflection.Assembly.GetAssembly(typeof(VisualizerWindow)).GetName().Version;
                 return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
             }
         }
@@ -863,7 +845,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (Directory.Exists(K1_DEFAULT_PATH))
             {
-                CurrentGame = XmlGameData.Kotor1Data;
+                CurrentGame = XmlGameData.Kotor1Xml;
                 LoadGameFiles(K1_DEFAULT_PATH, K1_NAME);
             }
             else
@@ -887,7 +869,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (Directory.Exists(K2_DEFAULT_PATH))
             {
-                CurrentGame = XmlGameData.Kotor2Data;
+                CurrentGame = XmlGameData.Kotor2Xml;
                 LoadGameFiles(K2_DEFAULT_PATH, K2_NAME);
             }
             else
@@ -925,17 +907,20 @@ namespace WalkmeshVisualizerWpf.Views
                 if (exe == null) return;
                 if (exe.Name.ToLower() == "swkotor.exe")
                 {
-                    CurrentGame = XmlGameData.Kotor1Data;
+                    CurrentGame = XmlGameData.Kotor1Xml;
                     LoadGameFiles(dir.FullName, K1_NAME);
                 }
                 if (exe.Name.ToLower() == "swkotor2.exe")
                 {
-                    CurrentGame = XmlGameData.Kotor2Data;
+                    CurrentGame = XmlGameData.Kotor2Xml;
                     LoadGameFiles(dir.FullName, K2_NAME);
                 }
             }
         }
 
+        /// <summary>
+        /// Load Custom can execute if no game is busy and the app is not busy.
+        /// </summary>
         private void LoadCustom_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = !IsBusy && SelectedGame == DEFAULT;
@@ -949,7 +934,6 @@ namespace WalkmeshVisualizerWpf.Views
             HideGameButtons();
 
             // Initialize game path and set game as Loading.
-            Paths = new KPaths(path);
             SelectedGame = LOADING;
             Game = name;
 
@@ -971,40 +955,33 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /// <summary>
-        /// Resets clear cache worker and starts the game data worker.
-        /// </summary>
-        private void ClearAndLoad_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            ClearCacheWorker.RunWorkerCompleted -= ClearAndLoad_RunWorkerCompleted;
-            ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-
-            GameDataWorker.RunWorkerAsync(e.Result);
-        }
-
-        /// <summary>
         /// Performs steps to load required game data.
         /// </summary>
         private void GameDataWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             try
             {
-                // Create the KEY file.
-                GameDataWorker.ReportProgress(25);
-                var key = new KEY(Paths.chitin);
-                var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Data");
-
-                var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
-                if (!thisGameLoaded)
+                if (Game == K1_NAME)
                 {
-                    if (Directory.Exists(path))
+                    CurrentGameData = KotorDataFactory.GetKotor1Data(GameDataWorker.ReportProgress);
+                }
+                else if (Game == K2_NAME)
+                {
+                    CurrentGameData = KotorDataFactory.GetKotor2Data(GameDataWorker.ReportProgress);
+                }
+                else
+                {
+                    SelectedGame = DEFAULT;
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ReadRimFileCache(path);
-                    }
-                    else
-                    {
-                        FetchWokFiles(key);
-                        GetRimData(key);
-                    }
+                        _ = MessageBox.Show(
+                            this,
+                            "Unknown game selection error occurred.",
+                            "Loading Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    });
+                    return;
                 }
 
                 // Set up game data.
@@ -1025,218 +1002,29 @@ namespace WalkmeshVisualizerWpf.Views
                 }
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
-
                 SelectedGame = e.Argument?.ToString() ?? DEFAULT;
-
-                if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
-                {
-                    SaveRimFileCache(path);
-                }
-
                 if (Game == K1_NAME) K1Loaded = true;
                 if (Game == K2_NAME) K2Loaded = true;
             }
             catch (Exception ex)
             {
+                SelectedGame = DEFAULT;
                 var sb = new StringBuilder();
                 _ = sb.AppendLine("An unexpected error occurred while loading game data.")
                       .AppendLine($"-- {ex.Message}");
                 if (ex.InnerException != null)
                     _ = sb.AppendLine($"-- {ex.InnerException.Message}");
 
-                _ = MessageBox.Show(
-                    this,
-                    sb.ToString(),
-                    "Loading Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
-        /// <summary>
-        /// Read walkmesh files we saved previously.
-        /// </summary>
-        private void ReadRimFileCache(string path)
-        {
-            var gameDir = Directory.CreateDirectory(path);
-            var count = 0;
-            var totalWoks = gameDir.EnumerateFiles("*.wok", SearchOption.AllDirectories).Count();
-            foreach (var rimDir in gameDir.EnumerateDirectories())
-            {
-                var woks = new List<WOK>();
-                foreach (var wokFile in rimDir.EnumerateFiles("*.wok"))
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    GameDataWorker.ReportProgress(100 * count++ / totalWoks);
-                    woks.Add(new WOK(wokFile.OpenRead())
-                    {
-                        RoomName = wokFile.Name.Replace(".wok", ""),
-                    });
-                }
-                RimWoksLookup.Add(rimDir.Name, woks);
-
-                var nameFile = rimDir.EnumerateFiles("*.txt").First();
-                RimNamesLookup.Add(rimDir.Name, nameFile.Name.Replace(".txt", ""));
-
-                var gitFile = rimDir.EnumerateFiles("*.git").First();
-                RimGitLookup.Add(rimDir.Name, GIT.NewGIT(new GFF(gitFile.FullName)));
+                    _ = MessageBox.Show(
+                        this,
+                        sb.ToString(),
+                        "Loading Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                });
             }
-        }
-
-        /// <summary>
-        /// Persist walkmesh files for future application use.
-        /// </summary>
-        private void SaveRimFileCache(string path)
-        {
-            var gameDir = Directory.CreateDirectory(path);
-            var count = 0;
-            var rimwoks = RimWoksLookup.Where(kvp => OffRims.Any(rm => rm.FileName == kvp.Key));
-            var totalWoks = rimwoks.Sum(kvp => kvp.Value.Count());
-            foreach (var rim in rimwoks)
-            {
-                var rimDir = gameDir.CreateSubdirectory(rim.Key);
-                foreach (var wok in rim.Value)
-                {
-                    GameDataWorker.ReportProgress(100 * count++ / totalWoks);
-                    var wokPath = System.IO.Path.Combine(rimDir.FullName, $"{wok.RoomName}.wok");
-                    if (File.Exists(wokPath))
-                        throw new Exception($"Save files error: File already exists at '{wokPath}'");
-                    else
-                        wok.WriteToFile(wokPath);
-                }
-
-                File.Create(System.IO.Path.Combine(rimDir.FullName, $"{RimNamesLookup[rim.Key]}.txt")).Close();
-                RimGitLookup[rim.Key].WriteToFile(System.IO.Path.Combine(rimDir.FullName, $"{rim.Key}.git"));
-            }
-        }
-
-        /// <summary>
-        /// Clear game data related collections.
-        /// </summary>
-        private void ClearGameData()
-        {
-            HideBothPoints();
-            RimNamesLookup.Clear();
-            RimWoksLookup.Clear();
-            RoomWoksLookup.Clear();
-            RimPolyLookup.Clear();
-            RimOutlinePolyLookup.Clear();
-            RimToBrushUsed.Clear();
-            RimPolysCreated.Clear();
-            foreach (var key in PolyBrushCount.Keys.ToList())
-            {
-                PolyBrushCount[key] = 0;
-            }
-        }
-
-        /// <summary>
-        /// Retrieves all walkmesh files from game data.
-        /// </summary>
-        private void FetchWokFiles(KEY key)
-        {
-            // Create BIF for models.bif, which contains walkmeshes.
-            GameDataWorker.ReportProgress(10);
-            var mdlBif = new BIF(System.IO.Path.Combine(Paths.data, "models.bif"));
-            mdlBif.AttachKey(key, "data\\models.bif");
-            var wokVREs = mdlBif.VariableResourceTable.Where(vre => vre.ResourceType == ResourceType.WOK).ToList();
-
-            // Create WOK objects.
-            for (var i = 0; i < wokVREs.Count; i++)
-            {
-                GameDataWorker.ReportProgress(100 * i / wokVREs.Count);
-                var wok = new WOK(wokVREs[i].EntryData)
-                {
-                    RoomName = wokVREs[i].ResRef
-                };
-
-                // Only save the WOK if it has verts.
-                if (wok.Verts.Any())
-                    RoomWoksLookup.Add(wokVREs[i].ResRef.ToLower(), wok);
-            }
-        }
-
-        /// <summary>
-        /// Retrieves game data from RIM files.
-        /// </summary>
-        private void GetRimData(KEY key)
-        {
-            // Get LYTs and create TLK.
-            var lytFiles = GetLayoutFiles(key);
-            var tlk = new TLK(Paths.dialog);
-
-            // Parse RIMs for common name and LYTs in use.
-            var rimFiles = Paths.FilesInModules.Where(fi => !fi.Name.EndsWith("_s.rim") && fi.Extension == ".rim").ToList();
-            for (var i = 0; i < rimFiles.Count; i++)
-            {
-                GameDataWorker.ReportProgress(100 * i / rimFiles.Count);
-
-                // Create RIM object
-                var rim = new RIM(rimFiles[i].FullName);
-                var rimName = rimFiles[i].Name.Replace(".rim", "").ToLower();  // something akin to warp codes ("danm13")
-
-                // Store GIT file.
-                RimGitLookup.Add(rimName, rim.GitFile);
-
-                // Fetch ARE file
-                var rfile = rim.File_Table.First(rf => rf.TypeID == (int)ResourceType.ARE);
-                var are = new GFF(rfile.File_Data);
-                var lytResRef = rfile.Label;  // label used for LYT resref and (usually) room prefix
-
-                // Find the module (common) name
-                var moduleName = string.Empty;   // something like "Dantooine - Jedi Enclave"
-                if (are.Top_Level.Fields.First(f => f.Label == "Name") is GFF.CExoLocString field)
-                {
-                    moduleName = tlk[field.StringRef];
-                }
-                RimNamesLookup.Add(rimName, moduleName);
-
-                // Check LYT file to collect this RIM's rooms.
-                if (lytFiles.ContainsKey(lytResRef))
-                {
-                    // LYT that matches this RIM
-                    var lyt = lytFiles[lytResRef];
-
-                    var roomNames = lyt.Rooms
-                        .Select(r => r.Name.ToLower())
-                        .Where(r => !r.Contains("****") ||  // remove invalid
-                                    !r.Contains("stunt"));  // remove cutscene
-                    if (!roomNames.Any()) continue;         // Only store RIM if it has rooms.
-
-                    var rimWoks =
-                        RoomWoksLookup.Where(kvp => roomNames.Contains(kvp.Key))
-                                      .Select(kvp => kvp.Value);
-                    if (!rimWoks.Any()) continue;   // Only store RIM if it has WOKs.
-
-                    RimWoksLookup.Add(rimName, rimWoks);
-                }
-                else
-                {
-                    Console.WriteLine($"ERROR: no layout file corresponds to the name '{lytResRef}'.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns a collection of all module layout files found in the game files.
-        /// </summary>
-        private Dictionary<string, LYT> GetLayoutFiles(KEY key)
-        {
-            // Create BIF for layouts.bif
-            var lytBif = new BIF(System.IO.Path.Combine(Paths.data, "layouts.bif"));
-            lytBif.AttachKey(key, "data\\layouts.bif");
-            var lytVREs = lytBif.VariableResourceTable.Where(vre => vre.ResourceType == ResourceType.LYT).ToList();
-            var lytFiles = new Dictionary<string, LYT>();   // lytFiles[ResRef] = lytObj; ResRef == RimFilename
-
-            // Create LYT objects
-            for (var i = 0; i < lytVREs.Count; i++)
-            {
-                GameDataWorker.ReportProgress(100 * i / lytVREs.Count);
-
-                var lyt = new LYT(lytVREs[i].EntryData);
-                if (lyt.Rooms.Any())    // Only save the LYT if it has rooms.
-                    lytFiles.Add(lytVREs[i].ResRef.ToLower(), lyt);
-            }
-
-            return lytFiles;
         }
 
         #endregion // END REGION Game Selection Methods
@@ -1407,7 +1195,7 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Select all faces from mesh.
                 //var woks = RimWoksLookup[name];
-                var allfaces = RimWoksLookup[name].SelectMany(w => w.Faces).ToList();
+                var allfaces = CurrentGameData.RimNameToWoks[name].SelectMany(w => w.Faces).ToList();
 
                 // Create a polygon for each face.
                 var polys = new List<Polygon>();    // walkable polygons
@@ -1444,7 +1232,9 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
 
-                var taWaypoints = RimGitLookup[name].Waypoints.Structs.Where(s => s.Fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t && t.CEString == "wp_transabort").ToList();
+                var taWaypoints = CurrentGameData.RimNameToGit[name].Waypoints.Structs
+                    .Where(s => s.Fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t &&
+                                t.CEString == "wp_transabort").ToList();
                 var transAbortPoints = new List<Point>();
                 foreach (var waypoint in taWaypoints)
                 {
@@ -1495,8 +1285,8 @@ namespace WalkmeshVisualizerWpf.Views
                     fullCanvas = new Canvas();
                     _ = fullCanvas.Children.Add(walkCanvas);
                     _ = fullCanvas.Children.Add(nonWalkCanvas);
-                    _ = fullCanvas.Children.Add(transAbortCanvas);
                     _ = fullCanvas.Children.Add(transBorderCanvas);
+                    _ = fullCanvas.Children.Add(transAbortCanvas);
                 });
 
                 RimFullCanvasLookup.Add(name, fullCanvas);
@@ -1504,12 +1294,12 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /// <summary>
-        /// 
+        /// Calculates the bounding points for trans_abort regions.
         /// </summary>
         private void CalculateTransAbortBorders(Canvas transBorderCanvas, string rimName, List<Point> transAbortPoints)
         {
             // Calculate minimum and maximum x and y values of this module.
-            var woks = RimWoksLookup[rimName];
+            var woks = CurrentGameData.RimNameToWoks[rimName];
             var minx = woks.Min(w => w.MinX);
             var maxx = woks.Max(w => w.MaxX);
             var miny = woks.Min(w => w.MinY);
@@ -1741,7 +1531,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void ResizeCanvas()
         {
             // Determine size of canvas and offset.
-            var woks = RimWoksLookup
+            var woks = CurrentGameData.RimNameToWoks
                 .Where(kvp => OnRims.Any(r => r.FileName == kvp.Key))
                 .SelectMany(kvp => kvp.Value);
 
@@ -1855,7 +1645,7 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /// <summary>
-        /// 
+        /// Updates the brush used by a displayed rim.
         /// </summary>
         private void UpdateRimFillColor(BackgroundWorker bw, Brush brush, RimModel rimModel)
         {
@@ -1977,49 +1767,6 @@ namespace WalkmeshVisualizerWpf.Views
             UpdateRimVisibility(rimToRemove);
         }
 
-        /// <summary>
-        /// Delete all walkmesh faces associated with a specific RIM file.
-        /// </summary>
-        private void DeleteWalkmeshFromCanvas(string rimToRemove)
-        {
-            // Adjust count of times this rim's brush was used.
-            PolyBrushCount[RimToBrushUsed[rimToRemove]]--;
-
-            // Retrieve all polygons from the cache.
-            var polys = RimPolyLookup[rimToRemove].ToList();
-            polys.AddRange(RimOutlinePolyLookup[rimToRemove]);
-
-            // Clear bindings for each polygon.
-            polys.ForEach((Polygon p) =>
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var rt = p.RenderTransform as TransformGroup;
-                    p.Visibility = Visibility.Hidden;
-
-                    // Remove bindings for each of the transforms.
-                    foreach (var transform in rt.Children)
-                    {
-                        BindingOperations.ClearAllBindings(transform);
-                    }
-
-                    // Remove bindings on the polygon.
-                    BindingOperations.ClearBinding(p, RenderTransformProperty);
-                });
-            });
-
-            // Remove all polygons from the canvas.
-            content.Dispatcher.Invoke(() =>
-            {
-                content.Children.RemoveRange(content.Children.IndexOf(polys[0]), polys.Count);
-            });
-
-            // Clear the caches.
-            _ = RimPolyLookup.Remove(rimToRemove);
-            _ = RimOutlinePolyLookup.Remove(rimToRemove);
-            _ = RimPolysCreated.Remove(rimToRemove);
-        }
-
         #endregion // END REGION Remove Methods
 
         #region Remove All Methods
@@ -2074,70 +1821,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Remove All Methods
 
-        #region Clear Cache Methods
-
-        /// <summary>
-        /// Clear the cache of saved polygons.
-        /// </summary>
-        private void ClearCache_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            IsBusy = true;
-            OnRims.Clear();
-            _ = content.Focus();
-            ClearCacheWorker.RunWorkerAsync();
-        }
-
-        /// <summary>
-        /// Clear cache can execute if the ON collection is empty and if there are any saved polygons.
-        /// </summary>
-        private void ClearCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = (!IsBusy) && (!OnRims?.Any() ?? false) && (RimPolysCreated?.Any() ?? false);
-        }
-
-        /// <summary>
-        /// Perform steps to clear the cache of saved polygons.
-        /// </summary>
-        private void ClearCacheWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            // Save game name sent if started from Game Data load.
-            e.Result = e.Argument;
-
-            // Retrieve all polygons from the cache.
-            var polys = RimPolyLookup.SelectMany(kvp => kvp.Value).ToList();
-            polys.AddRange(RimOutlinePolyLookup.SelectMany(kvp => kvp.Value));
-
-            // Clear bindings for each polygon.
-            for (var i = 0; i < polys.Count; i++)
-            {
-                ClearCacheWorker.ReportProgress(100 * i / polys.Count);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var rt = polys[i].RenderTransform as TransformGroup;
-
-                    // Remove bindings for each of the transforms.
-                    foreach (var transform in rt.Children)
-                    {
-                        BindingOperations.ClearAllBindings(transform);
-                    }
-
-                    // Remove bindings on the polygon.
-                    BindingOperations.ClearBinding(polys[i], RenderTransformProperty);
-                });
-            }
-
-            // Clear the caches.
-            RimPolyLookup = new Dictionary<string, IEnumerable<Polygon>>();
-            RimOutlinePolyLookup = new Dictionary<string, IEnumerable<Polygon>>();
-            RimPolysCreated = new List<string>();
-
-            // Clear the canvas.
-            Application.Current.Dispatcher.Invoke(() =>
-            { content.Children.Clear(); });
-        }
-
-        #endregion // END REGION Clear Cache Methods
-
         #region Find Matching Coord Methods
 
         /// <summary>
@@ -2180,7 +1863,7 @@ namespace WalkmeshVisualizerWpf.Views
             var allRims = OnRims.Concat(OffRims);
 
             // Determine each rim to see if it contains the active points.
-            var rimwoks = RimWoksLookup.Where(kvp => CurrentGame.Rims.Any(xr => xr.FileName == kvp.Key));
+            var rimwoks = CurrentGameData.RimNameToWoks.Where(kvp => CurrentGame.Rims.Any(xr => xr.FileName == kvp.Key));
             foreach (var rimKvp in rimwoks)
             {
                 foundLeftPoint = foundRightPoint = false;

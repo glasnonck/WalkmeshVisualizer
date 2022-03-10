@@ -196,14 +196,14 @@
             <Rim FileName="711kor" Planet="Korriban" CommonName="Secret Tomb" />
             <Rim FileName="851nih" Planet="Ravager" CommonName="Command Deck" />
             <Rim FileName="852nih" Planet="Ravager" CommonName="Bridge" />
-            <Rim FileName="853nih" Planet="Ravager" CommonName="Nihilus/Visas Cutscene" />
+            <Rim FileName="853nih" Planet="Ravager" CommonName="Nihilus-Visas Cutscene" />
             <Rim FileName="901mal" Planet="Malachor V" CommonName="Surface" />
             <Rim FileName="902mal" Planet="Malachor V" CommonName="Depths" />
             <Rim FileName="903mal" Planet="Malachor V" CommonName="Trayus Academy" />
             <Rim FileName="904mal" Planet="Malachor V" CommonName="Trayus Core" />
             <Rim FileName="905mal" Planet="Malachor V" CommonName="Trayus Crescent" />
             <Rim FileName="906mal" Planet="Malachor V" CommonName="Trayus Proving Grounds " />
-            <Rim FileName="907mal" Planet="Malachor V" CommonName="Kreia/Sion Cutscene" />
+            <Rim FileName="907mal" Planet="Malachor V" CommonName="Kreia-Sion Cutscene" />
             <Rim FileName="950cor" Planet="Ebon Hawk" CommonName="Escape from Telos Cutscene" />
         </Rims>
     </Game>

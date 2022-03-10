@@ -59,9 +59,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helpers\SupportedGame.cs" />
     <Compile Include="Helpers\ExtensionMethods.cs" />
-    <Compile Include="Models\GameData.cs" />
     <Compile Include="Models\GeneralLineEquation.cs" />
+    <Compile Include="Models\KotorDataFactory.cs" />
+    <Compile Include="Models\KotorDataModel.cs" />
     <Compile Include="Models\WalkabilityModel.cs" />
     <Compile Include="Models\XmlGameData.cs" />
     <Compile Include="Models\ModuleWalkmesh.cs" />
@@ -92,16 +94,8 @@
       <SubType>Designer</SubType>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="Views\MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Views\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\MatchingWindow.xaml">

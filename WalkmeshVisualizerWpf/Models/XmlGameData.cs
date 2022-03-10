@@ -18,11 +18,15 @@ namespace WalkmeshVisualizerWpf.Models
         private const string XML_KOTOR2 = "KotOR 2";
         #endregion
 
-        public static XmlGame Kotor1Data { get; private set; }
-        public static XmlGame Kotor2Data { get; private set; }
+        public static XmlGame Kotor1Xml { get; private set; }
+        public static XmlGame Kotor2Xml { get; private set; }
+
+        public static bool IsInitialized { get; private set; }
 
         public static void Initialize()
         {
+            if (IsInitialized) return;
+
             var path = Path.Combine(Environment.CurrentDirectory, @"Resources\GameData.xml");
             if (!File.Exists(path))
             {
@@ -49,15 +53,17 @@ namespace WalkmeshVisualizerWpf.Models
                 switch (data.Name)
                 {
                     case XML_KOTOR1:
-                        Kotor1Data = data;
+                        Kotor1Xml = data;
                         break;
                     case XML_KOTOR2:
-                        Kotor2Data = data;
+                        Kotor2Xml = data;
                         break;
                     default:
                         throw new InvalidDataException($"XmlGameData parsing error: Unrecognized game name '{data.Name}'.");
                 }
             }
+
+            IsInitialized = true;
         }
     }
 

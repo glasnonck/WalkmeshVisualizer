@@ -59,7 +59,6 @@
         <RoutedUICommand x:Key="Commands.LoadCustom" />
         <RoutedUICommand x:Key="Commands.RemoveAll" />
         <RoutedUICommand x:Key="Commands.SwapGame" />
-        <RoutedUICommand x:Key="Commands.ClearCache" />
 
         <!--
         Menu related commands and keybinds.
@@ -185,11 +184,6 @@
             Command="{StaticResource Commands.SwapGame}"
             Executed="SwapGame_Executed"
             CanExecute="SwapGame_CanExecute"
-            />
-        <CommandBinding
-            Command="{StaticResource Commands.ClearCache}"
-            Executed="ClearCache_Executed"
-            CanExecute="ClearCache_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.FindMatchingCoords}"
@@ -870,9 +864,6 @@
 
                     <Button Grid.Row="2" Margin="0,5" Content="Remove All"
                             Command="{StaticResource Commands.RemoveAll}" />
-                    <Button Grid.Row="3" Margin="0,0,0,5" Content="Clear Cache"
-                            Command="{StaticResource Commands.ClearCache}"
-                            Visibility="Collapsed"/>
                 </Grid>
 
                 <!-- Resize the active and inactive lists. -->
