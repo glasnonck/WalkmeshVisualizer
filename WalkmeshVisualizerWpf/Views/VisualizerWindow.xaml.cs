@@ -42,6 +42,7 @@ namespace WalkmeshVisualizerWpf.Views
 
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
+            pnlRimSelect.Visibility = Visibility.Hidden;
 
             // Set up GameDataWorker
             GameDataWorker.WorkerReportsProgress = true;
@@ -928,6 +929,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Load game files based on the given game directory.
         /// </summary>
+        /// <param name="path">Directory full path. Null if loading from cache.</param>
+        /// <param name="name">Name of the selected game.</param>
         private void LoadGameFiles(string path, string name)
         {
             HideGameButtons();
@@ -949,8 +952,9 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void HideGameButtons()
         {
-            pnlSelectGame.Visibility = Visibility.Collapsed;
+            pnlGameSelect.Visibility = Visibility.Collapsed;
             pnlSelectedGame.Visibility = Visibility.Visible;
+            pnlRimSelect.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -1055,7 +1059,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowGameButtons()
         {
             pnlSelectedGame.Visibility = Visibility.Collapsed;
-            pnlSelectGame.Visibility = Visibility.Visible;
+            pnlRimSelect.Visibility = Visibility.Hidden;
+            pnlGameSelect.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -2258,5 +2263,157 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion
+
+        private void LoadSupportedGame(SupportedGame game, string directory = null)
+        {
+            switch (game)
+            {
+                case SupportedGame.Kotor1:
+                case SupportedGame.Kotor2:
+                    CurrentGame = XmlGameData.GetKotorXml(game);
+                    LoadGameFiles(directory, game.ToDescription());
+                    break;
+                case SupportedGame.NotSupported:
+                default:
+                    break;
+            }
+        }
+
+        private void LoadGame_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                OpenFileDialog ofd = null;
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        ofd = new OpenFileDialog
+                        {
+                            Title = "Select KotOR 1 Executable File",
+                            Filter = "Exe File (swkotor.exe)|swkotor.exe",
+                            InitialDirectory = K1_DEFAULT_PATH,
+                            FileName = "swkotor.exe",
+                            CheckFileExists = true,
+                        };
+                        break;
+                    case SupportedGame.Kotor2:
+                        ofd = new OpenFileDialog
+                        {
+                            Title = "Select KotOR 2 Executable File",
+                            Filter = "Exe File (swkotor2.exe)|swkotor2.exe",
+                            InitialDirectory = K2_DEFAULT_PATH,
+                            FileName = "swkotor2.exe",
+                            CheckFileExists = true,
+                        };
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        // Throw exception?
+                        break;
+                }
+                if (ofd?.ShowDialog() == true)
+                {
+                    LoadSupportedGame(game, new FileInfo(ofd.FileName).DirectoryName);
+                }
+            }
+            else
+            {
+                // Throw exception?
+            }
+        }
+
+        private void LoadGame_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        e.CanExecute = !KotorDataFactory.IsKotor1Cached;
+                        break;
+                    case SupportedGame.Kotor2:
+                        e.CanExecute = !KotorDataFactory.IsKotor2Cached;
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        e.CanExecute = false;
+                        break;
+                }
+            }
+        }
+
+        private void LoadCache_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                LoadSupportedGame(game);
+            }
+            else
+            {
+                // Throw exception?
+            }
+        }
+
+        private void LoadCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        e.CanExecute = KotorDataFactory.IsKotor1Cached;
+                        break;
+                    case SupportedGame.Kotor2:
+                        e.CanExecute = KotorDataFactory.IsKotor2Cached;
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        e.CanExecute = false;
+                        break;
+                }
+            }
+        }
+
+        private void ClearCache_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                    case SupportedGame.Kotor2:
+                        KotorDataFactory.DeleteCachedGameData(game);
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        // Throw exception?
+                        break;
+                }
+            }
+            else
+            {
+                // Throw exception?
+            }
+        }
+
+        private void ClearCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        e.CanExecute = KotorDataFactory.IsKotor1Cached;
+                        break;
+                    case SupportedGame.Kotor2:
+                        e.CanExecute = KotorDataFactory.IsKotor2Cached;
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        e.CanExecute = false;
+                        break;
+                }
+            }
+        }
     }
 }

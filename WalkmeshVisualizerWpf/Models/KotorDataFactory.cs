@@ -16,24 +16,23 @@ namespace WalkmeshVisualizerWpf.Models
     public static class KotorDataFactory
     {
         #region Constants
+        public const string CACHE_DIR_SUFFIX = "Data";
         public const string K1_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
         public const string K2_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         public const string K1_EXE_NAME = "swkotor.exe";
         public const string K2_EXE_NAME = "swkotor2.exe";
-        public const string K1_NAME = "KotOR 1";
-        public const string K2_NAME = "KotOR 2";
         #endregion
 
         #region Properties
         /// <summary>
         /// Returns true if KotOR 1 game data has been cached.
         /// </summary>
-        public static bool IsKotor1Cached => Directory.Exists(Path.Combine(Environment.CurrentDirectory, $"{K1_NAME} Data"));
+        public static bool IsKotor1Cached => Directory.Exists(Path.Combine(Environment.CurrentDirectory, $"{SupportedGame.Kotor1.ToDescription()} {CACHE_DIR_SUFFIX}"));
 
         /// <summary>
         /// Returns true if KotOR 2 game data has been cached.
         /// </summary>
-        public static bool IsKotor2Cached => Directory.Exists(Path.Combine(Environment.CurrentDirectory, $"{K2_NAME} Data"));
+        public static bool IsKotor2Cached => Directory.Exists(Path.Combine(Environment.CurrentDirectory, $"{SupportedGame.Kotor2.ToDescription()} {CACHE_DIR_SUFFIX}"));
 
         /// <summary>
         /// Most recently parsed <see cref="KotorDataModel"/> of each <see cref="SupportedGame"/>.
@@ -89,9 +88,14 @@ namespace WalkmeshVisualizerWpf.Models
         /// <exception cref="NotSupportedException" />
         public static KotorDataModel GetKotorDataByPath(string gamePath, ReportProgressDelegate report = null)
         {
+            // If this path has been loaded previously, return that data.
             if (PathToGame.ContainsKey(gamePath) && GameToKotorData.ContainsKey(PathToGame[gamePath]))
-                return GameToKotorData[PathToGame[gamePath]];
-            //if (GameToKotorData.ContainsKey(gamePath)) return GameToKotorData[gamePath];
+            {
+                var rval = GameToKotorData[PathToGame[gamePath]];
+                if (!Directory.Exists(rval.CachePath))  // If model is found, verify that the data cache is intact.
+                    SaveRimFileCache(rval, report);
+                return rval;
+            }
 
             var gameDir = new DirectoryInfo(gamePath);
             if (!gameDir.Exists) throw new DirectoryNotFoundException($"Unable to find directory: {gamePath}");
@@ -114,7 +118,7 @@ namespace WalkmeshVisualizerWpf.Models
             var gameEnum = k1Found ? SupportedGame.Kotor1 : SupportedGame.Kotor2;
             var gameName = gameEnum.ToDescription();
             var kpaths = new KPaths(gamePath);
-            var cachePath = Path.Combine(Environment.CurrentDirectory, $"{gameName} Data");
+            var cachePath = Path.Combine(Environment.CurrentDirectory, $"{gameName} {CACHE_DIR_SUFFIX}");
             var kdm = new KotorDataModel
             {
                 Game = gameEnum,
@@ -123,6 +127,7 @@ namespace WalkmeshVisualizerWpf.Models
                 CachePath = cachePath,
             };
 
+            // If cache exists, read from it instead of the game path.
             if (Directory.Exists(cachePath))
             {
                 kdm.KEY = new KEY(Path.Combine(cachePath, "chitin.key"));
@@ -181,16 +186,17 @@ namespace WalkmeshVisualizerWpf.Models
         /// Deletes the cached game data of a <see cref="SupportedGame"/> if it exists.
         /// </summary>
         /// <param name="game">Game cache to delete.</param>
-        private static void DeleteCachedGameData(SupportedGame game)
+        public static void DeleteCachedGameData(SupportedGame game)
         {
-            if (GameToKotorData.ContainsKey(game))
-                Directory.Delete(GameToKotorData[game].CachePath, true);
+            //if (GameToKotorData.ContainsKey(game))
+            //    Directory.Delete(GameToKotorData[game].CachePath, true);
+            Directory.Delete(Path.Combine(Environment.CurrentDirectory, $"{game.ToDescription()} {CACHE_DIR_SUFFIX}"), true);
         }
 
         /// <summary>
         /// Deletes the cached game data of all <see cref="SupportedGame"/>s.
         /// </summary>
-        private static void DeleteAllCachedData()
+        public static void DeleteAllCachedData()
         {
             DeleteCachedGameData(SupportedGame.Kotor1);
             DeleteCachedGameData(SupportedGame.Kotor2);

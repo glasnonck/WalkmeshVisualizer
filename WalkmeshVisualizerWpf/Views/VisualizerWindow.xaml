@@ -57,9 +57,13 @@
         <RoutedUICommand x:Key="Commands.LoadK1" />
         <RoutedUICommand x:Key="Commands.LoadK2" />
         <RoutedUICommand x:Key="Commands.LoadCustom" />
-        <RoutedUICommand x:Key="Commands.RemoveAll" />
         <RoutedUICommand x:Key="Commands.SwapGame" />
+        <RoutedUICommand x:Key="Commands.RemoveAll" />
 
+        <RoutedUICommand x:Key="Commands.LoadGame" />
+        <RoutedUICommand x:Key="Commands.LoadCache" />
+        <RoutedUICommand x:Key="Commands.ClearCache" />
+        
         <!--
         Menu related commands and keybinds.
         -->
@@ -193,6 +197,22 @@
         <CommandBinding
             Command="{StaticResource Commands.FifteenHundredPercent}"
             Executed="FifteenHundredPercent_Executed"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.LoadGame}"
+            Executed="LoadGame_Executed"
+            CanExecute="LoadGame_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.LoadCache}"
+            Executed="LoadCache_Executed"
+            CanExecute="LoadCache_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.ClearCache}"
+            Executed="ClearCache_Executed"
+            CanExecute="ClearCache_CanExecute"
             />
 
         <!--
@@ -735,9 +755,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="4*" />
-                    <RowDefinition Height="5" />
-                    <RowDefinition Height="5*" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
                 <Grid.Resources>
@@ -754,30 +772,67 @@
                 currently selected game.
                 -->
                 <StackPanel Orientation="Vertical">
-                    <Grid Margin="5,5,3,0" x:Name="pnlSelectGame">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <!--
+                    Stack panel to select which game to visualize.
+                    -->
+                    <StackPanel Name="pnlGameSelect" Orientation="Vertical">
+                        <StackPanel.Resources>
+                            <Style TargetType="Button">
+                                <Setter Property="Width" Value="70" />
+                                <Setter Property="Margin" Value="3" />
+                                <Setter Property="Visibility" Value="{Binding RelativeSource={RelativeSource Self}, Path=IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Orientation" Value="Horizontal" />
+                            </Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="TextDecorations" Value="Underline" />
+                            </Style>
+                        </StackPanel.Resources>
+                        
+                        <!--Select Game-->
+                        <TextBlock
+                            Text="Select Game:"
+                            Margin="5,5,5,0"
+                            FontWeight="Bold"
+                            TextDecorations="None"
+                            />
+                        
+                        <!--KotOR 1-->
+                        <Grid Margin="5,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="KotOR 1" />
+                            <StackPanel Grid.Column="2">
+                                <Button Content="Load Game" Command="{StaticResource Commands.LoadGame}" CommandParameter="{x:Static help:SupportedGame.Kotor1}" />
+                                <Button Content="Load Cache" Command="{StaticResource Commands.LoadCache}" CommandParameter="{x:Static help:SupportedGame.Kotor1}" />
+                                <Button Content="Clear Cache" Command="{StaticResource Commands.ClearCache}" CommandParameter="{x:Static help:SupportedGame.Kotor1}" Visibility="Visible" />
+                            </StackPanel>
+                        </Grid>
 
-                        <TextBlock Text="Select Game: " FontWeight="Bold"
-                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <!--KotOR 2-->
+                        <Grid Margin="5,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="KotOR 2" />
+                            <StackPanel Grid.Column="2">
+                                <Button Content="Load Game" Command="{StaticResource Commands.LoadGame}" CommandParameter="{x:Static help:SupportedGame.Kotor2}" />
+                                <Button Content="Load Cache" Command="{StaticResource Commands.LoadCache}" CommandParameter="{x:Static help:SupportedGame.Kotor2}" />
+                                <Button Content="Clear Cache" Command="{StaticResource Commands.ClearCache}" CommandParameter="{x:Static help:SupportedGame.Kotor2}" Visibility="Visible" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
 
-                        <StackPanel Grid.Column="2" HorizontalAlignment="Center"
-                                    Orientation="Horizontal" VerticalAlignment="Center" >
-                            <StackPanel.Resources>
-                                <Style TargetType="Button">
-                                    <Setter Property="Margin" Value="2,0" />
-                                    <Setter Property="Width" Value="60" />
-                                </Style>
-                            </StackPanel.Resources>
-                            <Button Content="KotOR 1" Command="{StaticResource Commands.LoadK1}" />
-                            <Button Content="KotOR 2" Command="{StaticResource Commands.LoadK2}" />
-                            <Button Content="Custom" Command="{StaticResource Commands.LoadCustom}" />
-                        </StackPanel>
-                    </Grid>
-
+                    <!--
+                    Grid to display currently selected game.
+                    -->
                     <Grid Margin="5,5,5,0" x:Name="pnlSelectedGame">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -800,136 +855,147 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- List of active modules. -->
-                <Grid x:Name="OnGrid" Grid.Row="2">
+                <!--
+                Grid to select which RIM files to visualize.
+                -->
+                <Grid Name="pnlRimSelect" Grid.Row="2">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4*" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="5*" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock
-                        Text="Active Walkmeshes"
-                        Margin="0,5"
-                        HorizontalAlignment="Center"
-                        TextDecorations="Underline"
-                        />
-                    <ListView
-                        x:Name="lvOn"
-                        Grid.Row="1"
-                        ItemContainerStyle="{StaticResource OnItemStyle}"
-                        ItemsSource="{Binding OnRims}"
-                        ScrollViewer.VerticalScrollBarVisibility="Visible"
-                        ScrollViewer.CanContentScroll="False"
-                        >
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Width="18">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Color" Content="" />
-                                    </GridViewColumn.Header>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="-4">
-                                                <Rectangle
-                                                    Margin="0"
-                                                    Height="14" Width="14"
-                                                    Fill="{Binding MeshColor}"
-                                                    Stroke="Black"
-                                                    StrokeThickness=".5"
-                                                    />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Rim" Content="Rim" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Planet" Content="Planet" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Common" Content="Common Name" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
+                    <!-- List of active modules. -->
+                    <Grid x:Name="OnGrid" Grid.Row="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                    <Button Grid.Row="2" Margin="0,5" Content="Remove All"
+                        <TextBlock
+                            Text="Active Walkmeshes"
+                            Margin="0,5"
+                            HorizontalAlignment="Center"
+                            TextDecorations="Underline"
+                            />
+                        <ListView
+                            x:Name="lvOn"
+                            Grid.Row="1"
+                            ItemContainerStyle="{StaticResource OnItemStyle}"
+                            ItemsSource="{Binding OnRims}"
+                            ScrollViewer.VerticalScrollBarVisibility="Visible"
+                            ScrollViewer.CanContentScroll="False"
+                            >
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Color" Content="" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Rectangle
+                                                        Margin="0"
+                                                        Height="14" Width="14"
+                                                        Fill="{Binding MeshColor}"
+                                                        Stroke="Black"
+                                                        StrokeThickness=".5"
+                                                        />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+                        <Button Grid.Row="2" Margin="0,5" Content="Remove All"
                             Command="{StaticResource Commands.RemoveAll}" />
-                </Grid>
+                    </Grid>
 
-                <!-- Resize the active and inactive lists. -->
-                <GridSplitter Grid.Row="3" Height="3" Background="Gray"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <!-- Resize the active and inactive lists. -->
+                    <GridSplitter Grid.Row="1" Height="3" Background="Gray"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
-                <!-- List of inactive modules. -->
-                <Grid x:Name="OffGrid" Grid.Row="4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                    <!-- List of inactive modules. -->
+                    <Grid x:Name="OffGrid" Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                    <TextBlock
-                        Text="Inactive Walkmeshes"
-                        Margin="0,5"
-                        HorizontalAlignment="Center"
-                        TextDecorations="Underline"
-                        />
-                    <ListView
-                        x:Name="lvOff"
-                        Grid.Row="1"
-                        ItemContainerStyle="{StaticResource OffItemStyle}"
-                        ItemsSource="{Binding OffRims}"
-                        ScrollViewer.VerticalScrollBarVisibility="Visible"
-                        ScrollViewer.CanContentScroll="False"
-                        >
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Width="18">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Color" Content="" />
-                                    </GridViewColumn.Header>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="-4">
-                                                <Rectangle
-                                                    Margin="0"
-                                                    Height="14" Width="14"
-                                                    Fill="{Binding MeshColor}"
-                                                    Stroke="Black"
-                                                    StrokeThickness=".5"
-                                                    />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Rim" Content="Rim" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Planet" Content="Planet" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Common" Content="Common Name" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
+                        <TextBlock
+                            Text="Inactive Walkmeshes"
+                            Margin="0,5"
+                            HorizontalAlignment="Center"
+                            TextDecorations="Underline"
+                            />
+                        <ListView
+                            x:Name="lvOff"
+                            Grid.Row="1"
+                            ItemContainerStyle="{StaticResource OffItemStyle}"
+                            ItemsSource="{Binding OffRims}"
+                            ScrollViewer.VerticalScrollBarVisibility="Visible"
+                            ScrollViewer.CanContentScroll="False"
+                            >
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Color" Content="" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Rectangle
+                                                        Margin="0"
+                                                        Height="14" Width="14"
+                                                        Fill="{Binding MeshColor}"
+                                                        Stroke="Black"
+                                                        StrokeThickness=".5"
+                                                        />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
 
+                    </Grid>
                 </Grid>
             </Grid>
 
