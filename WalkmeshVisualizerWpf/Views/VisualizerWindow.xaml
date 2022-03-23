@@ -54,9 +54,6 @@
             </RoutedUICommand.InputGestures>-->
         </RoutedUICommand>
 
-        <RoutedUICommand x:Key="Commands.LoadK1" />
-        <RoutedUICommand x:Key="Commands.LoadK2" />
-        <RoutedUICommand x:Key="Commands.LoadCustom" />
         <RoutedUICommand x:Key="Commands.SwapGame" />
         <RoutedUICommand x:Key="Commands.RemoveAll" />
 
@@ -163,21 +160,6 @@
         <CommandBinding 
             Command="{StaticResource Commands.OneHundredPercent}" 
             Executed="OneHundredPercent_Executed" 
-            />
-        <CommandBinding
-            Command="{StaticResource Commands.LoadK1}"
-            Executed="LoadK1_Executed"
-            CanExecute="LoadK1_CanExecute"
-            />
-        <CommandBinding
-            Command="{StaticResource Commands.LoadK2}"
-            Executed="LoadK2_Executed"
-            CanExecute="LoadK2_CanExecute"
-            />
-        <CommandBinding
-            Command="{StaticResource Commands.LoadCustom}"
-            Executed="LoadCustom_Executed"
-            CanExecute="LoadCustom_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.RemoveAll}"
@@ -782,6 +764,9 @@
                                 <Setter Property="Margin" Value="3" />
                                 <Setter Property="Visibility" Value="{Binding RelativeSource={RelativeSource Self}, Path=IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}" />
                             </Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Margin" Value="20,0,2,0" />
+                            </Style>
                             <Style TargetType="StackPanel">
                                 <Setter Property="Orientation" Value="Horizontal" />
                             </Style>
@@ -800,7 +785,7 @@
                             />
                         
                         <!--KotOR 1-->
-                        <Grid Margin="5,0">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -815,7 +800,7 @@
                         </Grid>
 
                         <!--KotOR 2-->
-                        <Grid Margin="5,0">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -848,9 +833,9 @@
                         </Grid.Resources>
 
                         <TextBlock Text="Selected Game: " />
-                        <TextBlock Text="{Binding SelectedGame}" Grid.Column="2" Margin="0,0,10,0" />
+                        <TextBlock Text="{Binding SelectedLabel}" Grid.Column="2" Margin="0,0,10,0" />
 
-                        <Button Content="Swap Game" Grid.Column="3" Width="75"
+                        <Button Content="Swap Game" Grid.Column="3" Width="70"
                                 Command="{StaticResource Commands.SwapGame}" />
                     </Grid>
                 </StackPanel>

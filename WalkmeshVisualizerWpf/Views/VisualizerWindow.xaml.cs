@@ -41,8 +41,7 @@ namespace WalkmeshVisualizerWpf.Views
             InitializeComponent();
 
             // Hide selected game label.
-            pnlSelectedGame.Visibility = Visibility.Collapsed;
-            pnlRimSelect.Visibility = Visibility.Hidden;
+            SetGameSelectVisibility(true);
 
             // Set up GameDataWorker
             GameDataWorker.WorkerReportsProgress = true;
@@ -69,7 +68,6 @@ namespace WalkmeshVisualizerWpf.Views
         /// Event raised when the Window has loaded.
         /// </summary>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) { }
-
 
         #endregion // END REGION Constructors
 
@@ -121,6 +119,9 @@ namespace WalkmeshVisualizerWpf.Views
         private Dictionary<string, Canvas> RimTransAbortPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimTransAbortRegionCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
+        /// <summary> Xml information of the curently selected game. </summary>
+        public XmlGame CurrentGameXml { get; set; }
+
         /// <summary> Data of the currently selected game. </summary>
         private KotorDataModel CurrentGameData { get; set; }
 
@@ -158,10 +159,6 @@ namespace WalkmeshVisualizerWpf.Views
         public BackgroundWorker AddPolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
 
-        public bool K1Loaded { get; set; }
-        public bool K2Loaded { get; set; }
-        public XmlGame CurrentGame { get; set; }
-
         private readonly Point BaseOffset = new Point(20, 20);
         public const string DEFAULT = "N/A";
         public const string LOADING = "Loading";
@@ -174,8 +171,9 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region DataBinding Members
 
-        public string Game { get; private set; }
-
+        /// <summary>
+        /// Title of the main window along with the application version.
+        /// </summary>
         public string WindowTitle
         {
             get
@@ -185,132 +183,203 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
+        /// <summary>
+        /// Rim models that are currently displayed.
+        /// </summary>
         public ObservableCollection<RimModel> OnRims
         {
             get => _onRims;
             set => SetField(ref _onRims, value);
         }
+        private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
 
-        private ObservableCollection<RimModel> _offRims = new ObservableCollection<RimModel>();
+        /// <summary>
+        /// Rim models that are not displayed.
+        /// </summary>
         public ObservableCollection<RimModel> OffRims
         {
             get => _offRims;
             set => SetField(ref _offRims, value);
         }
+        private ObservableCollection<RimModel> _offRims = new ObservableCollection<RimModel>();
 
-        private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
+        /// <summary>
+        /// Walkability models that contain a matching face at the Left Coordinate.
+        /// </summary>
         public ObservableCollection<WalkabilityModel> LeftPointMatches
         {
             get => _leftPointMatches;
             set => SetField(ref _leftPointMatches, value);
         }
+        private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
 
-        private ObservableCollection<WalkabilityModel> _rightPointMatches = new ObservableCollection<WalkabilityModel>();
+        /// <summary>
+        /// Walkability models that contain a matching face at the Right Coordinate.
+        /// </summary>
         public ObservableCollection<WalkabilityModel> RightPointMatches
         {
             get => _rightPointMatches;
             set => SetField(ref _rightPointMatches, value);
         }
+        private ObservableCollection<WalkabilityModel> _rightPointMatches = new ObservableCollection<WalkabilityModel>();
 
-        private ObservableCollection<WalkabilityModel> _bothPointMatches = new ObservableCollection<WalkabilityModel>();
+        /// <summary>
+        /// Walkability models that contain a matching face at the Both Coordinates.
+        /// </summary>
         public ObservableCollection<WalkabilityModel> BothPointMatches
         {
             get => _bothPointMatches;
             set => SetField(ref _bothPointMatches, value);
         }
+        private ObservableCollection<WalkabilityModel> _bothPointMatches = new ObservableCollection<WalkabilityModel>();
 
-        private double _currentProgress;
+        /// <summary>
+        /// Current <see cref="BackgroundWorker"/> progress.
+        /// </summary>
         public double CurrentProgress
         {
             get => _currentProgress;
             set => SetField(ref _currentProgress, value);
         }
+        private double _currentProgress;
 
-        private bool _leftClickPointVisible;
+        /// <summary>
+        /// Is the Left Point currently visible?
+        /// </summary>
         public bool LeftClickPointVisible
         {
             get => _leftClickPointVisible;
             set => SetField(ref _leftClickPointVisible, value);
         }
+        private bool _leftClickPointVisible;
 
-        private Point _leftClickPoint;
+        /// <summary>
+        /// Location of the Left Point on the canvas.
+        /// </summary>
         public Point LeftClickPoint
         {
             get => _leftClickPoint;
             set => SetField(ref _leftClickPoint, value);
         }
+        private Point _leftClickPoint;
 
-        private Point _leftClickModuleCoords;
+        /// <summary>
+        /// Location of the Left Point in module space.
+        /// </summary>
         public Point LeftClickModuleCoords
         {
             get => _leftClickModuleCoords;
             set => SetField(ref _leftClickModuleCoords, value);
         }
+        private Point _leftClickModuleCoords;
 
-        private Point _lastLeftClickModuleCoords;
+        /// <summary>
+        /// Previous location of the Left Point in module space.
+        /// </summary>
         public Point LastLeftClickModuleCoords
         {
             get => _lastLeftClickModuleCoords;
             set => SetField(ref _lastLeftClickModuleCoords, value);
         }
+        private Point _lastLeftClickModuleCoords;
 
-        private bool _rightClickPointVisible;
+        /// <summary>
+        /// Is the Right Point visible?
+        /// </summary>
         public bool RightClickPointVisible
         {
             get => _rightClickPointVisible;
             set => SetField(ref _rightClickPointVisible, value);
         }
+        private bool _rightClickPointVisible;
 
-        private Point _rightClickPoint;
+        /// <summary>
+        /// Location of the Right Point on the canvas.
+        /// </summary>
         public Point RightClickPoint
         {
             get => _rightClickPoint;
             set => SetField(ref _rightClickPoint, value);
         }
+        private Point _rightClickPoint;
 
-        private Point _rightClickModuleCoords;
+        /// <summary>
+        /// Location of the Right Point in module space.
+        /// </summary>
         public Point RightClickModuleCoords
         {
             get => _rightClickModuleCoords;
             set => SetField(ref _rightClickModuleCoords, value);
         }
+        private Point _rightClickModuleCoords;
 
-        private Point _lastRightClickModuleCoords;
+        /// <summary>
+        /// Previous location of the Right Point in module space.
+        /// </summary>
         public Point LastRightClickModuleCoords
         {
             get => _lastRightClickModuleCoords;
             set => SetField(ref _lastRightClickModuleCoords, value);
         }
+        private Point _lastRightClickModuleCoords;
 
-        private bool _isBusy;
+        /// <summary>
+        /// Is a <see cref="BackgroundWorker"/> currently busy?
+        /// </summary>
         public bool IsBusy
         {
             get => _isBusy;
-            set => SetField(ref _isBusy, value);
+            set
+            {
+                if (SetField(ref _isBusy, value))
+                    CommandManager.InvalidateRequerySuggested();
+            }
         }
+        private bool _isBusy;
 
-        private string _selectedGame = DEFAULT;
-        public string SelectedGame
+        /// <summary>
+        /// Currently selected <see cref="SupportedGame"/>.
+        /// </summary>
+        public SupportedGame SelectedGame
         {
             get => _selectedGame;
             set => SetField(ref _selectedGame, value);
         }
+        private SupportedGame _selectedGame = SupportedGame.NotSupported;
 
-        public double _leftOffset;
+        /// <summary>
+        /// Name of the currently selected <see cref="SupportedGame"/> or a description of the current busy action.
+        /// </summary>
+        public string SelectedLabel
+        {
+            get => _selectedLabel;
+            set => SetField(ref _selectedLabel, value);
+        }
+        private string _selectedLabel = DEFAULT;
+
+        /// <summary>
+        /// X-offset from canvas space to module space.
+        /// </summary>
         public double LeftOffset
         {
             get => _leftOffset;
             set => SetField(ref _leftOffset, value);
         }
+        public double _leftOffset;
 
-        public double _bottomOffset;
+        /// <summary>
+        /// Y-offset from canvas space to module space.
+        /// </summary>
         public double BottomOffset
         {
             get => _bottomOffset;
             set => SetField(ref _bottomOffset, value);
         }
+        public double _bottomOffset;
 
+        /// <summary>
+        /// Are walkable faces visible?
+        /// </summary>
         public bool ShowWalkableFaces
         {
             get => _showWalkableFaces;
@@ -318,6 +387,9 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showWalkableFaces = true;
 
+        /// <summary>
+        /// Are non-walkable faces visible?
+        /// </summary>
         public bool ShowNonWalkableFaces
         {
             get => _showNonWalkableFaces;
@@ -325,6 +397,9 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showNonWalkableFaces = false;
 
+        /// <summary>
+        /// Are trans_abort waypoints visible?
+        /// </summary>
         public bool ShowTransAbortPoints
         {
             get => _showTransAbortPoints;
@@ -332,6 +407,9 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showTransAbortPoints = false;
 
+        /// <summary>
+        /// Are GP warp regions visible?
+        /// </summary>
         public bool ShowTransAbortRegions
         {
             get => _showTransAbortRegions;
@@ -491,7 +569,7 @@ namespace WalkmeshVisualizerWpf.Views
             else
             {
                 // Don't set points if a game is not selected.
-                if (!(SelectedGame == K1_NAME || SelectedGame == K2_NAME)) return;
+                if (SelectedGame == SupportedGame.NotSupported) return;
 
                 // Set left or right point.
                 if (e.ChangedButton == MouseButton.Left)
@@ -839,122 +917,204 @@ namespace WalkmeshVisualizerWpf.Views
         #region Game Selection Methods
 
         /// <summary>
-        /// Load KotOR 1 game files.
+        /// Load game data for a <see cref="SupportedGame"/>. If directory is null, game will be loaded from cache.
         /// </summary>
-        private void LoadK1_Executed(object sender, ExecutedRoutedEventArgs e)
+        /// <param name="game">Game to load.</param>
+        /// <param name="directory">Path to game files. If null, cache will be used.</param>
+        private void LoadSupportedGame(SupportedGame game, string directory = null)
         {
-            if (Directory.Exists(K1_DEFAULT_PATH))
+            CurrentGameXml = XmlGameData.GetKotorXml(game);
+            LoadGameFiles(new GameSelectArgs { Game = game, Path = directory, });
+        }
+
+        /// <summary>
+        /// Request game path from user and load game files.
+        /// </summary>
+        private void LoadGame_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
             {
-                CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor1);
-                LoadGameFiles(K1_DEFAULT_PATH, K1_NAME);
+                // Create OpenFileDialog for this game.
+                OpenFileDialog ofd;
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        ofd = new OpenFileDialog
+                        {
+                            Title = "Select KotOR 1 Executable File",
+                            Filter = "Exe File (swkotor.exe)|swkotor.exe",
+                            InitialDirectory = K1_DEFAULT_PATH,
+                            FileName = "swkotor.exe",
+                            CheckFileExists = true,
+                        };
+                        break;
+                    case SupportedGame.Kotor2:
+                        ofd = new OpenFileDialog
+                        {
+                            Title = "Select KotOR 2 Executable File",
+                            Filter = "Exe File (swkotor2.exe)|swkotor2.exe",
+                            InitialDirectory = K2_DEFAULT_PATH,
+                            FileName = "swkotor2.exe",
+                            CheckFileExists = true,
+                        };
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        throw new InvalidEnumArgumentException($"Event parameter '{game}' is not supported.");
+                }
+
+                // Show dialog and load selected game.
+                if (ofd?.ShowDialog() == true)
+                {
+                    LoadSupportedGame(game, new FileInfo(ofd.FileName).DirectoryName);
+                }
             }
             else
             {
-                _ = MessageBox.Show("Default KotOR 1 path not found. Please use the 'Custom' option instead.");
+                throw new ArgumentException($"Invalid event parameter: {e.Parameter}.");
             }
         }
 
         /// <summary>
-        /// Load K1 can execute if KotOR 2 is selected or if no game has been selected.
+        /// Game files can be loaded if the application is not busy and the game files aren't already cached.
         /// </summary>
-        private void LoadK1_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void LoadGame_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = !IsBusy && (SelectedGame == K2_NAME || SelectedGame == DEFAULT);
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        e.CanExecute = !KotorDataFactory.IsKotor1Cached && !IsBusy;
+                        break;
+                    case SupportedGame.Kotor2:
+                        e.CanExecute = !KotorDataFactory.IsKotor2Cached && !IsBusy;
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        e.CanExecute = false;
+                        break;
+                }
+            }
         }
 
         /// <summary>
-        /// Load KotOR 2 game files.
+        /// Load game files from cache.
         /// </summary>
-        private void LoadK2_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void LoadCache_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Directory.Exists(K2_DEFAULT_PATH))
+            if (e.Parameter is SupportedGame game)
             {
-                CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor2);
-                LoadGameFiles(K2_DEFAULT_PATH, K2_NAME);
+                LoadSupportedGame(game);
             }
             else
             {
-                _ = MessageBox.Show("Default KotOR 2 path not found. Please use the 'Custom' option instead.");
+                // Throw exception?
             }
         }
 
         /// <summary>
-        /// Load K2 can execute if KotOR 1 is selected or of no game has been selected.
+        /// Game cache can be loaded if the application is not busy and the game files are cached.
         /// </summary>
-        private void LoadK2_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void LoadCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = !IsBusy && (SelectedGame == K1_NAME || SelectedGame == DEFAULT);
-        }
-
-        /// <summary>
-        /// Load KotOR 1 or 2 from a custom directory.
-        /// </summary>
-        private void LoadCustom_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            var ofd = new OpenFileDialog
+            if (e.Parameter is SupportedGame game)
             {
-                Title = "Select KotOR 1 or 2 Game File",
-                Filter = "Game File (swkotor(2).exe)|swkotor.exe;swkotor2.exe"
-            };
-
-            if (ofd.ShowDialog() == true)
-            {
-                var dir = new FileInfo(ofd.FileName).Directory;
-                var exe = dir.EnumerateFiles()
-                    .FirstOrDefault(fi =>
-                        fi.Name.ToLower() == "swkotor.exe" ||
-                        fi.Name.ToLower() == "swkotor2.exe");
-                if (exe == null) return;
-                if (exe.Name.ToLower() == "swkotor.exe")
+                switch (game)
                 {
-                    CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor1);
-                    LoadGameFiles(dir.FullName, K1_NAME);
-                }
-                if (exe.Name.ToLower() == "swkotor2.exe")
-                {
-                    CurrentGame = XmlGameData.GetKotorXml(SupportedGame.Kotor2);
-                    LoadGameFiles(dir.FullName, K2_NAME);
+                    case SupportedGame.Kotor1:
+                        e.CanExecute = KotorDataFactory.IsKotor1Cached && !IsBusy;
+                        break;
+                    case SupportedGame.Kotor2:
+                        e.CanExecute = KotorDataFactory.IsKotor2Cached && !IsBusy;
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        e.CanExecute = false;
+                        break;
                 }
             }
         }
 
         /// <summary>
-        /// Load Custom can execute if no game is busy and the app is not busy.
+        /// Clear the requested cache of game files.
         /// </summary>
-        private void LoadCustom_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void ClearCache_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            e.CanExecute = !IsBusy && SelectedGame == DEFAULT;
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                    case SupportedGame.Kotor2:
+                        KotorDataFactory.DeleteCachedGameData(game);
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        // Throw exception?
+                        break;
+                }
+            }
+            else
+            {
+                // Throw exception?
+            }
+        }
+
+        /// <summary>
+        /// Can clear cache if the cache exists and the application is not busy.
+        /// </summary>
+        private void ClearCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter is SupportedGame game)
+            {
+                switch (game)
+                {
+                    case SupportedGame.Kotor1:
+                        e.CanExecute = KotorDataFactory.IsKotor1Cached && !IsBusy;
+                        break;
+                    case SupportedGame.Kotor2:
+                        e.CanExecute = KotorDataFactory.IsKotor2Cached && !IsBusy;
+                        break;
+                    case SupportedGame.NotSupported:
+                    default:
+                        e.CanExecute = false;
+                        break;
+                }
+            }
         }
 
         /// <summary>
         /// Load game files based on the given game directory.
         /// </summary>
         /// <param name="path">Directory full path. Null if loading from cache.</param>
-        /// <param name="name">Name of the selected game.</param>
-        private void LoadGameFiles(string path, string name)
+        /// <param name="game">Name of the selected game.</param>
+        private void LoadGameFiles(GameSelectArgs gsa)
         {
-            HideGameButtons();
+            SetGameSelectVisibility(false);
 
             // Initialize game path and set game as Loading.
-            SelectedGame = LOADING;
-            Game = name;
+            SelectedGame = gsa.Game;
+            SelectedLabel = LOADING;
 
             // If any walkmeshes are active, remove them.
             if (OnRims.Any()) RemoveAll_Executed(this, null);
 
             // Clear the cache before loading game files.
             IsBusy = true;
-            GameDataWorker.RunWorkerAsync(name);
+            GameDataWorker.RunWorkerAsync(gsa);
         }
 
         /// <summary>
-        /// Show the selected game panel and hide the game selection button panel.
+        /// If true, show Game Select panel and hide Selected Game / Rim Select panels.
+        /// If false, hide Game Select panel and show Selected Game / Rim Select panels.
         /// </summary>
-        private void HideGameButtons()
+        /// <param name="isVisible">Should the Game Select panel be visible?</param>
+        private void SetGameSelectVisibility(bool isVisible)
         {
-            pnlGameSelect.Visibility = Visibility.Collapsed;
-            pnlSelectedGame.Visibility = Visibility.Visible;
-            pnlRimSelect.Visibility = Visibility.Visible;
+            pnlGameSelect.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            pnlSelectedGame.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
+            pnlRimSelect.Visibility = isVisible ? Visibility.Hidden : Visibility.Visible;
         }
 
         /// <summary>
@@ -964,32 +1124,16 @@ namespace WalkmeshVisualizerWpf.Views
         {
             try
             {
-                if (Game == K1_NAME)
-                {
-                    CurrentGameData = KotorDataFactory.GetKotor1Data(GameDataWorker.ReportProgress);
-                }
-                else if (Game == K2_NAME)
-                {
-                    CurrentGameData = KotorDataFactory.GetKotor2Data(GameDataWorker.ReportProgress);
-                }
-                else
-                {
-                    SelectedGame = DEFAULT;
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        _ = MessageBox.Show(
-                            this,
-                            "Unknown game selection error occurred.",
-                            "Loading Error",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                    });
-                    return;
-                }
+                var gsa = (GameSelectArgs)e.Argument;
+
+                // If path is null, load data from cache. Otherwise, load from that path.
+                CurrentGameData = string.IsNullOrEmpty(gsa.Path)
+                    ? KotorDataFactory.GetKotorDataByGame(gsa.Game, report: GameDataWorker.ReportProgress)
+                    : KotorDataFactory.GetKotorDataByPath(gsa.Path, report: GameDataWorker.ReportProgress);
 
                 // Set up game data.
                 var rimModels = new List<RimModel>();
-                foreach (var xmlrim in CurrentGame.Rims)
+                foreach (var xmlrim in CurrentGameXml.Rims)
                 {
                     Brush brush = null;
                     if (RimToBrushUsed.ContainsKey(xmlrim.FileName))
@@ -1005,28 +1149,19 @@ namespace WalkmeshVisualizerWpf.Views
                 }
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
-                SelectedGame = e.Argument?.ToString() ?? DEFAULT;
-                if (Game == K1_NAME) K1Loaded = true;
-                if (Game == K2_NAME) K2Loaded = true;
+                SelectedLabel = CurrentGameData.Game.ToDescription();
             }
             catch (Exception ex)
             {
-                SelectedGame = DEFAULT;
+                SelectedGame = SupportedGame.NotSupported;
+                SelectedLabel = DEFAULT;
                 var sb = new StringBuilder();
                 _ = sb.AppendLine("An unexpected error occurred while loading game data.")
                       .AppendLine($"-- {ex.Message}");
                 if (ex.InnerException != null)
                     _ = sb.AppendLine($"-- {ex.InnerException.Message}");
 
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    _ = MessageBox.Show(
-                        this,
-                        sb.ToString(),
-                        "Loading Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                });
+                ShowErrorDialog(sb.ToString(), "Loading Error");
             }
         }
 
@@ -1044,23 +1179,14 @@ namespace WalkmeshVisualizerWpf.Views
 
             // Reset values.
             OffRims.Clear();
-            SelectedGame = DEFAULT;
+            SelectedGame = SupportedGame.NotSupported;
+            SelectedLabel = DEFAULT;
 
             // Reset coordinate matches.
             HideBothPoints();
             ClearBothPointMatches();
 
-            ShowGameButtons();
-        }
-
-        /// <summary>
-        /// Show the game selection button panel and hide the selected game panel.
-        /// </summary>
-        private void ShowGameButtons()
-        {
-            pnlSelectedGame.Visibility = Visibility.Collapsed;
-            pnlRimSelect.Visibility = Visibility.Hidden;
-            pnlGameSelect.Visibility = Visibility.Visible;
+            SetGameSelectVisibility(true);
         }
 
         /// <summary>
@@ -1135,12 +1261,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (ex.InnerException != null)
                     _ = sb.AppendLine($"-- {ex.InnerException.Message}");
 
-                _ = MessageBox.Show(
-                    this,
-                    sb.ToString(),
-                    "Add Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                ShowErrorDialog(sb.ToString(), "Add Error");
             }
         }
 
@@ -1742,12 +1863,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (ex.InnerException != null)
                     _ = sb.AppendLine($"-- {ex.InnerException.Message}");
 
-                _ = MessageBox.Show(
-                    this,
-                    sb.ToString(),
-                    "Remove Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                ShowErrorDialog(sb.ToString(), "Remove Error");
             }
         }
 
@@ -1867,7 +1983,7 @@ namespace WalkmeshVisualizerWpf.Views
             var allRims = OnRims.Concat(OffRims);
 
             // Determine each rim to see if it contains the active points.
-            var rimwoks = CurrentGameData.RimNameToWoks.Where(kvp => CurrentGame.Rims.Any(xr => xr.FileName == kvp.Key));
+            var rimwoks = CurrentGameData.RimNameToWoks.Where(kvp => CurrentGameXml.Rims.Any(xr => xr.FileName == kvp.Key));
             foreach (var rimKvp in rimwoks)
             {
                 foundLeftPoint = foundRightPoint = false;
@@ -1990,8 +2106,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void Bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            IsBusy = false;
             CurrentProgress = 0;
+            IsBusy = false;
         }
 
         /// <summary>
@@ -2115,12 +2231,8 @@ namespace WalkmeshVisualizerWpf.Views
             }
             catch (Exception ex)
             {
-                _ = MessageBox.Show(
-                    this,
-                    $"Unexpected error encountered while saving.{Environment.NewLine}-- {ex.Message}{Environment.NewLine}Please try again.",
-                    "Save Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                var message = $"Unexpected error encountered while saving.{Environment.NewLine}-- {ex.Message}{Environment.NewLine}Please try again.";
+                ShowErrorDialog(message, "Save Error");
             }
         }
 
@@ -2264,156 +2376,25 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion
 
-        private void LoadSupportedGame(SupportedGame game, string directory = null)
+        private void ShowErrorDialog(string message, string caption = null)
         {
-            switch (game)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                case SupportedGame.Kotor1:
-                case SupportedGame.Kotor2:
-                    CurrentGame = XmlGameData.GetKotorXml(game);
-                    LoadGameFiles(directory, game.ToDescription());
-                    break;
-                case SupportedGame.NotSupported:
-                default:
-                    break;
-            }
+                _ = MessageBox.Show(this, message, caption,
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            });
         }
 
-        private void LoadGame_Executed(object sender, ExecutedRoutedEventArgs e)
+        #region Nested Classes
+        public struct GameSelectArgs
         {
-            if (e.Parameter is SupportedGame game)
+            public SupportedGame Game;
+            public string Path;
+            public override string ToString()
             {
-                OpenFileDialog ofd = null;
-                switch (game)
-                {
-                    case SupportedGame.Kotor1:
-                        ofd = new OpenFileDialog
-                        {
-                            Title = "Select KotOR 1 Executable File",
-                            Filter = "Exe File (swkotor.exe)|swkotor.exe",
-                            InitialDirectory = K1_DEFAULT_PATH,
-                            FileName = "swkotor.exe",
-                            CheckFileExists = true,
-                        };
-                        break;
-                    case SupportedGame.Kotor2:
-                        ofd = new OpenFileDialog
-                        {
-                            Title = "Select KotOR 2 Executable File",
-                            Filter = "Exe File (swkotor2.exe)|swkotor2.exe",
-                            InitialDirectory = K2_DEFAULT_PATH,
-                            FileName = "swkotor2.exe",
-                            CheckFileExists = true,
-                        };
-                        break;
-                    case SupportedGame.NotSupported:
-                    default:
-                        // Throw exception?
-                        break;
-                }
-                if (ofd?.ShowDialog() == true)
-                {
-                    LoadSupportedGame(game, new FileInfo(ofd.FileName).DirectoryName);
-                }
-            }
-            else
-            {
-                // Throw exception?
+                return $"{nameof(Game)}: {Game.ToDescription()}, {nameof(Path)}: {Path}";
             }
         }
-
-        private void LoadGame_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (e.Parameter is SupportedGame game)
-            {
-                switch (game)
-                {
-                    case SupportedGame.Kotor1:
-                        e.CanExecute = !KotorDataFactory.IsKotor1Cached;
-                        break;
-                    case SupportedGame.Kotor2:
-                        e.CanExecute = !KotorDataFactory.IsKotor2Cached;
-                        break;
-                    case SupportedGame.NotSupported:
-                    default:
-                        e.CanExecute = false;
-                        break;
-                }
-            }
-        }
-
-        private void LoadCache_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (e.Parameter is SupportedGame game)
-            {
-                LoadSupportedGame(game);
-            }
-            else
-            {
-                // Throw exception?
-            }
-        }
-
-        private void LoadCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (e.Parameter is SupportedGame game)
-            {
-                switch (game)
-                {
-                    case SupportedGame.Kotor1:
-                        e.CanExecute = KotorDataFactory.IsKotor1Cached;
-                        break;
-                    case SupportedGame.Kotor2:
-                        e.CanExecute = KotorDataFactory.IsKotor2Cached;
-                        break;
-                    case SupportedGame.NotSupported:
-                    default:
-                        e.CanExecute = false;
-                        break;
-                }
-            }
-        }
-
-        private void ClearCache_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (e.Parameter is SupportedGame game)
-            {
-                switch (game)
-                {
-                    case SupportedGame.Kotor1:
-                    case SupportedGame.Kotor2:
-                        KotorDataFactory.DeleteCachedGameData(game);
-                        break;
-                    case SupportedGame.NotSupported:
-                    default:
-                        // Throw exception?
-                        break;
-                }
-            }
-            else
-            {
-                // Throw exception?
-            }
-        }
-
-        private void ClearCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (e.Parameter is SupportedGame game)
-            {
-                switch (game)
-                {
-                    case SupportedGame.Kotor1:
-                        e.CanExecute = KotorDataFactory.IsKotor1Cached;
-                        break;
-                    case SupportedGame.Kotor2:
-                        e.CanExecute = KotorDataFactory.IsKotor2Cached;
-                        break;
-                    case SupportedGame.NotSupported:
-                    default:
-                        e.CanExecute = false;
-                        break;
-                }
-            }
-        }
+        #endregion
     }
 }
