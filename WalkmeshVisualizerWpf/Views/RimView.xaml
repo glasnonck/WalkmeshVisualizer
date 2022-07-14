@@ -1,0 +1,443 @@
+﻿<UserControl
+    x:Class="WalkmeshVisualizerWpf.Views.RimView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:helper="clr-namespace:WalkmeshVisualizerWpf.Helpers"
+    xmlns:local="clr-namespace:WalkmeshVisualizerWpf.Views"
+    mc:Ignorable="d" 
+    d:DesignHeight="650"
+    d:DesignWidth="650"
+    d:DataContext="{d:DesignInstance local:RimView}"
+    Background="White"
+    >
+    <UserControl.Resources>
+        <!-- Converters -->
+        <helper:ScaleToPercentConverter x:Key="scaleToPercentConverter" />
+        <helper:ScaleTextToPercentConverter x:Key="scaleTextToPercentConverter" />
+        <helper:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <helper:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+        <helper:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <helper:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
+        <helper:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
+        <helper:MatchRectFillMultiConverter x:Key="MatchRectFillMultiConverter" />
+        <helper:PointToTextConverter x:Key="PointToTextConverter" />
+        
+        <!-- Styles -->
+        <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+
+        <!-- Commands -->
+        <RoutedUICommand x:Key="Commands.RemoveAll" />
+
+        <RoutedUICommand x:Key="Commands.ShowWalkable">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+W</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowNonWalkable">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Shift+W</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowTransAbort">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+G</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowTransAbortRegion">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Shift+G</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+    </UserControl.Resources>
+
+    <UserControl.CommandBindings>
+        <!-- Bind commands to event handlers. -->
+        <CommandBinding
+            Command="{StaticResource Commands.RemoveAll}"
+            Executed="RemoveAll_Executed"
+            CanExecute="RemoveAll_CanExecute"
+            />
+        
+        <CommandBinding
+            Command="{StaticResource Commands.ShowWalkable}"
+            Executed="ShowWalkableCommand_Executed"
+            CanExecute="ShowWalkableCommand_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowNonWalkable}"
+            Executed="ShowNonWalkableCommand_Executed"
+            CanExecute="ShowNonWalkableCommand_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowTransAbort}"
+            Executed="ShowTransAbortCommand_Executed"
+            CanExecute="ShowTransAbortCommand_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowTransAbortRegion}"
+            Executed="ShowTransAbortRegionCommand_Executed"
+            CanExecute="ShowTransAbortRegionCommand_CanExecute"
+            />
+    </UserControl.CommandBindings>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />      <!-- Canvas -->
+            <ColumnDefinition Width="Auto" />   <!-- GridSplitter -->
+            <ColumnDefinition Width="Auto" />   <!-- Options Panel -->
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />     <!-- Toolbar -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--
+        ToolBar with shortcut buttons for canvas display options.
+        -->
+        <ToolBarTray Background="White">
+            <ToolBarTray.Resources>
+                <Style TargetType="Image">
+                    <Setter Property="Height" Value="20" />
+                    <Setter Property="Width" Value="20" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsEnabled}" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="ToggleButton">
+                    <Setter Property="Margin" Value="5,0" />
+                </Style>
+            </ToolBarTray.Resources>
+            <ToolBar Background="GhostWhite">
+                <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show walkable faces."
+                    IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowWalkable}"
+                    >
+                    <Image Source="../Resources/WalkIcon.png" />
+                </ToggleButton>
+                <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show non-walkable faces."
+                    IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowNonWalkable}"
+                    >
+                    <Image Source="../Resources/NonWalkIcon.png" />
+                </ToggleButton>
+                <Separator />
+                <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show gather party points."
+                    IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowTransAbort}"
+                    >
+                    <Image Source="../Resources/GatherPartyIcon.png" />
+                </ToggleButton>
+                <ToggleButton
+                    Margin="2,0"
+                    ToolTip="Show gather party regions."
+                    IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
+                    Command="{StaticResource Commands.ShowTransAbortRegion}"
+                    >
+                    <Image Source="../Resources/GatherPartyRegionIcon.png" />
+                </ToggleButton>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!--
+        Zoom and Pan User Control
+        -->
+        <local:ZoomView
+            Grid.Column="0"
+            Grid.Row="1"
+            ZoomLevel="{Binding ZoomLevel, Mode=TwoWay}"
+            MinZoomLevel="0.1"
+            MaxZoomLevel="20"
+            />
+
+        <!--
+        Grid splitter allows the options panel to be resized.
+        -->
+        <GridSplitter
+            Grid.Column="1"
+            Grid.RowSpan="2"
+            Width="3"
+            Background="Gray"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Margin="5,0,0,0"
+            />
+
+        <!--
+        Grid placed to the right of the canvas containing the visualizer options. Modules can be added
+        or removed from the canvas display.
+        -->
+        <Grid x:Name="optionsGrid" Grid.Column="2" Grid.RowSpan="2" Margin="5,0,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" /> <!-- Game Selection -->
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+
+            <!-- vvvvvvvvvv REMOVE STACK PANEL vvvvvvvvvv -->
+            <!--
+            Stack panel containing the select game options and, once selected, displaying the
+            currently selected game.
+            -->
+            <StackPanel Orientation="Vertical" Visibility="Collapsed">
+                <!--
+                Stack panel to select which game to visualize.
+                -->
+                <StackPanel Name="pnlGameSelect" Orientation="Vertical">
+                    <StackPanel.Resources>
+                        <Style TargetType="Button">
+                            <Setter Property="Width" Value="70" />
+                            <Setter Property="Margin" Value="3" />
+                            <Setter Property="Visibility" Value="{Binding RelativeSource={RelativeSource Self}, Path=IsEnabled, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="Margin" Value="20,0,2,0" />
+                        </Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Orientation" Value="Horizontal" />
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="TextDecorations" Value="Underline" />
+                        </Style>
+                    </StackPanel.Resources>
+                        
+                    <!--Select Game-->
+                    <TextBlock
+                        Text="Select Game:"
+                        Margin="5,5,5,0"
+                        FontWeight="Bold"
+                        TextDecorations="None"
+                        />
+                        
+                    <!--KotOR 1-->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="KotOR 1" />
+                        <StackPanel Grid.Column="2">
+                            <!--<Button Content="Load Game" Command="{StaticResource Commands.LoadGame}" CommandParameter="{x:Static helper:SupportedGame.Kotor1}" />
+                            <Button Content="Load Cache" Command="{StaticResource Commands.LoadCache}" CommandParameter="{x:Static helper:SupportedGame.Kotor1}" />
+                            <Button Content="Clear Cache" Command="{StaticResource Commands.ClearCache}" CommandParameter="{x:Static helper:SupportedGame.Kotor1}" Visibility="Visible" />-->
+                        </StackPanel>
+                    </Grid>
+
+                    <!--KotOR 2-->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="KotOR 2" />
+                        <StackPanel Grid.Column="2">
+                            <!--<Button Content="Load Game" Command="{StaticResource Commands.LoadGame}" CommandParameter="{x:Static helper:SupportedGame.Kotor2}" />
+                            <Button Content="Load Cache" Command="{StaticResource Commands.LoadCache}" CommandParameter="{x:Static helper:SupportedGame.Kotor2}" />
+                            <Button Content="Clear Cache" Command="{StaticResource Commands.ClearCache}" CommandParameter="{x:Static helper:SupportedGame.Kotor2}" Visibility="Visible" />-->
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <!--
+                Grid to display currently selected game.
+                -->
+                <Grid Margin="5,5,5,0" x:Name="pnlSelectedGame">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                    </Grid.Resources>
+
+                    <TextBlock Text="Selected Game: " />
+                    <!--<TextBlock Text="{Binding SelectedLabel}" Grid.Column="2" Margin="0,0,10,0" />-->
+
+                    <!--<Button Content="Swap Game" Grid.Column="3" Width="70"
+                            Command="{StaticResource Commands.SwapGame}" />-->
+                </Grid>
+            </StackPanel>
+            <!-- ^^^^^^^^^^ REMOVE STACK PANEL ^^^^^^^^^^ -->
+
+            <!--
+            Grid to select which RIM files to visualize.
+            -->
+            <Grid Name="pnlRimSelect" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="4*" />   <!-- Active Rims -->
+                    <RowDefinition Height="5" />    <!-- Grid Splitter -->
+                    <RowDefinition Height="5*" />   <!-- Inactive Rims -->
+                </Grid.RowDefinitions>
+
+                <Grid.Resources>
+                    <Style TargetType="ListViewItem" x:Key="OnItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                        <EventSetter Event="MouseDoubleClick" Handler="LvOn_DoubleClick" />
+                    </Style>
+                    <Style TargetType="ListViewItem" x:Key="OffItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                        <EventSetter Event="MouseDoubleClick" Handler="LvOff_DoubleClick" />
+                    </Style>
+                </Grid.Resources>
+
+                <!-- List of active modules. -->
+                <Grid x:Name="OnGrid" Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Text="Active Walkmeshes"
+                        Margin="0,5"
+                        HorizontalAlignment="Center"
+                        TextDecorations="Underline"
+                        />
+                    <ListView
+                        x:Name="lvOn"
+                        Grid.Row="1"
+                        ItemContainerStyle="{StaticResource OnItemStyle}"
+                        ItemsSource="{Binding OnRims}"
+                        ScrollViewer.VerticalScrollBarVisibility="Visible"
+                        ScrollViewer.CanContentScroll="False"
+                        >
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="18">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Color" Content="" />
+                                    </GridViewColumn.Header>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="-4">
+                                                <Rectangle
+                                                    Margin="0"
+                                                    Height="14" Width="14"
+                                                    Fill="{Binding MeshColor}"
+                                                    Stroke="Black"
+                                                    StrokeThickness=".5"
+                                                    />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <Button Grid.Row="2" Margin="0,5" Content="Remove All"
+                        Command="{StaticResource Commands.RemoveAll}" />
+                </Grid>
+
+                <!-- Resize the active and inactive lists. -->
+                <GridSplitter Grid.Row="1" Height="3" Background="Gray"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                <!-- List of inactive modules. -->
+                <Grid x:Name="OffGrid" Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Text="Inactive Walkmeshes"
+                        Margin="0,5"
+                        HorizontalAlignment="Center"
+                        TextDecorations="Underline"
+                        />
+                    <ListView
+                        x:Name="lvOff"
+                        Grid.Row="1"
+                        ItemContainerStyle="{StaticResource OffItemStyle}"
+                        ItemsSource="{Binding OffRims}"
+                        ScrollViewer.VerticalScrollBarVisibility="Visible"
+                        ScrollViewer.CanContentScroll="False"
+                        >
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="18">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Color" Content="" />
+                                    </GridViewColumn.Header>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="-4">
+                                                <Rectangle
+                                                    Margin="0"
+                                                    Height="14" Width="14"
+                                                    Fill="{Binding MeshColor}"
+                                                    Stroke="Black"
+                                                    StrokeThickness=".5"
+                                                    />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                </Grid>
+            </Grid>
+        </Grid>
+
+    </Grid>
+</UserControl>

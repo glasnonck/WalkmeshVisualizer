@@ -59,15 +59,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helpers\BaseCommand.cs" />
     <Compile Include="Helpers\SupportedGame.cs" />
     <Compile Include="Helpers\ExtensionMethods.cs" />
     <Compile Include="Models\GeneralLineEquation.cs" />
     <Compile Include="Models\KotorDataFactory.cs" />
     <Compile Include="Models\KotorDataModel.cs" />
     <Compile Include="Models\WalkabilityModel.cs" />
+    <Compile Include="Models\RimDisplay.cs" />
     <Compile Include="Models\XmlGameData.cs" />
     <Compile Include="Models\ModuleWalkmesh.cs" />
     <Compile Include="Models\RimModel.cs" />
+    <Compile Include="ViewModels\SelectGameViewModel.cs" />
     <Compile Include="Views\CoordinateInputDialog.xaml.cs">
       <DependentUpon>CoordinateInputDialog.xaml</DependentUpon>
     </Compile>
@@ -79,9 +82,22 @@
     <Compile Include="Views\MatchingWindow.xaml.cs">
       <DependentUpon>MatchingWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\RimView.xaml.cs">
+      <DependentUpon>RimView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SelectGameView.xaml.cs">
+      <DependentUpon>SelectGameView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VisualizerWindow.xaml.cs">
       <DependentUpon>VisualizerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ZoomView.xaml.cs">
+      <DependentUpon>ZoomView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Resources\ResourceDictionary.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CoordinateInputDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -102,7 +118,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\RimView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SelectGameView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\VisualizerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ZoomView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

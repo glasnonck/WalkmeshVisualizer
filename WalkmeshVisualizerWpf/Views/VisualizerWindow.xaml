@@ -9,8 +9,8 @@
     xmlns:ZoomAndPan="clr-namespace:ZoomAndPan;assembly=ZoomAndPan"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
-    MinHeight="600" Height="800"
-    MinWidth="800" Width="1200"
+    MinHeight="600" MinWidth="800"
+    Height="800" Width="1200"
     Loaded="MainWindow_Loaded"
     Icon="../Resources/Icon.png"
     d:DataContext="{d:DesignInstance views:VisualizerWindow, IsDesignTimeCreatable=False}"
@@ -749,11 +749,15 @@
                     </Style>
                 </Grid.Resources>
 
+                <views:SelectGameView
+                    IsBusy="{Binding IsBusy, Mode=OneWay}"
+                    />
+
                 <!--
                 Stack panel containing the select game options and, once selected, displaying the
                 currently selected game.
                 -->
-                <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Vertical" Visibility="Collapsed">
                     <!--
                     Stack panel to select which game to visualize.
                     -->
@@ -1076,12 +1080,12 @@
                                 <TransformGroup x:Key="CartesianTransform">
                                     <TranslateTransform Y="{Binding BottomOffset}" X="{Binding LeftOffset}"/>
                                     <ScaleTransform ScaleY="-1" />
-                                    <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
+                                    <TranslateTransform Y="{Binding Path=Height, RelativeSource={RelativeSource AncestorType={x:Type Grid}}}" />
                                 </TransformGroup>
 
                                 <TransformGroup x:Key="OffsetTransform">
                                     <TranslateTransform X="{Binding LeftOffset}" Y="{Binding BottomOffset}" />
-                                    <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
+                                    <TranslateTransform Y="{Binding Path=Height, RelativeSource={RelativeSource AncestorType={x:Type Grid}}}" />
                                 </TransformGroup>
 
                                 <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />

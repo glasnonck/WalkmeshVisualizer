@@ -1,0 +1,14 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    >
+    
+    <TransformGroup x:Key="CartesianTransform">
+        <TranslateTransform Y="{Binding BottomOffset}" X="{Binding LeftOffset}"/>
+        <ScaleTransform ScaleY="-1" />
+        <TranslateTransform Y="{Binding Path=Height, RelativeSource={RelativeSource AncestorType={x:Type Grid}}}" />
+    </TransformGroup>
+
+    <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />
+    
+</ResourceDictionary>

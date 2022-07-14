@@ -119,7 +119,7 @@ namespace WalkmeshVisualizerWpf.Views
         private Dictionary<string, Canvas> RimTransAbortPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimTransAbortRegionCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
-        /// <summary> Xml information of the curently selected game. </summary>
+        /// <summary> Xml information of the currently selected game. </summary>
         public XmlGame CurrentGameXml { get; set; }
 
         /// <summary> Data of the currently selected game. </summary>
@@ -2386,7 +2386,8 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #region Nested Classes
-        public struct GameSelectArgs
+
+        private struct GameSelectArgs
         {
             public SupportedGame Game;
             public string Path;
@@ -2395,6 +2396,14 @@ namespace WalkmeshVisualizerWpf.Views
                 return $"{nameof(Game)}: {Game.ToDescription()}, {nameof(Path)}: {Path}";
             }
         }
+
+        private enum ApplicationState
+        {
+            Unknown = 0,
+            SelectGame,
+            ViewRims,
+        }
+
         #endregion
     }
 }

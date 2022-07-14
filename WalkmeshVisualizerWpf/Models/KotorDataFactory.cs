@@ -53,6 +53,11 @@ namespace WalkmeshVisualizerWpf.Models
         /// Lookup from the game path to the <see cref="SupportedGame"/> that it contains.
         /// </summary>
         private static Dictionary<string, SupportedGame> PathToGame { get; set; } = new Dictionary<string, SupportedGame>();
+
+        /// <summary>
+        /// Most recently selected <see cref="KotorDataModel"/>.
+        /// </summary>
+        public static KotorDataModel CurrentGameData { get; private set; }
         #endregion
 
         #region Delegates
@@ -64,6 +69,23 @@ namespace WalkmeshVisualizerWpf.Models
         #endregion
 
         #region Access Methods
+        /// <summary>
+        /// Returns true if <paramref name="game"/> is cached.
+        /// </summary>
+        public static bool IsGameCached(SupportedGame game)
+        {
+            switch (game)
+            {
+                case SupportedGame.Kotor1:
+                    return IsKotor1Cached;
+                case SupportedGame.Kotor2:
+                    return IsKotor2Cached;
+                case SupportedGame.NotSupported:
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// Builds and returns a data model of KotOR 1 at the default install path.
         /// </summary>
@@ -96,9 +118,11 @@ namespace WalkmeshVisualizerWpf.Models
         /// <exception cref="ArgumentException" />
         public static KotorDataModel GetKotorDataByGame(SupportedGame game, ReportProgressDelegate report = null)
         {
+            CurrentGameData = null;
+
             // Has this game already been loaded?
             if (GameToKotorData.ContainsKey(game))
-                return GameToKotorData[game];
+                return CurrentGameData = GameToKotorData[game];
 
             // Determine what cache to check.
             string cachePath = null;
@@ -131,7 +155,7 @@ namespace WalkmeshVisualizerWpf.Models
 
                 // Save and return game data.
                 GameToKotorData.Add(game, kdm);
-                return kdm;
+                return CurrentGameData = kdm;
             }
 
             // No cache found, throw exception.
@@ -148,17 +172,20 @@ namespace WalkmeshVisualizerWpf.Models
         /// <exception cref="NotSupportedException" />
         public static KotorDataModel GetKotorDataByPath(string gamePath, ReportProgressDelegate report = null)
         {
+            CurrentGameData = null;
+
             // If this path has been loaded previously, return that data.
             if (PathToGame.ContainsKey(gamePath) && GameToKotorData.ContainsKey(PathToGame[gamePath]))
             {
-                var rval = GameToKotorData[PathToGame[gamePath]];
-                if (!Directory.Exists(rval.CachePath))  // If model is found, verify that the data cache is intact.
-                    SaveRimFileCache(rval, report);
-                return rval;
+                CurrentGameData = GameToKotorData[PathToGame[gamePath]];
+                if (!Directory.Exists(CurrentGameData.CachePath))  // If model is found, verify that the data cache is intact.
+                    SaveRimFileCache(CurrentGameData, report);
+                return CurrentGameData;
             }
 
             var gameDir = new DirectoryInfo(gamePath);
-            if (!gameDir.Exists) throw new DirectoryNotFoundException($"Unable to find directory: {gamePath}");
+            if (!gameDir.Exists)
+                throw new DirectoryNotFoundException($"Unable to find directory: {gamePath}");
 
             // Look for kotor executable files.
             var exeFiles = gameDir.EnumerateFiles("*.exe").Select(fi => fi.Name.ToLower());
@@ -206,7 +233,7 @@ namespace WalkmeshVisualizerWpf.Models
             // Store then return kotor data.
             GameToKotorData.Add(gameEnum, kdm);
             PathToGame.Add(gamePath, gameEnum);
-            return kdm;
+            return CurrentGameData = kdm;
         }
         #endregion
 
@@ -250,6 +277,7 @@ namespace WalkmeshVisualizerWpf.Models
         {
             Directory.Delete(Path.Combine(Environment.CurrentDirectory, $"{game.ToDescription()} {CACHE_DIR_SUFFIX}"), true);
             _ = GameToKotorData.Remove(game);
+            CurrentGameData = null;
         }
 
         /// <summary>
