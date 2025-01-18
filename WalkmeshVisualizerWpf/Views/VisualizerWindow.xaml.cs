@@ -1327,7 +1327,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void HideDlzLines(DlzInfo dlz)
         {
-            DlzBrushCount[dlz.MeshColor]--;
+            //DlzBrushCount[dlz.MeshColor]--;
             dlz.MeshColor = Brushes.Transparent;
         }
 
@@ -2041,7 +2041,7 @@ namespace WalkmeshVisualizerWpf.Views
                 {
                     if (door.Visible)
                     {
-                        DlzBrushCount[door.MeshColor]--;
+                        //DlzBrushCount[door.MeshColor]--;
                         door.MeshColor = Brushes.Transparent;
                     }
                     DlzDoors.Remove(door);
@@ -2050,7 +2050,7 @@ namespace WalkmeshVisualizerWpf.Views
                 {
                     if (trigger.Visible)
                     {
-                        DlzBrushCount[trigger.MeshColor]--;
+                        //DlzBrushCount[trigger.MeshColor]--;
                         trigger.MeshColor = Brushes.Transparent;
                     }
                     DlzTriggers.Remove(trigger);
@@ -2376,6 +2376,22 @@ namespace WalkmeshVisualizerWpf.Views
                 AddRim(off);
             }
         }
+
+        private void DlzButton_Click(object sender, RoutedEventArgs e)
+        {
+            var info = (sender as Button).DataContext as DlzInfo;
+            if (info.Visible == false) return;
+            var brush = GetNextDlzBrush();
+            //DlzBrushCount[info.MeshColor]--;
+            DlzBrushCount[brush]++;
+            info.MeshColor = brush;
+        }
+
+        //private void ClrPcker_Background_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color> e)
+        //{
+        //    //TextBox.Text = "#" + ClrPcker_Background.SelectedColor.R.ToString() + ClrPcker_Background.SelectedColor.G.ToString() + ClrPcker_Background.SelectedColor.B.ToString();
+        //    return;
+        //}
 
         private void LeftCoordButton_Click(object sender, RoutedEventArgs e)
         {

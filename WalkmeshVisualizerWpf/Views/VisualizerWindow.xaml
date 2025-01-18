@@ -7,6 +7,7 @@
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
     xmlns:ZoomAndPan="clr-namespace:ZoomAndPan;assembly=ZoomAndPan"
+    xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
     MinHeight="600" Height="800"
@@ -761,14 +762,64 @@
                                     <Setter Property="Stroke" Value="Black" />
                                     <Setter Property="StrokeThickness" Value="0.5" />
                                 </Style>
+                                <DataTemplate x:Key="dtDlzInfo">
+                                    <Grid Margin="-4">
+                                        <Button
+                                            Margin="0" Padding="0"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            BorderThickness="0"
+                                            Click="DlzButton_Click">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                                        <ContentPresenter
+                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <Rectangle
+                                                Margin="0"
+                                                Height="14" Width="14"
+                                                Fill="{Binding MeshColor}"
+                                                StrokeThickness="1">
+                                                <Rectangle.Style>
+                                                    <Style TargetType="Rectangle">
+                                                        <Style.Triggers>
+                                                            <!--<MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding Path=Fill, Converter={StaticResource IsNotTransparentConverter}}" Value="True" />
+                                                                    <Condition Property="IsMouseOver" Value="True" />
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Stroke" Value="Red" />
+                                                            </MultiDataTrigger>-->
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Stroke" Value="Red" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsMouseOver" Value="False">
+                                                                <Setter Property="Stroke" Value="Black" />
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Rectangle.Style>
+                                            </Rectangle>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
                             </Grid.Resources>
 
-                            <Button
+                            <!--<Button
                                 Grid.Row="0"
                                 Content="DLZ Button"
                                 Margin="5,0"
                                 Width="290"
-                                />
+                                />-->
+
+                            <!--<xctk:ColorPicker Name="ClrPicker" SelectedColorChanged="ClrPicker_Changed"></xctk:ColorPicker>-->
 
                             <TextBlock
                                 Grid.Row="1"
@@ -802,23 +853,10 @@
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18">
+                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtDlzInfo}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="Color" Content="" />
                                                 </GridViewColumn.Header>
-                                                <GridViewColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="-4">
-                                                            <Rectangle
-                                                                Margin="0"
-                                                                Height="14" Width="14"
-                                                                Fill="{Binding MeshColor}"
-                                                                Stroke="Black"
-                                                                StrokeThickness=".5"
-                                                                />
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </GridViewColumn.CellTemplate>
                                             </GridViewColumn>
                                             <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
                                                 <GridViewColumn.Header>
@@ -837,7 +875,6 @@
                                             </GridViewColumn>
                                         </GridView>
                                     </ListView.View>
-                                    
                                 </ListView>
                             </Grid>
 
@@ -863,23 +900,10 @@
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18">
+                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtDlzInfo}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="Color" Content="" />
                                                 </GridViewColumn.Header>
-                                                <GridViewColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="-4">
-                                                            <Rectangle
-                                                                Margin="0"
-                                                                Height="14" Width="14"
-                                                                Fill="{Binding MeshColor}"
-                                                                Stroke="Black"
-                                                                StrokeThickness=".5"
-                                                                />
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </GridViewColumn.CellTemplate>
                                             </GridViewColumn>
                                             <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
                                                 <GridViewColumn.Header>
