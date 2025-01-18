@@ -187,4 +187,44 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
         #endregion
     }
+
+    [ValueConversion(typeof(int), typeof(Visibility))]
+    public class IsNonZeroToVisibilityConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+
+            return (int)value != 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(int)) throw new InvalidOperationException("The target must be a int.");
+
+            return (Visibility)value == Visibility.Visible ? 1 : 0;
+        }
+        #endregion
+    }
+
+    [ValueConversion(typeof(int), typeof(Visibility))]
+    public class IsZeroToVisibilityConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+
+            return (int)value == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(int)) throw new InvalidOperationException("The target must be a int.");
+
+            return (Visibility)value == Visibility.Visible ? 0 : 1;
+        }
+        #endregion
+    }
 }

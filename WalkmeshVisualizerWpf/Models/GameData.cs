@@ -1,5 +1,6 @@
 ﻿using KotOR_IO;
 using KotOR_IO.Helpers;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

@@ -40,6 +40,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             InitializeComponent();
             XmlGameData.Initialize();
+            DlzBrushCount = new Dictionary<Brush, int>(PolyBrushCount);
 
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
@@ -161,6 +162,8 @@ namespace WalkmeshVisualizerWpf.Views
             { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
         };
 
+        private Dictionary<Brush, int> DlzBrushCount { get; set; }
+
         private Brush GrayScaleBrush { get; set; } = Brushes.White;
 
         private Brush TransAbortBorderBrush { get; set; } = Brushes.White;
@@ -215,6 +218,22 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _offRims;
             set => SetField(ref _offRims, value);
+        }
+
+        public DlzData DlzData { get; set; } = new DlzData();
+
+        private ObservableCollection<DlzInfo> _dlzDoors = new ObservableCollection<DlzInfo>();
+        public ObservableCollection<DlzInfo> DlzDoors
+        {
+            get => _dlzDoors;
+            set => SetField(ref _dlzDoors, value);
+        }
+
+        private ObservableCollection<DlzInfo> _dlzTriggers = new ObservableCollection<DlzInfo>();
+        public ObservableCollection<DlzInfo> DlzTriggers
+        {
+            get => _dlzTriggers;
+            set => SetField(ref _dlzTriggers, value);
         }
 
         private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
@@ -1281,6 +1300,72 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Swap Game Methods
 
+        #region Dlz Methods
+
+        private void lvDlzDoor_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            HandleDlz((sender as ListViewItem).Content as DlzInfo);
+        }
+
+        private void lvDlzTrigger_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            HandleDlz((sender as ListViewItem).Content as DlzInfo);
+        }
+
+        private void HandleDlz(DlzInfo dlz)
+        {
+            if (dlz.Visible)
+            {
+                HideDlzLines(dlz);
+            }
+            else
+            {
+                BuildDlzLines(dlz);
+                ShowDlzLines(dlz);
+            }
+        }
+
+        private void HideDlzLines(DlzInfo dlz)
+        {
+            DlzBrushCount[dlz.MeshColor]--;
+            dlz.MeshColor = Brushes.Transparent;
+        }
+
+        private void ShowDlzLines(DlzInfo dlz, Brush brush = null)
+        {
+            if (brush == null) brush = GetNextDlzBrush();
+            DlzBrushCount[brush]++;
+            dlz.MeshColor = brush;
+        }
+
+        private void BuildDlzLines(DlzInfo dlz)
+        {
+            if (dlz.Lines.Count == 0)
+            {
+                foreach (var corner in dlz.Corners)
+                {
+                    dlz.Lines.Add(new Line()
+                    {
+                        Visibility = Visibility.Visible,
+                        Stroke = Brushes.Transparent,
+                        StrokeThickness = .05,
+                        X1 = corner + LeftOffset,
+                        Y1 = content.ActualHeight,
+                        X2 = corner + LeftOffset,
+                        Y2 = 0,
+                    });
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var line in dlz.Lines)
+                        _ = RimFullCanvasLookup[dlz.Module].Children.Add(line);
+                });
+            }
+        }
+
+        #endregion
+
         #region Add Methods
 
         /// <summary>
@@ -1327,6 +1412,16 @@ namespace WalkmeshVisualizerWpf.Views
                 // Sort the ON list and update collection.
                 sorted.Sort();
                 OnRims = new ObservableCollection<RimModel>(sorted);
+
+                // Add DLZ collections.
+                var dlzmod = DlzData.ModuleDLZs.First(m => m.Module == rim.FileName);
+                var dlzsort = DlzDoors.Concat(dlzmod.Doors).ToList();
+                dlzsort.Sort();
+                DlzDoors = new ObservableCollection<DlzInfo>(dlzsort);
+
+                dlzsort = DlzTriggers.Concat(dlzmod.Triggers).ToList();
+                dlzsort.Sort();
+                DlzTriggers = new ObservableCollection<DlzInfo>(dlzsort);
 
                 // Start worker to add polygons to the canvas.
                 _ = content.Focus();
@@ -1893,6 +1988,13 @@ namespace WalkmeshVisualizerWpf.Views
             return PolyBrushCount.First(pair => pair.Value == min).Key;
         }
 
+        private Brush GetNextDlzBrush()
+        {
+            var moduleBrush = OnRims.First().MeshColor;
+            var min = DlzBrushCount.Where(pair => pair.Key != moduleBrush).Min(kvp => kvp.Value);
+            return DlzBrushCount.First(pair => pair.Key != moduleBrush && pair.Value == min).Key;
+        }
+
         #endregion // END REGION Add Methods
 
         #region Remove Methods
@@ -1932,6 +2034,27 @@ namespace WalkmeshVisualizerWpf.Views
                 // Sort the OFF list and update collection.
                 sorted.Sort();
                 OffRims = new ObservableCollection<RimModel>(sorted);
+
+                // Remove DLZ collections.
+                var dlzmod = DlzData.ModuleDLZs.First(m => m.Module == rim.FileName);
+                foreach (var door in dlzmod.Doors)
+                {
+                    if (door.Visible)
+                    {
+                        DlzBrushCount[door.MeshColor]--;
+                        door.MeshColor = Brushes.Transparent;
+                    }
+                    DlzDoors.Remove(door);
+                }
+                foreach (var trigger in dlzmod.Triggers)
+                {
+                    if (trigger.Visible)
+                    {
+                        DlzBrushCount[trigger.MeshColor]--;
+                        trigger.MeshColor = Brushes.Transparent;
+                    }
+                    DlzTriggers.Remove(trigger);
+                }
 
                 // Start worker to remove polygons from the canvas.
                 _ = content.Focus();

@@ -5,6 +5,8 @@ using System.Linq;
 using KotOR_IO;
 using KotOR_IO.Helpers;
 using System.Diagnostics;
+using System.Security.Permissions;
+using Newtonsoft.Json;
 
 namespace WalkmeshCompareConsole
 {

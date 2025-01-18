@@ -127,6 +127,8 @@
         <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
         <help:MatchRectFillMultiConverter x:Key="MatchRectFillMultiConverter" />
         <help:PointToTextConverter x:Key="PointToTextConverter" />
+        <help:IsNonZeroToVisibilityConverter x:Key="IsNonZeroToVisibilityConverter" />
+        <help:IsZeroToVisibilityConverter x:Key="IsZeroToVisibilityConverter" />
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />
@@ -429,7 +431,7 @@
             Margin="0,5,0,0"
             >
             <Expander.Header>
-                <TextBlock Text="Match Coordinates" Margin="0,5">
+                <TextBlock Text="Extras" Margin="0,5">
                     <TextBlock.LayoutTransform>
                         <RotateTransform Angle="-90" />
                     </TextBlock.LayoutTransform>
@@ -442,268 +444,467 @@
                 </Style>
             </Expander.Resources>
 
-            <Border 
-                BorderBrush="Black"
-                BorderThickness="0,0,1,0"
-                Padding="0,0,0,5"
-                >
-                <Grid Width="300">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" x:Name="rowLeftMatches" />
-                        <RowDefinition Height="*" x:Name="rowRightMatches" />
-                        <RowDefinition Height="*" x:Name="rowBothMatches" />
-                    </Grid.RowDefinitions>
-
-                    <Grid.Resources>
-                        <Style TargetType="Grid">
-                            <Setter Property="Margin" Value="5,5,5,0" />
-                        </Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Margin" Value="5,0" />
-                            <Setter Property="Orientation" Value="Horizontal" />
-                        </Style>
-                        <Style TargetType="Ellipse">
-                            <Setter Property="Height" Value="8" />
-                            <Setter Property="Width" Value="8" />
-                            <Setter Property="Stroke" Value="Black" />
-                            <Setter Property="Margin" Value="0,0,5,0" />
-                        </Style>
-                        <Style TargetType="ListView">
-                            <Setter Property="Margin" Value="0,5,0,0" />
-                            <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
-                            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
-                            <Setter Property="FontSize" Value="12" />
-                        </Style>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="FontSize" Value="12" />
-                            <Setter Property="Foreground" Value="Black" />
-                        </Style>
-                        <Style TargetType="Rectangle" x:Key="colorRectangle">
-                            <Setter Property="Margin" Value="0" />
-                            <Setter Property="Height" Value="14" />
-                            <Setter Property="Width" Value="14" />
-                            <Setter Property="Stroke" Value="Black" />
-                            <Setter Property="StrokeThickness" Value="0.5" />
-                        </Style>
-                    </Grid.Resources>
-
-                    <!-- Match coordinates button. -->
-                    <Button
-                        Grid.Row="0"
-                        Content="Update Matches"
-                        Margin="5,0"
-                        Width="290"
-                        Command="{StaticResource Commands.FindMatchingCoords}"
-                        />
-
-                    <!-- No point set text. -->
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="5,5,5,0"
-                        Text="Place a point by double clicking to begin matching walkmesh coordinates."
-                        TextWrapping="Wrap"
-                        Width="290"
+            <TabControl>
+                <TabItem Header="Coords">
+                    <Border 
+                        BorderBrush="Black"
+                        BorderThickness="0,0,1,0"
+                        Padding="0,0,0,5"
                         >
-                        <TextBlock.Visibility>
-                            <MultiBinding Converter="{StaticResource OrInverseBoolToVisibilityMultiConverter}">
-                                <Binding Path="LeftClickPointVisible" />
-                                <Binding Path="RightClickPointVisible" />
-                            </MultiBinding>
-                        </TextBlock.Visibility>
-                    </TextBlock>
+                        <Grid Width="300">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" x:Name="rowLeftMatches" />
+                                <RowDefinition Height="*" x:Name="rowRightMatches" />
+                                <RowDefinition Height="*" x:Name="rowBothMatches" />
+                            </Grid.RowDefinitions>
 
-                    <!-- Modules matching left click point. -->
-                    <Grid x:Name="exLeftClickPoint" Grid.Row="1"
-                          Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                          >
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                            <Grid.Resources>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Margin" Value="5,5,5,0" />
+                                </Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Margin" Value="5,0" />
+                                    <Setter Property="Orientation" Value="Horizontal" />
+                                </Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Height" Value="8" />
+                                    <Setter Property="Width" Value="8" />
+                                    <Setter Property="Stroke" Value="Black" />
+                                    <Setter Property="Margin" Value="0,0,5,0" />
+                                </Style>
+                                <Style TargetType="ListView">
+                                    <Setter Property="Margin" Value="0,5,0,0" />
+                                    <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
+                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+                                    <Setter Property="FontSize" Value="12" />
+                                </Style>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="FontSize" Value="12" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                                <Style TargetType="Rectangle" x:Key="colorRectangle">
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="Height" Value="14" />
+                                    <Setter Property="Width" Value="14" />
+                                    <Setter Property="Stroke" Value="Black" />
+                                    <Setter Property="StrokeThickness" Value="0.5" />
+                                </Style>
+                            </Grid.Resources>
 
-                        <StackPanel>
-                            <Ellipse Fill="Black" />
-                            <TextBlock Text="Black Point" FontWeight="SemiBold" />
-                        </StackPanel>
+                            <!-- Match coordinates button. -->
+                            <Button
+                                Grid.Row="0"
+                                Content="Update Matches"
+                                Margin="5,0"
+                                Width="290"
+                                Command="{StaticResource Commands.FindMatchingCoords}"
+                                />
 
-                        <Button
-                            HorizontalAlignment="Right"
-                            Background="Transparent"
-                            Padding="2,0"
-                            Width="140"
-                            Click="LeftCoordButton_Click"
-                            Content="{Binding LastLeftClickModuleCoords, Converter={StaticResource PointToTextConverter}}"
-                            />
+                            <!-- No point set text. -->
+                            <TextBlock
+                                Grid.Row="1"
+                                Margin="5,5,5,0"
+                                Text="Place a point by double clicking to begin matching walkmesh coordinates."
+                                TextWrapping="Wrap"
+                                Width="290"
+                                >
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource OrInverseBoolToVisibilityMultiConverter}">
+                                        <Binding Path="LeftClickPointVisible" />
+                                        <Binding Path="RightClickPointVisible" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
 
-                        <ListView
-                            x:Name="lvLeftPointMatches"
-                            Grid.Row="1"
-                            ItemContainerStyle="{StaticResource MatchItemStyle}"
-                            ItemsSource="{Binding LeftPointMatches}"
-                            >
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Width="18" Header="">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="-4">
-                                                    <Rectangle Style="{StaticResource colorRectangle}">
-                                                        <Rectangle.Fill>
-                                                            <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
-                                                                <Binding />
-                                                                <Binding ElementName="thisWindow" Path="OnRims" />
-                                                                <Binding Path="Rim.MeshColor" />
-                                                                <Binding ElementName="thisWindow" Path="OffRims" />
-                                                            </MultiBinding>
-                                                        </Rectangle.Fill>
-                                                    </Rectangle>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="30" Header="">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Walkability}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
-                                    <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
-                                    <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-                    </Grid>
+                            <!-- Modules matching left click point. -->
+                            <Grid x:Name="exLeftClickPoint" Grid.Row="1"
+                                Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
 
-                    <!-- Modules matching right click point. -->
-                    <Grid x:Name="exRightClickPoint" Grid.Row="2"
-                          Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                          >
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                                <StackPanel>
+                                    <Ellipse Fill="Black" />
+                                    <TextBlock Text="Black Point" FontWeight="SemiBold" />
+                                </StackPanel>
 
-                        <StackPanel>
-                            <Ellipse Fill="White" />
-                            <TextBlock Text="White Point" FontWeight="SemiBold" />
-                        </StackPanel>
+                                <Button
+                                    HorizontalAlignment="Right"
+                                    Background="Transparent"
+                                    Padding="2,0"
+                                    Width="140"
+                                    Click="LeftCoordButton_Click"
+                                    Content="{Binding LastLeftClickModuleCoords, Converter={StaticResource PointToTextConverter}}"
+                                    />
 
-                        <Button
-                            HorizontalAlignment="Right"
-                            Background="Transparent"
-                            Padding="2,0"
-                            Width="140"
-                            Click="RightCoordButton_Click"
-                            Content="{Binding LastRightClickModuleCoords, Converter={StaticResource PointToTextConverter}}"
-                            />
+                                <ListView
+                                    x:Name="lvLeftPointMatches"
+                                    Grid.Row="1"
+                                    ItemContainerStyle="{StaticResource MatchItemStyle}"
+                                    ItemsSource="{Binding LeftPointMatches}"
+                                    >
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Width="18" Header="">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="-4">
+                                                            <Rectangle Style="{StaticResource colorRectangle}">
+                                                                <Rectangle.Fill>
+                                                                    <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                                        <Binding />
+                                                                        <Binding ElementName="thisWindow" Path="OnRims" />
+                                                                        <Binding Path="Rim.MeshColor" />
+                                                                        <Binding ElementName="thisWindow" Path="OffRims" />
+                                                                    </MultiBinding>
+                                                                </Rectangle.Fill>
+                                                            </Rectangle>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="30" Header="">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Walkability}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
+                                            <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
+                                            <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Grid>
 
-                        <ListView
-                            x:Name="lvRightPointMatches"
-                            Grid.Row="1"
-                            ItemContainerStyle="{StaticResource MatchItemStyle}"
-                            ItemsSource="{Binding RightPointMatches}"
-                            >
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Width="18" Header="">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="-4">
-                                                    <Rectangle Style="{StaticResource colorRectangle}">
-                                                        <Rectangle.Fill>
-                                                            <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
-                                                                <Binding />
-                                                                <Binding ElementName="thisWindow" Path="OnRims" />
-                                                                <Binding Path="Rim.MeshColor" />
-                                                                <Binding ElementName="thisWindow" Path="OffRims" />
-                                                            </MultiBinding>
-                                                        </Rectangle.Fill>
-                                                    </Rectangle>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="30" Header="">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Walkability}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
-                                    <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
-                                    <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-                    </Grid>
+                            <!-- Modules matching right click point. -->
+                            <Grid x:Name="exRightClickPoint" Grid.Row="2"
+                                Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
 
-                    <!-- Modules matching both left and right click points. -->
-                    <Grid x:Name="exBothPoints" Grid.Row="3">
-                        <Grid.Visibility>
-                            <MultiBinding Converter="{StaticResource AndBoolToVisibilityMultiConverter}">
-                                <Binding Path="LeftClickPointVisible" />
-                                <Binding Path="RightClickPointVisible" />
-                            </MultiBinding>
-                        </Grid.Visibility>
+                                <StackPanel>
+                                    <Ellipse Fill="White" />
+                                    <TextBlock Text="White Point" FontWeight="SemiBold" />
+                                </StackPanel>
 
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                                <Button
+                                    HorizontalAlignment="Right"
+                                    Background="Transparent"
+                                    Padding="2,0"
+                                    Width="140"
+                                    Click="RightCoordButton_Click"
+                                    Content="{Binding LastRightClickModuleCoords, Converter={StaticResource PointToTextConverter}}"
+                                    />
 
-                        <StackPanel>
-                            <Ellipse Fill="Black" />
-                            <Ellipse Fill="White" />
-                            <TextBlock Text="Both Points" FontWeight="SemiBold" />
-                        </StackPanel>
+                                <ListView
+                                    x:Name="lvRightPointMatches"
+                                    Grid.Row="1"
+                                    ItemContainerStyle="{StaticResource MatchItemStyle}"
+                                    ItemsSource="{Binding RightPointMatches}"
+                                    >
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Width="18" Header="">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="-4">
+                                                            <Rectangle Style="{StaticResource colorRectangle}">
+                                                                <Rectangle.Fill>
+                                                                    <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                                        <Binding />
+                                                                        <Binding ElementName="thisWindow" Path="OnRims" />
+                                                                        <Binding Path="Rim.MeshColor" />
+                                                                        <Binding ElementName="thisWindow" Path="OffRims" />
+                                                                    </MultiBinding>
+                                                                </Rectangle.Fill>
+                                                            </Rectangle>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="30" Header="">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Walkability}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
+                                            <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
+                                            <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Grid>
 
-                        <ListView
-                            x:Name="lvBothPointMatches"
-                            Grid.Row="1"
-                            ItemContainerStyle="{StaticResource MatchItemStyle}"
-                            ItemsSource="{Binding BothPointMatches}"
-                            >
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Width="18" Header="">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="-4">
-                                                    <Rectangle Style="{StaticResource colorRectangle}">
-                                                        <Rectangle.Fill>
-                                                            <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
-                                                                <Binding />
-                                                                <Binding ElementName="thisWindow" Path="OnRims" />
-                                                                <Binding Path="Rim.MeshColor" />
-                                                                <Binding ElementName="thisWindow" Path="OffRims" />
-                                                            </MultiBinding>
-                                                        </Rectangle.Fill>
-                                                    </Rectangle>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="30" Header="">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Walkability}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
-                                    <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
-                                    <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-                    </Grid>
-                </Grid>
-            </Border>
+                            <!-- Modules matching both left and right click points. -->
+                            <Grid x:Name="exBothPoints" Grid.Row="3">
+                                <Grid.Visibility>
+                                    <MultiBinding Converter="{StaticResource AndBoolToVisibilityMultiConverter}">
+                                        <Binding Path="LeftClickPointVisible" />
+                                        <Binding Path="RightClickPointVisible" />
+                                    </MultiBinding>
+                                </Grid.Visibility>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel>
+                                    <Ellipse Fill="Black" />
+                                    <Ellipse Fill="White" />
+                                    <TextBlock Text="Both Points" FontWeight="SemiBold" />
+                                </StackPanel>
+
+                                <ListView
+                                    x:Name="lvBothPointMatches"
+                                    Grid.Row="1"
+                                    ItemContainerStyle="{StaticResource MatchItemStyle}"
+                                    ItemsSource="{Binding BothPointMatches}"
+                                    >
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Width="18" Header="">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="-4">
+                                                            <Rectangle Style="{StaticResource colorRectangle}">
+                                                                <Rectangle.Fill>
+                                                                    <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                                        <Binding />
+                                                                        <Binding ElementName="thisWindow" Path="OnRims" />
+                                                                        <Binding Path="Rim.MeshColor" />
+                                                                        <Binding ElementName="thisWindow" Path="OffRims" />
+                                                                    </MultiBinding>
+                                                                </Rectangle.Fill>
+                                                            </Rectangle>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="30" Header="">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Walkability}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="60" DisplayMemberBinding="{Binding Rim.FileName}" Header="Rim" />
+                                            <GridViewColumn Width="40" DisplayMemberBinding="{Binding Rim.Planet}" Header="Planet" />
+                                            <GridViewColumn Width="110" DisplayMemberBinding="{Binding Rim.CommonName}" Header="Common Name" />
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </TabItem>
+                
+                <TabItem Header="DLZ">
+                    <Border 
+                        BorderBrush="Black"
+                        BorderThickness="0,0,1,0"
+                        Padding="0,0,0,5"
+                        >
+                        <Grid Width="300">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" x:Name="rowDoorDLZ" />
+                                <RowDefinition Height="*" x:Name="rowTriggerDLZ" />
+                            </Grid.RowDefinitions>
+
+                            <Grid.Resources>
+                                <Style TargetType="ListViewItem" x:Key="DlzDoorItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzDoor_DoubleClick" />
+                                </Style>
+                                <Style TargetType="ListViewItem" x:Key="DlzTriggerItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzTrigger_DoubleClick" />
+                                </Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Margin" Value="5,5,5,0" />
+                                </Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Margin" Value="5,0" />
+                                    <Setter Property="Orientation" Value="Horizontal" />
+                                </Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Height" Value="8" />
+                                    <Setter Property="Width" Value="8" />
+                                    <Setter Property="Stroke" Value="Black" />
+                                    <Setter Property="Margin" Value="0,0,5,0" />
+                                </Style>
+                                <Style TargetType="ListView">
+                                    <Setter Property="Margin" Value="0,5,0,0" />
+                                    <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
+                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+                                    <Setter Property="FontSize" Value="12" />
+                                </Style>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="FontSize" Value="12" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                                <Style TargetType="Rectangle" x:Key="colorRectangle">
+                                    <Setter Property="Margin" Value="0" />
+                                    <Setter Property="Height" Value="14" />
+                                    <Setter Property="Width" Value="14" />
+                                    <Setter Property="Stroke" Value="Black" />
+                                    <Setter Property="StrokeThickness" Value="0.5" />
+                                </Style>
+                            </Grid.Resources>
+
+                            <Button
+                                Grid.Row="0"
+                                Content="DLZ Button"
+                                Margin="5,0"
+                                Width="290"
+                                />
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Margin="5,5,5,0"
+                                Text="Display one or more modules."
+                                TextWrapping="Wrap"
+                                Width="290"
+                                Visibility="{Binding OnRims.Count, Converter={StaticResource IsZeroToVisibilityConverter}}"
+                                >
+                            </TextBlock>
+
+                            <Grid x:Name="dlzDoorGrid" Grid.Row="1"
+                                Visibility="{Binding OnRims.Count, Converter={StaticResource IsNonZeroToVisibilityConverter}}"
+                                >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="DLZ Doors" />
+                                </StackPanel>
+
+                                <ListView
+                                    x:Name="lvDlzDoor"
+                                    Grid.Row="1"
+                                    ItemContainerStyle="{StaticResource DlzDoorItemStyle}"
+                                    ItemsSource="{Binding DlzDoors}"
+                                    ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                    ScrollViewer.CanContentScroll="False"
+                                    >
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Width="18">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Color" Content="" />
+                                                </GridViewColumn.Header>
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="-4">
+                                                            <Rectangle
+                                                                Margin="0"
+                                                                Height="14" Width="14"
+                                                                Fill="{Binding MeshColor}"
+                                                                Stroke="Black"
+                                                                StrokeThickness=".5"
+                                                                />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Corners.Count}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="V" Content="V" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+                                    
+                                </ListView>
+                            </Grid>
+
+                            <Grid x:Name="dlzTriggerGrid" Grid.Row="2"
+                                Visibility="{Binding OnRims.Count, Converter={StaticResource IsNonZeroToVisibilityConverter}}"
+                                >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="DLZ Triggers" />
+                                </StackPanel>
+
+                                <ListView
+                                    x:Name="lvDlzTrigger"
+                                    Grid.Row="1"
+                                    ItemContainerStyle="{StaticResource DlzTriggerItemStyle}"
+                                    ItemsSource="{Binding DlzTriggers}"
+                                    ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                    ScrollViewer.CanContentScroll="False"
+                                    >
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Width="18">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Color" Content="" />
+                                                </GridViewColumn.Header>
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="-4">
+                                                            <Rectangle
+                                                                Margin="0"
+                                                                Height="14" Width="14"
+                                                                Fill="{Binding MeshColor}"
+                                                                Stroke="Black"
+                                                                StrokeThickness=".5"
+                                                                />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Corners.Count}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="V" Content="V" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+                                
+                                </ListView>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </TabItem>
+            </TabControl>
         </Expander>
 
         <!--
