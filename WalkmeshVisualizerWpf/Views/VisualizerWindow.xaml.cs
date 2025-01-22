@@ -26,6 +26,7 @@ using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
 using ZoomAndPan;
+using static WalkmeshVisualizerWpf.Models.DlzData;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -41,6 +42,7 @@ namespace WalkmeshVisualizerWpf.Views
             InitializeComponent();
             XmlGameData.Initialize();
             DlzBrushCount = new Dictionary<Brush, int>(PolyBrushCount);
+            BrushCycle = new List<Brush>(PolyBrushCount.Keys);
 
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
@@ -164,6 +166,10 @@ namespace WalkmeshVisualizerWpf.Views
 
         private Dictionary<Brush, int> DlzBrushCount { get; set; }
 
+        private List<Brush> BrushCycle { get; set; }
+
+        private int BrushIndex { get; set; } = 0;
+
         private Brush GrayScaleBrush { get; set; } = Brushes.White;
 
         private Brush TransAbortBorderBrush { get; set; } = Brushes.White;
@@ -187,8 +193,10 @@ namespace WalkmeshVisualizerWpf.Views
         public const string K1_NAME = "KotOR 1";
         public const string K2_NAME = "KotOR 2";
         private const string TRANS_ABORT_RESREF = "k_trans_abort";
-        private const string K1_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
-        private const string K2_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
+        private const string K1_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
+        private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
+        private const string K1_GOG_DEFAULT_PATH = @"";
+        private const string K2_GOG_DEFAULT_PATH = @"";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
@@ -234,6 +242,13 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _dlzTriggers;
             set => SetField(ref _dlzTriggers, value);
+        }
+
+        private ObservableCollection<DlzInfo> _dlzEncounters = new ObservableCollection<DlzInfo>();
+        public ObservableCollection<DlzInfo> DlzEncounters
+        {
+            get => _dlzEncounters;
+            set => SetField(ref _dlzEncounters, value);
         }
 
         private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
@@ -880,10 +895,17 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK1_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Directory.Exists(K1_DEFAULT_PATH))
+            if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
             {
                 CurrentGame = XmlGameData.Kotor1Data;
-                LoadGameFiles(K1_DEFAULT_PATH, K1_NAME);
+                DlzData.LoadGameData(K1_STEAM_DEFAULT_PATH);
+                LoadGameFiles(K1_STEAM_DEFAULT_PATH, K1_NAME);
+            }
+            else if (Directory.Exists(K1_GOG_DEFAULT_PATH))
+            {
+                CurrentGame = XmlGameData.Kotor1Data;
+                DlzData.LoadGameData(K1_GOG_DEFAULT_PATH);
+                LoadGameFiles(K1_GOG_DEFAULT_PATH, K1_NAME);
             }
             else
             {
@@ -904,10 +926,17 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK2_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Directory.Exists(K2_DEFAULT_PATH))
+            if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
             {
                 CurrentGame = XmlGameData.Kotor2Data;
-                LoadGameFiles(K2_DEFAULT_PATH, K2_NAME);
+                DlzData.LoadGameData(K2_STEAM_DEFAULT_PATH);
+                LoadGameFiles(K2_STEAM_DEFAULT_PATH, K2_NAME);
+            }
+            else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
+            {
+                CurrentGame = XmlGameData.Kotor2Data;
+                DlzData.LoadGameData(K2_GOG_DEFAULT_PATH);
+                LoadGameFiles(K2_GOG_DEFAULT_PATH, K2_NAME);
             }
             else
             {
@@ -1312,6 +1341,11 @@ namespace WalkmeshVisualizerWpf.Views
             HandleDlz((sender as ListViewItem).Content as DlzInfo);
         }
 
+        private void lvDlzEncounter_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            HandleDlz((sender as ListViewItem).Content as DlzInfo);
+        }
+
         private void HandleDlz(DlzInfo dlz)
         {
             if (dlz.Visible)
@@ -1333,7 +1367,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowDlzLines(DlzInfo dlz, Brush brush = null)
         {
-            if (brush == null) brush = GetNextDlzBrush();
+            if (brush == null) brush = GetNextDlzBrush(dlz.Module);
             DlzBrushCount[brush]++;
             dlz.MeshColor = brush;
         }
@@ -1342,24 +1376,70 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (dlz.Lines.Count == 0)
             {
-                foreach (var corner in dlz.Corners)
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    dlz.Lines.Add(new Line()
+                    dlz.LineCanvas = new Canvas
+                    {
+                        Opacity = 0.8,
+                        Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
+                        RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                    };
+                });
+
+                foreach (var corner in dlz.Geometry)
+                {
+                    var l = new Line()
                     {
                         Visibility = Visibility.Visible,
                         Stroke = Brushes.Transparent,
                         StrokeThickness = .05,
-                        X1 = corner + LeftOffset,
-                        Y1 = content.ActualHeight,
-                        X2 = corner + LeftOffset,
-                        Y2 = 0,
-                    });
+                        X1 = corner.Item1,
+                        Y1 = corner.Item2,
+                        X2 = corner.Item1,
+                        Y2 = -1000,
+                        //X1 = corner.Item1 + LeftOffset,
+                        //Y1 = content.ActualHeight - corner.Item2 - BottomOffset,
+                        //X2 = corner.Item1 + LeftOffset,
+                        //Y2 = content.ActualHeight,
+                    };
+                    dlz.Lines.Add(l);
+                    dlz.LineCanvas.Children.Add(l);
+                }
+                dlz.Polygon = new Polygon
+                {
+                    Visibility = Visibility.Visible,
+                    Stroke = Brushes.Transparent,
+                    StrokeThickness = 0.05,
+                    Points = new PointCollection(dlz.Geometry.Select(g => new Point(g.Item1, g.Item2))),
+                    Fill = Brushes.Transparent,
+                    Opacity = 0.8
+                };
+                foreach (var point in dlz.SpawnPoints)
+                {
+                    const double SIZE = 1;
+                    var e = new Ellipse
+                    {
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 0.1,
+                        Height = SIZE,
+                        Width = SIZE,
+                        Opacity = 0.8,
+                        RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                        Fill = Brushes.Transparent,
+                    };
+                    Canvas.SetLeft(e, point.Item1 - (e.Width / SIZE));
+                    Canvas.SetTop(e, -point.Item2 + (e.Height / SIZE));
+                    dlz.Ellipses.Add(e);
                 }
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    foreach (var line in dlz.Lines)
-                        _ = RimFullCanvasLookup[dlz.Module].Children.Add(line);
+                    _ = RimFullCanvasLookup[dlz.Module].Children.Add(dlz.Polygon);
+                    foreach (var ellipse in dlz.Ellipses)
+                        _ = RimFullCanvasLookup[dlz.Module].Children.Add(ellipse);
+                    //foreach (var line in dlz.Lines)
+                    //    _ = RimFullCanvasLookup[dlz.Module].Children.Add(line);
+                    _ = RimFullCanvasLookup[dlz.Module].Children.Add(dlz.LineCanvas);
                 });
             }
         }
@@ -1423,9 +1503,13 @@ namespace WalkmeshVisualizerWpf.Views
                 dlzsort.Sort();
                 DlzTriggers = new ObservableCollection<DlzInfo>(dlzsort);
 
+                dlzsort = DlzEncounters.Concat(dlzmod.Encounters).ToList();
+                dlzsort.Sort();
+                DlzEncounters = new ObservableCollection<DlzInfo>(dlzsort);
+
                 // Start worker to add polygons to the canvas.
                 _ = content.Focus();
-                AddPolyWorker.RunWorkerAsync(rim);
+                AddPolyWorker.RunWorkerAsync(new AddPolyWorkerArgs { rimToAdd = rim, getLeastUsedBrush = true });
             }
             catch (Exception ex)
             {
@@ -1452,16 +1536,24 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void AddPolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            var rimToAdd = (RimModel)e.Argument;  // grab rim info
+            //var rimToAdd = (RimModel)e.Argument;  // grab rim info
+            var args = (AddPolyWorkerArgs)e.Argument;
 
             BuildNewWalkmeshes();
 
             ResizeCanvas();
 
-            ShowWalkmeshOnCanvas(rimToAdd);
+            ShowWalkmeshOnCanvas(args.rimToAdd, args.getLeastUsedBrush, args.cycleColor);
 
             if (LeftClickPointVisible) BringLeftPointToTop();
             if (RightClickPointVisible) BringRightPointToTop();
+        }
+
+        public struct AddPolyWorkerArgs
+        {
+            public RimModel rimToAdd;
+            public bool getLeastUsedBrush;
+            public bool cycleColor;
         }
 
         /// <summary>
@@ -1868,39 +1960,73 @@ namespace WalkmeshVisualizerWpf.Views
 
             LeftClickPoint = new Point(LeftClickPoint.X + diffLeft, LeftClickPoint.Y + diffBottom);
             RightClickPoint = new Point(RightClickPoint.X + diffLeft, RightClickPoint.Y + diffBottom);
+
+            //Application.Current.Dispatcher.Invoke(() =>
+            //{
+                //foreach (var dlz in DlzData.ModuleDLZs)
+                //{
+                //    var infos = dlz.Doors.Concat(dlz.Triggers.Concat(dlz.Encounters));
+                //    foreach (var info in infos.Where(i => i.LineCanvas != null))
+                //    {
+                //        info.LineCanvas.Dispatcher.Invoke(() =>
+                //        {
+                //            Canvas.SetLeft(info.LineCanvas, LeftOffset);
+                //            Canvas.SetBottom(info.LineCanvas, BottomOffset);
+                //        });
+                //    }
+                //}
+            //});
         }
 
         /// <summary>
         /// Add or make visible all faces in the newly active walkmesh.
         /// </summary>
-        private void ShowWalkmeshOnCanvas(RimModel rimToAdd)
+        private void ShowWalkmeshOnCanvas(RimModel rimToAdd, bool getLeastUsed = true, bool cycleColor = false)
         {
             // Determine next brush to use.
             var brushChanged = true;
             Brush brush;
-            if (RimToBrushUsed.ContainsKey(rimToAdd.FileName))
-            {
-                // If added to the canvas before, find most frequent brushes.
-                var max = PolyBrushCount.Where(kvp => kvp.Value == PolyBrushCount.Values.Max()).ToDictionary(kvp => kvp.Key);
 
-                // If not all brushes are equal AND last used brush is in max frequency, get a new brush.
-                if (max.Count != PolyBrushCount.Count && max.ContainsKey(RimToBrushUsed[rimToAdd.FileName]))
-                {
-                    brush = GetNextBrush();
-                    PolyBrushCount[brush]++;
-                }
-                // Else, don't change the brush.
-                else
-                {
-                    brush = RimToBrushUsed[rimToAdd.FileName];
-                    brushChanged = false;
-                    PolyBrushCount[brush]++;
-                }
+            // If added to the canvas before, just add.
+            if (RimToBrushUsed.ContainsKey(rimToAdd.FileName) && !cycleColor)
+            {
+                brush = RimToBrushUsed[rimToAdd.FileName];
+                brushChanged = false;
+            }
+            // Else, if get least used color...
+            else if (getLeastUsed)
+            {
+                brush = GetLeastUsedWalkmeshBrush();
+                PolyBrushCount[brush]++;
+                BrushIndex = BrushCycle.IndexOf(GetLeastUsedWalkmeshBrush());
+
+                //// Get most common brushes on canvas.
+                //var max = PolyBrushCount.Where(kvp => kvp.Value == PolyBrushCount.Values.Max()).ToDictionary(kvp => kvp.Key);
+
+                //// If not all brushes are equal AND last used brush is in max frequency, get a new brush.
+                //if (max.Count != PolyBrushCount.Count && max.ContainsKey(RimToBrushUsed[rimToAdd.FileName]))
+                //{
+                //    brush = GetNextBrush();
+                //    PolyBrushCount[brush]++;
+                //}
+                //// Else, don't change the brush.
+                //else
+                //{
+                //    brush = RimToBrushUsed[rimToAdd.FileName];
+                //    brushChanged = false;
+                //    PolyBrushCount[brush]++;
+                //}
+            }
+            // Else, get next color in cycle.
+            else if (cycleColor)
+            {
+                brush = GetNextWalkmeshBrush();
+                BrushIndex = (BrushIndex + 1) % PolyBrushCount.Count;
+                PolyBrushCount[brush]++;
             }
             else
             {
-                brush = GetNextBrush();
-                PolyBrushCount[brush]++;
+                throw new Exception("This code should be unreachable. Error Code: 11738");
             }
 
             // Remember which brush was used.
@@ -1979,18 +2105,22 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
-        /// <summary>
-        /// Determine next brush to use in sequence.
-        /// </summary>
-        private Brush GetNextBrush()
-        {
-            var min = PolyBrushCount.Values.Min();
-            return PolyBrushCount.First(pair => pair.Value == min).Key;
-        }
+        ///// <summary>
+        ///// Determine next brush to use in sequence.
+        ///// </summary>
+        //private Brush GetNextBrush()
+        //{
+        //    var min = PolyBrushCount.Values.Min();
+        //    return PolyBrushCount.First(pair => pair.Value == min).Key;
+        //}
 
-        private Brush GetNextDlzBrush()
+        private Brush GetLeastUsedWalkmeshBrush() => PolyBrushCount.First(kvp => kvp.Value == PolyBrushCount.Values.Min()).Key;
+
+        private Brush GetNextWalkmeshBrush() => BrushCycle[BrushIndex];
+
+        private Brush GetNextDlzBrush(string module)
         {
-            var moduleBrush = OnRims.First().MeshColor;
+            var moduleBrush = RimToBrushUsed[module];
             var min = DlzBrushCount.Where(pair => pair.Key != moduleBrush).Min(kvp => kvp.Value);
             return DlzBrushCount.First(pair => pair.Key != moduleBrush && pair.Value == min).Key;
         }
@@ -2054,6 +2184,14 @@ namespace WalkmeshVisualizerWpf.Views
                         trigger.MeshColor = Brushes.Transparent;
                     }
                     DlzTriggers.Remove(trigger);
+                }
+                foreach (var encounter in dlzmod.Encounters)
+                {
+                    if (encounter.Visible)
+                    {
+                        encounter.MeshColor = Brushes.Transparent;
+                    }
+                    DlzEncounters.Remove(encounter);
                 }
 
                 // Start worker to remove polygons from the canvas.
@@ -2377,11 +2515,43 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        private void RimColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy) return;
+
+            try
+            {
+                IsBusy = true;
+                var rim = (sender as Button).DataContext as RimModel;
+                PolyBrushCount[rim.MeshColor]--;
+                _ = content.Focus();
+                AddPolyWorker.RunWorkerAsync(new AddPolyWorkerArgs { rimToAdd = rim, getLeastUsedBrush = false, cycleColor = true });
+            }
+            catch (Exception ex)
+            {
+                // Ignore this request and reset IsBusy.
+                IsBusy = false;
+
+                var sb = new StringBuilder();
+                _ = sb.AppendLine("An unexpected error occurred while adding walkmesh data.")
+                      .AppendLine($"-- {ex.Message}");
+                if (ex.InnerException != null)
+                    _ = sb.AppendLine($"-- {ex.InnerException.Message}");
+
+                _ = MessageBox.Show(
+                    this,
+                    sb.ToString(),
+                    "Add Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
         private void DlzButton_Click(object sender, RoutedEventArgs e)
         {
             var info = (sender as Button).DataContext as DlzInfo;
             if (info.Visible == false) return;
-            var brush = GetNextDlzBrush();
+            var brush = GetNextDlzBrush(info.Module);
             //DlzBrushCount[info.MeshColor]--;
             DlzBrushCount[brush]++;
             info.MeshColor = brush;

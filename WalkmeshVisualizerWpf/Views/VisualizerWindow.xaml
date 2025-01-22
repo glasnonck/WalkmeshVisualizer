@@ -711,7 +711,7 @@
                     </Border>
                 </TabItem>
                 
-                <TabItem Header="DLZ">
+                <TabItem Header="Lists">
                     <Border 
                         BorderBrush="Black"
                         BorderThickness="0,0,1,0"
@@ -720,8 +720,9 @@
                         <Grid Width="300">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" x:Name="rowDoorDLZ" />
-                                <RowDefinition Height="*" x:Name="rowTriggerDLZ" />
+                                <RowDefinition Height="2*" x:Name="rowDoorDLZ" />
+                                <RowDefinition Height="3*" x:Name="rowTriggerDLZ" />
+                                <RowDefinition Height="2*" x:Name="rowEncounterDLZ" />
                             </Grid.RowDefinitions>
 
                             <Grid.Resources>
@@ -730,6 +731,9 @@
                                 </Style>
                                 <Style TargetType="ListViewItem" x:Key="DlzTriggerItemStyle" BasedOn="{StaticResource BaseItemStyle}">
                                     <EventSetter Event="MouseDoubleClick" Handler="lvDlzTrigger_DoubleClick" />
+                                </Style>
+                                <Style TargetType="ListViewItem" x:Key="DlzEncounterItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzEncounter_DoubleClick" />
                                 </Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Margin" Value="5,5,5,0" />
@@ -822,7 +826,7 @@
                             <!--<xctk:ColorPicker Name="ClrPicker" SelectedColorChanged="ClrPicker_Changed"></xctk:ColorPicker>-->
 
                             <TextBlock
-                                Grid.Row="1"
+                                Grid.Row="0"
                                 Margin="5,5,5,0"
                                 Text="Display one or more modules."
                                 TextWrapping="Wrap"
@@ -840,7 +844,11 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
-                                    <TextBlock Text="DLZ Doors" />
+                                    <TextBlock>
+                                        <Span>DLZ Doors (</Span>
+                                        <TextBlock Text="{Binding DlzDoors.Count}" />
+                                        <Span>)</Span>
+                                    </TextBlock>
                                 </StackPanel>
 
                                 <ListView
@@ -865,10 +873,10 @@
                                             </GridViewColumn>
                                             <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
                                                 <GridViewColumn.Header>
-                                                    <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
+                                                    <GridViewColumnHeader Tag="ResRef" Content="Destination" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Corners.Count}">
+                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Geometry.Count}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="V" Content="V" />
                                                 </GridViewColumn.Header>
@@ -887,7 +895,11 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
-                                    <TextBlock Text="DLZ Triggers" />
+                                    <TextBlock>
+                                        <Span>DLZ Triggers (</Span>
+                                        <TextBlock Text="{Binding DlzTriggers.Count}" />
+                                        <Span>)</Span>
+                                    </TextBlock>
                                 </StackPanel>
 
                                 <ListView
@@ -915,7 +927,7 @@
                                                     <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Corners.Count}">
+                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Geometry.Count}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="V" Content="V" />
                                                 </GridViewColumn.Header>
@@ -923,6 +935,58 @@
                                         </GridView>
                                     </ListView.View>
                                 
+                                </ListView>
+                            </Grid>
+
+                            <Grid x:Name="dlzEncounterGrid" Grid.Row="3"
+                                Visibility="{Binding OnRims.Count, Converter={StaticResource IsNonZeroToVisibilityConverter}}"
+                                >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock>
+                                        <Span>DLZ Encounters (</Span>
+                                        <TextBlock Text="{Binding DlzEncounters.Count}" />
+                                        <Span>)</Span>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <ListView
+                                    x:Name="lvDlzEncounter"
+                                    Grid.Row="1"
+                                    ItemContainerStyle="{StaticResource DlzEncounterItemStyle}"
+                                    ItemsSource="{Binding DlzEncounters}"
+                                    ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                    ScrollViewer.CanContentScroll="False"
+                                    >
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtDlzInfo}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Color" Content="" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Geometry.Count}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="V" Content="V" />
+                                                </GridViewColumn.Header>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+
                                 </ListView>
                             </Grid>
                         </Grid>
@@ -1063,28 +1127,58 @@
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <Grid Margin="-4">
-                                                <Rectangle
-                                                    Margin="0"
-                                                    Height="14" Width="14"
-                                                    Fill="{Binding MeshColor}"
-                                                    Stroke="Black"
-                                                    StrokeThickness=".5"
-                                                    />
+                                                <Button
+                                                    Margin="0" Padding="0"
+                                                    Background="Transparent"
+                                                    BorderBrush="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="RimColorButton_Click">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border
+                                                                Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                                                <ContentPresenter
+                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                    <Rectangle
+                                                        Margin="0"
+                                                        Height="14" Width="14"
+                                                        Fill="{Binding MeshColor}"
+                                                        StrokeThickness="1">
+                                                        <Rectangle.Style>
+                                                            <Style TargetType="Rectangle">
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Stroke" Value="Red" />
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsMouseOver" Value="False">
+                                                                        <Setter Property="Stroke" Value="Black" />
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Rectangle.Style>
+                                                    </Rectangle>
+                                                </Button>
                                             </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding FileName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Planet" Content="Planet" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
+                                <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Common" Content="Common Name" />
                                     </GridViewColumn.Header>
@@ -1139,23 +1233,23 @@
                                                     Height="14" Width="14"
                                                     Fill="{Binding MeshColor}"
                                                     Stroke="Black"
-                                                    StrokeThickness=".5"
+                                                    StrokeThickness="1"
                                                     />
                                             </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding FileName}">
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding FileName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn Width="60" DisplayMemberBinding="{Binding Planet}">
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Planet" Content="Planet" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn Width="124" DisplayMemberBinding="{Binding CommonName}">
+                                <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Common" Content="Common Name" />
                                     </GridViewColumn.Header>
@@ -1248,7 +1342,7 @@
                     MouseDoubleClick="zoomAndPanControl_MouseDoubleClick"
                     ContentScale="3"
                     MinContentScale=".1"
-                    MaxContentScale="20"
+                    MaxContentScale="50"
                     >
 
                     <!-- This is the content that is displayed. -->
