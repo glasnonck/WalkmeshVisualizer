@@ -124,50 +124,51 @@ namespace WalkmeshVisualizerWpf.Models
         private const string XML_FILE_NAME = "FileName";
         private const string XML_PLANET = "Planet";
         private const string XML_COMMON_NAME = "CommonName";
+        private const string XML_ENTRY_X = "EntryX";
+        private const string XML_ENTRY_Y = "EntryY";
         #endregion
 
         public string FileName { get; set; }
         public string Planet { get; set; }
         public string CommonName { get; set; }
+        public float EntryX { get; set; }
+        public float EntryY { get; set; }
 
         private XmlRim() { }
 
         internal static XmlRim Create(XElement rimElement)
         {
             if (rimElement == null)
-            {
                 throw new ArgumentNullException($"XmlRim parsing error: Argument '{nameof(rimElement)}' cannot be null.");
-            }
 
-            var fileNameElement = rimElement.Attribute(XML_FILE_NAME);
-            if (fileNameElement == null)
-            {
+            var fileNameElement = rimElement.Attribute(XML_FILE_NAME) ??
                 throw new InvalidDataException($"XmlRim parsing error: Missing '{nameof(XML_FILE_NAME)}' attribute.");
-            }
 
-            var planetElement = rimElement.Attribute(XML_PLANET);
-            if (planetElement == null)
-            {
+            var planetElement = rimElement.Attribute(XML_PLANET) ??
                 throw new InvalidDataException($"XmlRim parsing error: Missing '{nameof(XML_PLANET)}' attribute.");
-            }
 
-            var commonNameElement = rimElement.Attribute(XML_COMMON_NAME);
-            if (commonNameElement == null)
-            {
+            var commonNameElement = rimElement.Attribute(XML_COMMON_NAME) ??
                 throw new InvalidDataException($"XmlRim parsing error: Missing '{nameof(XML_COMMON_NAME)}' attribute.");
-            }
+
+            var entryXElement = rimElement.Attribute(XML_ENTRY_X) ??
+                throw new InvalidDataException($"XmlRim parsing error: Missing '{nameof(XML_ENTRY_X)}' attribute.");
+
+            var entryYElement = rimElement.Attribute(XML_ENTRY_Y) ??
+                throw new InvalidDataException($"XmlRim parsing error: Missing '{nameof(XML_ENTRY_Y)}' attribute.");
 
             return new XmlRim
             {
                 FileName = fileNameElement.Value,
                 Planet = planetElement.Value,
                 CommonName = commonNameElement.Value,
+                EntryX = float.Parse(entryXElement.Value),
+                EntryY = float.Parse(entryYElement.Value),
             };
         }
 
         public override string ToString()
         {
-            return $"{nameof(FileName)}: {FileName}, {nameof(Planet)}: {Planet}, {nameof(CommonName)}: {CommonName}";
+            return $"{nameof(FileName)}: {FileName}, {nameof(Planet)}: {Planet}, {nameof(CommonName)}: {CommonName}, {nameof(EntryX)}: {EntryX}, {nameof(EntryY)}: {EntryY}";
         }
     }
 }

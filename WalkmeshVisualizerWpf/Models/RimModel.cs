@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 
 namespace WalkmeshVisualizerWpf.Models
@@ -15,6 +16,7 @@ namespace WalkmeshVisualizerWpf.Models
         public string FileName { get; set; }
         public string Planet { get; set; }
         public string CommonName { get; set; }
+        public Point EntryPoint { get; set; }
 
         private Brush _meshColor;
         public Brush MeshColor

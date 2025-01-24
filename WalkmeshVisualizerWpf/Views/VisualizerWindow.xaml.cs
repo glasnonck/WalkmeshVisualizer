@@ -129,6 +129,7 @@ namespace WalkmeshVisualizerWpf.Views
         private Dictionary<string, Canvas> RimNonwalkableCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimTransAbortPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimTransAbortRegionCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimDefaultSpawnPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
         /// <summary> Lookup from a RIM filename to the WOKs it contains. </summary>
         private Dictionary<string, IEnumerable<WOK>> RimWoksLookup { get; set; } = new Dictionary<string, IEnumerable<WOK>>();
@@ -150,6 +151,9 @@ namespace WalkmeshVisualizerWpf.Views
 
         /// <summary> Lookup from RIM filename to a collection of trans_abort points. </summary>
         private Dictionary<string, IEnumerable<Ellipse>> RimTransAborts { get; set; } = new Dictionary<string, IEnumerable<Ellipse>>();
+
+        /// <summary> </summary>
+        private Dictionary<string, Polygon> RimDefaultSpawnPoint { get; set; } = new Dictionary<string, Polygon>();
 
         /// <summary>
         /// Lookup of the brushes used to draw and how many meshes are currently using them.
@@ -384,12 +388,26 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showTransAbortPoints = false;
 
+        public bool ShowDefaultSpawnPoints
+        {
+            get => _showDefaultSpawnPoints;
+            set => SetField(ref _showDefaultSpawnPoints, value);
+        }
+        private bool _showDefaultSpawnPoints = false;
+
         public bool ShowTransAbortRegions
         {
             get => _showTransAbortRegions;
             set => SetField(ref _showTransAbortRegions, value);
         }
         private bool _showTransAbortRegions = false;
+
+        public bool ShowDlzLines
+        {
+            get => _showDlzLines;
+            set => SetField(ref _showDlzLines, value);
+        }
+        private bool _showDlzLines = false;
 
         #endregion // END REGION DataBinding Members
 
@@ -1069,6 +1087,7 @@ namespace WalkmeshVisualizerWpf.Views
                         Planet = xmlrim.Planet,
                         CommonName = xmlrim.CommonName,
                         MeshColor = brush,
+                        EntryPoint = new Point(xmlrim.EntryX, xmlrim.EntryY)
                     });
                 }
 
@@ -1348,31 +1367,46 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void HandleDlz(DlzInfo dlz)
         {
-            if (dlz.Visible)
+            if (dlz.MeshVisible)
             {
+                HideDlzMeshes(dlz);
                 HideDlzLines(dlz);
             }
             else
             {
-                BuildDlzLines(dlz);
-                ShowDlzLines(dlz);
+                BuildDlzMeshAndLine(dlz);
+                SetDlzMeshBrush(dlz);
+                if (ShowDlzLines)
+                    dlz.LineColor = dlz.MeshColor;
             }
+        }
+
+        private void HideDlzMeshes(DlzInfo dlz)
+        {
+            dlz.MeshColor = Brushes.Transparent;
         }
 
         private void HideDlzLines(DlzInfo dlz)
         {
             //DlzBrushCount[dlz.MeshColor]--;
-            dlz.MeshColor = Brushes.Transparent;
+            dlz.LineColor = Brushes.Transparent;
         }
 
-        private void ShowDlzLines(DlzInfo dlz, Brush brush = null)
+        private void SetDlzMeshBrush(DlzInfo dlz, Brush brush = null)
         {
             if (brush == null) brush = GetNextDlzBrush(dlz.Module);
             DlzBrushCount[brush]++;
             dlz.MeshColor = brush;
         }
 
-        private void BuildDlzLines(DlzInfo dlz)
+        private void SetDlzLineBrush(DlzInfo dlz, Brush brush = null)
+        {
+            if (brush == null) brush = GetNextDlzBrush(dlz.Module);
+            DlzBrushCount[brush]++;
+            dlz.LineColor = brush;
+        }
+
+        private void BuildDlzMeshAndLine(DlzInfo dlz)
         {
             if (dlz.Lines.Count == 0)
             {
@@ -1567,7 +1601,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 var rimmodel = unbuilt[i];
                 var name = rimmodel.FileName;
-                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, fullCanvas = null;
+                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, fullCanvas = null, defaultSpawnPointCanvas = null;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     walkCanvas = new Canvas
@@ -1579,6 +1613,11 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         Opacity = 0.8,
                         Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
+                    };
+                    defaultSpawnPointCanvas = new Canvas
+                    {
+                        Opacity = 0.8,
+                        Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed,
                     };
                     transAbortCanvas = new Canvas
                     {
@@ -1631,6 +1670,38 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
 
+                //
+                Polygon dspStar = null;
+                //Ellipse dsp = null;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    dspStar = new Polygon
+                    {
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 0.25,
+                        Points = new PointCollection
+                        {
+                            new Point(rimmodel.EntryPoint.X-1, rimmodel.EntryPoint.Y  ),
+                            new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y+1),
+                            new Point(rimmodel.EntryPoint.X+1, rimmodel.EntryPoint.Y  ),
+                            new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y-1),
+                        },
+                    };
+                    //dsp = new Ellipse
+                    //{
+                    //    Stroke = Brushes.Black,
+                    //    StrokeThickness = 0.65,
+                    //    Height = 2,
+                    //    Width = 2,
+                    //    RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                    //};
+                    //Canvas.SetLeft(dsp, rimmodel.EntryPoint.X - (dsp.Width / 2));
+                    //Canvas.SetTop(dsp, -rimmodel.EntryPoint.Y - (dsp.Height / 2));
+                    ////_ = defaultSpawnPointCanvas.Children.Add(dsp);
+                    _ = defaultSpawnPointCanvas.Children.Add(dspStar);
+                });
+
+                //
                 var taWaypoints = RimGitLookup[name].Waypoints.Structs.Where(s => s.Fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t && t.CEString == "wp_transabort").ToList();
                 var transAbortPoints = new List<Point>();
                 foreach (var waypoint in taWaypoints)
@@ -1670,18 +1741,21 @@ namespace WalkmeshVisualizerWpf.Views
                 RimPolyLookup.Add(name, polys);
                 RimOutlinePolyLookup.Add(name, unpolys);
                 RimTransAborts.Add(name, tas);
+                RimDefaultSpawnPoint.Add(name, dspStar);
 
                 // Cache the canvases.
                 RimWalkableCanvasLookup.Add(name, walkCanvas);
                 RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);
                 RimTransAbortPointCanvasLookup.Add(name, transAbortCanvas);
                 RimTransAbortRegionCanvasLookup.Add(name, transBorderCanvas);
+                RimDefaultSpawnPointCanvasLookup.Add(name, defaultSpawnPointCanvas);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     fullCanvas = new Canvas();
                     _ = fullCanvas.Children.Add(walkCanvas);
                     _ = fullCanvas.Children.Add(nonWalkCanvas);
+                    _ = fullCanvas.Children.Add(defaultSpawnPointCanvas);
                     _ = fullCanvas.Children.Add(transAbortCanvas);
                     _ = fullCanvas.Children.Add(transBorderCanvas);
                 });
@@ -2082,6 +2156,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var fills = RimPolyLookup[rimModel.FileName].Select(p => p as Shape).ToList();  // walkable
             fills.AddRange(RimTransAborts[rimModel.FileName]);  // trans_abort points
+            fills.Add(RimDefaultSpawnPoint[rimModel.FileName]); // default spawn point
             var strokes = RimOutlinePolyLookup[rimModel.FileName].ToList();   // non-walkable
             var i = 0;
 
@@ -2169,27 +2244,30 @@ namespace WalkmeshVisualizerWpf.Views
                 var dlzmod = DlzData.ModuleDLZs.First(m => m.Module == rim.FileName);
                 foreach (var door in dlzmod.Doors)
                 {
-                    if (door.Visible)
+                    if (door.MeshVisible)
                     {
                         //DlzBrushCount[door.MeshColor]--;
                         door.MeshColor = Brushes.Transparent;
+                        door.LineColor = Brushes.Transparent;
                     }
                     DlzDoors.Remove(door);
                 }
                 foreach (var trigger in dlzmod.Triggers)
                 {
-                    if (trigger.Visible)
+                    if (trigger.MeshVisible)
                     {
                         //DlzBrushCount[trigger.MeshColor]--;
                         trigger.MeshColor = Brushes.Transparent;
+                        trigger.LineColor = Brushes.Transparent;
                     }
                     DlzTriggers.Remove(trigger);
                 }
                 foreach (var encounter in dlzmod.Encounters)
                 {
-                    if (encounter.Visible)
+                    if (encounter.MeshVisible)
                     {
                         encounter.MeshColor = Brushes.Transparent;
+                        encounter.LineColor = Brushes.Transparent;
                     }
                     DlzEncounters.Remove(encounter);
                 }
@@ -2550,11 +2628,12 @@ namespace WalkmeshVisualizerWpf.Views
         private void DlzButton_Click(object sender, RoutedEventArgs e)
         {
             var info = (sender as Button).DataContext as DlzInfo;
-            if (info.Visible == false) return;
+            if (info.MeshVisible == false) return;
             var brush = GetNextDlzBrush(info.Module);
             //DlzBrushCount[info.MeshColor]--;
             DlzBrushCount[brush]++;
             info.MeshColor = brush;
+            info.LineColor = brush;
         }
 
         //private void ClrPcker_Background_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color> e)
@@ -2662,11 +2741,11 @@ namespace WalkmeshVisualizerWpf.Views
             if (zoomAndPanControl.ContentViewportWidth > theGrid.ActualWidth ||
                 zoomAndPanControl.ContentViewportHeight > theGrid.ActualHeight)
             {
-                SaveImageFromCanvas(zoomAndPanControl.MaxContentScale);
+                SaveImageFromCanvas(20);
             }
             else
             {
-                var scale = zoomAndPanControl.MaxContentScale + zoomAndPanControl.ContentScale;
+                var scale = 20 + zoomAndPanControl.ContentScale;
                 SaveImageFromCanvas(scale,
                     new Int32Rect(
                         (int)(zoomAndPanControl.ContentOffsetX * scale),
@@ -2683,7 +2762,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SaveEntireCanvas_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            SaveImageFromCanvas(zoomAndPanControl.MaxContentScale);
+            SaveImageFromCanvas(20);
         }
 
         private void SaveEntireCanvas_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -2804,6 +2883,17 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
+        private void UpdateDefaultSpawnPointVisibility()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RimDefaultSpawnPointCanvasLookup.Values.ToList().ForEach((Canvas c) =>
+                {
+                    c.Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed;
+                });
+            });
+        }
+
         private void UpdateTransAbortPointVisibility()
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -2882,6 +2972,34 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowTransAbortRegionCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = !IsBusy && OnRims.Count < 2;
+        }
+
+        private void ShowDefaultSpawnPoints_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is VisualizerWindow) ShowDefaultSpawnPoints = !ShowDefaultSpawnPoints;
+            UpdateDefaultSpawnPointVisibility();
+        }
+
+        private void ShowDefaultSpawnPoints_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
+        }
+
+        private void ShowDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is VisualizerWindow) ShowDlzLines = !ShowDlzLines;
+            var visibleDlzInfo = DlzDoors.Where(i => i.MeshVisible)
+                .Concat(DlzTriggers.Where(i => i.MeshVisible))
+                .Concat(DlzEncounters.Where(i => i.MeshVisible));
+            if (ShowDlzLines)
+                foreach (var dlz in visibleDlzInfo) dlz.LineColor = dlz.MeshColor;
+            else
+                foreach (var dlz in visibleDlzInfo) HideDlzLines(dlz);
+        }
+
+        private void ShowDlzLines_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
         }
 
         #endregion

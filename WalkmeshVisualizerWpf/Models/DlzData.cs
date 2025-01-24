@@ -68,7 +68,7 @@ namespace WalkmeshVisualizerWpf.Models
                 var rimTriggers = ParseRimTriggers(rim);
                 var rimEncounters = ParseRimEncounters(rim, srim);
 
-                ModuleDLZ module = ModuleDLZs.FirstOrDefault(m => m.Module == moduleName);
+                ModuleDLZ module = ModuleDLZs.FirstOrDefault(m => m.Module == moduleName.ToLower());
                 if (module == null)
                 {
                     module = new ModuleDLZ { Module = moduleName.ToLower() };
@@ -341,8 +341,11 @@ namespace WalkmeshVisualizerWpf.Models
         public Polygon Polygon { get; set; }
         public List<Ellipse> Ellipses { get; set; } = new List<Ellipse>();
 
-        public bool Visible => MeshColor != Brushes.Transparent;
+        public bool MeshVisible => MeshColor != Brushes.Transparent;
+        public bool LineVisible => LineColor != Brushes.Transparent;
+
         private Brush _meshColor = Brushes.Transparent;
+        private Brush _lineColor = Brushes.Transparent;
 
         public DlzInfo() { }
 
@@ -366,9 +369,6 @@ namespace WalkmeshVisualizerWpf.Models
             get => _meshColor;
             set
             {
-                foreach (var line in Lines)
-                    line.Stroke = value;
-
                 foreach (var ellipse in Ellipses)
                     ellipse.Fill = value;
 
@@ -376,6 +376,17 @@ namespace WalkmeshVisualizerWpf.Models
                 Polygon.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
                 
                 SetField(ref _meshColor, value);
+            }
+        }
+
+        public Brush LineColor
+        {
+            get => _lineColor;
+            set
+            {
+                foreach (var line in Lines)
+                    line.Stroke = value;
+                SetField(ref _lineColor, value);
             }
         }
 

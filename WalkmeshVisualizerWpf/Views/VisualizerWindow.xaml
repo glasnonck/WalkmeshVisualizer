@@ -104,6 +104,12 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
+        <RoutedUICommand x:Key="Commands.ShowDefaultSpawnPoints">
+            <!--<RoutedUICommand.InputGestures>
+                <KeyGesture></KeyGesture>
+            </RoutedUICommand.InputGestures>-->
+        </RoutedUICommand>
+
         <RoutedUICommand x:Key="Commands.ShowTransAbort">
             <RoutedUICommand.InputGestures>
                 <KeyGesture>Ctrl+G</KeyGesture>
@@ -114,6 +120,12 @@
             <RoutedUICommand.InputGestures>
                 <KeyGesture>Ctrl+Shift+G</KeyGesture>
             </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowDlzLines">
+            <!--<RoutedUICommand.InputGestures>
+                <KeyGesture></KeyGesture>
+            </RoutedUICommand.InputGestures>-->
         </RoutedUICommand>
 
         <!--
@@ -244,6 +256,12 @@
             />
 
         <CommandBinding
+            Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
+            Executed="ShowDefaultSpawnPoints_Executed"
+            CanExecute="ShowDefaultSpawnPoints_CanExecute"
+            />
+
+        <CommandBinding
             Command="{StaticResource Commands.ShowTransAbort}"
             Executed="ShowTransAbortCommand_Executed"
             CanExecute="ShowTransAbortCommand_CanExecute"
@@ -253,6 +271,12 @@
             Command="{StaticResource Commands.ShowTransAbortRegion}"
             Executed="ShowTransAbortRegionCommand_Executed"
             CanExecute="ShowTransAbortRegionCommand_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowDlzLines}"
+            Executed="ShowDlzLines_Executed"
+            CanExecute="ShowDlzLines_CanExecute"
             />
 
     </Window.CommandBindings>
@@ -307,6 +331,16 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem
+                    Header="Show Default Spawn Points"
+                    Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowDefaultSpawnPoints, Mode=TwoWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/DefaultSpawnPointIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
                     Header="Show _Gather Party Points"
                     Command="{StaticResource Commands.ShowTransAbort}"
                     IsCheckable="True"
@@ -324,6 +358,17 @@
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem
+                    Header="Show Displaced Loading Zone (DLZ) Lines"
+                    Command="{StaticResource Commands.ShowDlzLines}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/DefaultSpawnPointIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
@@ -711,7 +756,7 @@
                     </Border>
                 </TabItem>
                 
-                <TabItem Header="Lists">
+                <TabItem Header="RIM Data">
                     <Border 
                         BorderBrush="Black"
                         BorderThickness="0,0,1,0"
@@ -825,7 +870,7 @@
 
                             <!--<xctk:ColorPicker Name="ClrPicker" SelectedColorChanged="ClrPicker_Changed"></xctk:ColorPicker>-->
 
-                            <TextBlock
+                            <!--<TextBlock
                                 Grid.Row="0"
                                 Margin="5,5,5,0"
                                 Text="Display one or more modules."
@@ -833,11 +878,10 @@
                                 Width="290"
                                 Visibility="{Binding OnRims.Count, Converter={StaticResource IsZeroToVisibilityConverter}}"
                                 >
-                            </TextBlock>
+                            </TextBlock>-->
 
-                            <Grid x:Name="dlzDoorGrid" Grid.Row="1"
-                                Visibility="{Binding OnRims.Count, Converter={StaticResource IsNonZeroToVisibilityConverter}}"
-                                >
+                            <Grid x:Name="dlzDoorGrid" Grid.Row="1">
+                                <!--Visibility="{Binding OnRims.Count, Converter={StaticResource IsNonZeroToVisibilityConverter}}"-->
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
@@ -871,12 +915,12 @@
                                                     <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
+                                            <GridViewColumn Width="130" DisplayMemberBinding="{Binding ResRef}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="ResRef" Content="Destination" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Geometry.Count}">
+                                            <GridViewColumn Width="30" DisplayMemberBinding="{Binding Geometry.Count}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="V" Content="V" />
                                                 </GridViewColumn.Header>
@@ -922,12 +966,12 @@
                                                     <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
+                                            <GridViewColumn Width="130" DisplayMemberBinding="{Binding ResRef}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Geometry.Count}">
+                                            <GridViewColumn Width="30" DisplayMemberBinding="{Binding Geometry.Count}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="V" Content="V" />
                                                 </GridViewColumn.Header>
@@ -974,12 +1018,12 @@
                                                     <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding ResRef}">
+                                            <GridViewColumn Width="130" DisplayMemberBinding="{Binding ResRef}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
                                                 </GridViewColumn.Header>
                                             </GridViewColumn>
-                                            <GridViewColumn Width="20" DisplayMemberBinding="{Binding Geometry.Count}">
+                                            <GridViewColumn Width="30" DisplayMemberBinding="{Binding Geometry.Count}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="V" Content="V" />
                                                 </GridViewColumn.Header>
@@ -1168,7 +1212,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding FileName}">
+                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                     </GridViewColumn.Header>
@@ -1239,7 +1283,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding FileName}">
+                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Tag="Rim" Content="Rim" />
                                     </GridViewColumn.Header>
@@ -1299,6 +1343,14 @@
                     <Separator />
                     <ToggleButton
                         Margin="2,0"
+                        ToolTip="Show default spawn points."
+                        IsChecked="{Binding ShowDefaultSpawnPoints, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
+                        >
+                        <Image Source="../Resources/DefaultSpawnPointIcon.png" />
+                    </ToggleButton>
+                    <ToggleButton
+                        Margin="2,0"
                         ToolTip="Show gather party points."
                         IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowTransAbort}"
@@ -1312,6 +1364,15 @@
                         Command="{StaticResource Commands.ShowTransAbortRegion}"
                         >
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
+                    </ToggleButton>
+                    <Separator />
+                    <ToggleButton
+                        Margin="2,0"
+                        ToolTip="Show displaced loading zone (DLZ) lines."
+                        IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowDlzLines}"
+                        >
+                        <Image Source="../Resources/DisplacedLoadingZoneIcon2.png" />
                     </ToggleButton>
                 </ToolBar>
             </ToolBarTray>
