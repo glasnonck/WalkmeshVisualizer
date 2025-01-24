@@ -2666,7 +2666,8 @@ namespace WalkmeshVisualizerWpf.Views
             var brush = GetNextDlzBrush(info.Module, info.MeshColor);
             DlzBrushCount[brush]++;
             info.MeshColor = brush;
-            info.LineColor = brush;
+            if (ShowDlzLines)
+                info.LineColor = brush;
         }
 
         //private void ClrPcker_Background_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color> e)
