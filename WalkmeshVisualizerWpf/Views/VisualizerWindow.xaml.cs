@@ -2373,6 +2373,38 @@ namespace WalkmeshVisualizerWpf.Views
             HideBothPoints();
             ClearBothPointMatches();
 
+            foreach (var dlzmod in DlzData.ModuleDLZs.Where(m => OnRims.Any(n => m.Module == n.FileName)))
+            {
+                foreach (var door in dlzmod.Doors)
+                {
+                    if (door.MeshVisible)
+                    {
+                        door.MeshColor = Brushes.Transparent;
+                        door.LineColor = Brushes.Transparent;
+                    }
+                    DlzDoors.Remove(door);
+                }
+                foreach (var trigger in dlzmod.Triggers)
+                {
+                    if (trigger.MeshVisible)
+                    {
+                        trigger.MeshColor = Brushes.Transparent;
+                        trigger.LineColor = Brushes.Transparent;
+                    }
+                    DlzTriggers.Remove(trigger);
+                }
+                foreach (var encounter in dlzmod.Encounters)
+                {
+                    if (encounter.MeshVisible)
+                    {
+                        encounter.MeshColor = Brushes.Transparent;
+                        encounter.LineColor = Brushes.Transparent;
+                    }
+                    DlzEncounters.Remove(encounter);
+                }
+
+            }
+
             // Move all ON names to the OFF collection.
             foreach (var rim in OnRims)
             {
