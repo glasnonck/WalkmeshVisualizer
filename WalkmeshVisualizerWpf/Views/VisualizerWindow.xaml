@@ -142,6 +142,7 @@
         <help:PointToTextConverter x:Key="PointToTextConverter" />
         <help:IsNonZeroToVisibilityConverter x:Key="IsNonZeroToVisibilityConverter" />
         <help:IsZeroToVisibilityConverter x:Key="IsZeroToVisibilityConverter" />
+        <!--<help:IsNotTransparentConverter x:Key="IsNotTransparentConverter" />-->
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />

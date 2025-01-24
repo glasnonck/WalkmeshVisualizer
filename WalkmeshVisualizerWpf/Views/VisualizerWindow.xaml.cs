@@ -1394,14 +1394,14 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SetDlzMeshBrush(DlzInfo dlz, Brush brush = null)
         {
-            if (brush == null) brush = GetNextDlzBrush(dlz.Module);
+            if (brush == null) brush = GetNextDlzBrush(dlz.Module, dlz.MeshColor);
             DlzBrushCount[brush]++;
             dlz.MeshColor = brush;
         }
 
         private void SetDlzLineBrush(DlzInfo dlz, Brush brush = null)
         {
-            if (brush == null) brush = GetNextDlzBrush(dlz.Module);
+            if (brush == null) brush = GetNextDlzBrush(dlz.Module, dlz.MeshColor);
             DlzBrushCount[brush]++;
             dlz.LineColor = brush;
         }
@@ -2064,8 +2064,10 @@ namespace WalkmeshVisualizerWpf.Views
             // If added to the canvas before, just add.
             if (RimToBrushUsed.ContainsKey(rimToAdd.FileName) && !cycleColor)
             {
-                brush = RimToBrushUsed[rimToAdd.FileName];
-                brushChanged = false;
+                brush = GetLeastUsedWalkmeshBrush();
+                var oldBrush = RimToBrushUsed[rimToAdd.FileName];
+                brushChanged = brush != oldBrush;
+                PolyBrushCount[brush]++;
             }
             // Else, if get least used color...
             else if (getLeastUsed)
@@ -2193,11 +2195,11 @@ namespace WalkmeshVisualizerWpf.Views
 
         private Brush GetNextWalkmeshBrush() => BrushCycle[BrushIndex];
 
-        private Brush GetNextDlzBrush(string module)
+        private Brush GetNextDlzBrush(string module, Brush skipColor = null)
         {
             var moduleBrush = RimToBrushUsed[module];
-            var min = DlzBrushCount.Where(pair => pair.Key != moduleBrush).Min(kvp => kvp.Value);
-            return DlzBrushCount.First(pair => pair.Key != moduleBrush && pair.Value == min).Key;
+            var min = DlzBrushCount.Where(pair => pair.Key != moduleBrush && pair.Key != skipColor).Min(kvp => kvp.Value);
+            return DlzBrushCount.First(pair => pair.Key != moduleBrush && pair.Key != skipColor && pair.Value == min).Key;
         }
 
         #endregion // END REGION Add Methods
@@ -2661,8 +2663,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var info = (sender as Button).DataContext as DlzInfo;
             if (info.MeshVisible == false) return;
-            var brush = GetNextDlzBrush(info.Module);
-            //DlzBrushCount[info.MeshColor]--;
+            var brush = GetNextDlzBrush(info.Module, info.MeshColor);
             DlzBrushCount[brush]++;
             info.MeshColor = brush;
             info.LineColor = brush;

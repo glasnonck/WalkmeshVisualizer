@@ -227,4 +227,24 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
         #endregion
     }
+
+    [ValueConversion(typeof(Brush), typeof(bool))]
+    public class IsNotTransparentConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be of type bool.");
+
+            return (Brush)value != Brushes.Transparent;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Brush)) throw new InvalidOperationException("The target must be a Brush.");
+
+            return (bool)value ? Brushes.Black : Brushes.Transparent;
+        }
+        #endregion
+    }
 }

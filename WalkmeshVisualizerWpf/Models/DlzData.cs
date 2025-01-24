@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using static WalkmeshVisualizerWpf.Models.DlzData;
 
 namespace WalkmeshVisualizerWpf.Models
 {
@@ -335,7 +336,6 @@ namespace WalkmeshVisualizerWpf.Models
         public List<Tuple<float, float>> Geometry { get; set; } = new List<Tuple<float, float>>();
         public List<Tuple<float, float>> SpawnPoints { get; set; } = new List<Tuple<float, float>>();
 
-
         public Canvas LineCanvas { get; set; }
         public List<Line> Lines { get; set; } = new List<Line>();
         public Polygon Polygon { get; set; }
@@ -370,12 +370,16 @@ namespace WalkmeshVisualizerWpf.Models
             set
             {
                 foreach (var ellipse in Ellipses)
+                {
                     ellipse.Fill = value;
+                    ellipse.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
+                }
 
                 Polygon.Fill = value;
                 Polygon.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
                 
                 SetField(ref _meshColor, value);
+                NotifyPropertyChanged(nameof(MeshVisible));
             }
         }
 
@@ -424,6 +428,15 @@ namespace WalkmeshVisualizerWpf.Models
         public override string ToString()
         {
             return $"{ResRef}, {Geometry.Count} corner(s)";
+        }
+
+        public void Hide()
+        {
+            if (MeshVisible)
+            {
+                MeshColor = Brushes.Transparent;
+                LineColor = Brushes.Transparent;
+            }
         }
     }
 }
