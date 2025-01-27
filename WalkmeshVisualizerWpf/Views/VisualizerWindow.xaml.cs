@@ -199,8 +199,8 @@ namespace WalkmeshVisualizerWpf.Views
         private const string TRANS_ABORT_RESREF = "k_trans_abort";
         private const string K1_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
-        private const string K1_GOG_DEFAULT_PATH = @"";
-        private const string K2_GOG_DEFAULT_PATH = @"";
+        private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
+        private const string K2_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR2";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
