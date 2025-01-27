@@ -149,7 +149,6 @@
   <ItemGroup>
     <Resource Include="Resources\DefaultSpawnPointIcon.png" />
     <Resource Include="Resources\DisplacedLoadingZoneIcon.png" />
-    <Resource Include="Resources\DisplacedLoadingZoneIcon2.png" />
     <Content Include="Resources\DlzData.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

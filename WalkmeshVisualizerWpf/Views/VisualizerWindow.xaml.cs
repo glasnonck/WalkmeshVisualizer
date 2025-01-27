@@ -214,7 +214,7 @@ namespace WalkmeshVisualizerWpf.Views
             get
             {
                 var v = System.Reflection.Assembly.GetAssembly(typeof(MainWindow)).GetName().Version;
-                return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
+                return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor})";
             }
         }
 
@@ -1350,19 +1350,14 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region Dlz Methods
 
-        private void lvDlzDoor_DoubleClick(object sender, MouseButtonEventArgs e)
+        private void lvDlzInfo_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             HandleDlz((sender as ListViewItem).Content as DlzInfo);
         }
 
-        private void lvDlzTrigger_DoubleClick(object sender, MouseButtonEventArgs e)
+        private void lvDlzInfo_KeyDown(object sender, KeyEventArgs e)
         {
-            HandleDlz((sender as ListViewItem).Content as DlzInfo);
-        }
-
-        private void lvDlzEncounter_DoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            HandleDlz((sender as ListViewItem).Content as DlzInfo);
+            if (e.Key == Key.Enter) HandleDlz((sender as ListViewItem).Content as DlzInfo);
         }
 
         private void HandleDlz(DlzInfo dlz)
@@ -1388,7 +1383,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void HideDlzLines(DlzInfo dlz)
         {
-            //DlzBrushCount[dlz.MeshColor]--;
             dlz.LineColor = Brushes.Transparent;
         }
 
@@ -1431,14 +1425,11 @@ namespace WalkmeshVisualizerWpf.Views
                         Y1 = corner.Item2,
                         X2 = corner.Item1,
                         Y2 = -1000,
-                        //X1 = corner.Item1 + LeftOffset,
-                        //Y1 = content.ActualHeight - corner.Item2 - BottomOffset,
-                        //X2 = corner.Item1 + LeftOffset,
-                        //Y2 = content.ActualHeight,
                     };
                     dlz.Lines.Add(l);
                     dlz.LineCanvas.Children.Add(l);
                 }
+
                 dlz.Polygon = new Polygon
                 {
                     Visibility = Visibility.Visible,
@@ -1448,6 +1439,7 @@ namespace WalkmeshVisualizerWpf.Views
                     Fill = Brushes.Transparent,
                     Opacity = 0.8
                 };
+
                 foreach (var point in dlz.SpawnPoints)
                 {
                     const double SIZE = 1;
@@ -1471,8 +1463,6 @@ namespace WalkmeshVisualizerWpf.Views
                     _ = RimFullCanvasLookup[dlz.Module].Children.Add(dlz.Polygon);
                     foreach (var ellipse in dlz.Ellipses)
                         _ = RimFullCanvasLookup[dlz.Module].Children.Add(ellipse);
-                    //foreach (var line in dlz.Lines)
-                    //    _ = RimFullCanvasLookup[dlz.Module].Children.Add(line);
                     _ = RimFullCanvasLookup[dlz.Module].Children.Add(dlz.LineCanvas);
                 });
             }
@@ -1672,7 +1662,6 @@ namespace WalkmeshVisualizerWpf.Views
 
                 //
                 Polygon dspStar = null;
-                //Ellipse dsp = null;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     dspStar = new Polygon
@@ -1687,17 +1676,6 @@ namespace WalkmeshVisualizerWpf.Views
                             new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y-1),
                         },
                     };
-                    //dsp = new Ellipse
-                    //{
-                    //    Stroke = Brushes.Black,
-                    //    StrokeThickness = 0.65,
-                    //    Height = 2,
-                    //    Width = 2,
-                    //    RenderTransform = content.Resources["CartesianTransform"] as Transform,
-                    //};
-                    //Canvas.SetLeft(dsp, rimmodel.EntryPoint.X - (dsp.Width / 2));
-                    //Canvas.SetTop(dsp, -rimmodel.EntryPoint.Y - (dsp.Height / 2));
-                    ////_ = defaultSpawnPointCanvas.Children.Add(dsp);
                     _ = defaultSpawnPointCanvas.Children.Add(dspStar);
                 });
 
@@ -1841,11 +1819,8 @@ namespace WalkmeshVisualizerWpf.Views
                 // Going clockwise, check each other equation for the nearest intersection.
                 while (true)
                 {
-                    //var normalNullable = thisLine.NormalVector(iPoint);
-                    //if (!normalNullable.HasValue) continue;
                     var normal = thisLine.NormalVector(iPoint).Value;
                     normal.Normalize();
-                    //if (!normal.HasValue) continue;
 
                     // Direction is based on the direction of the normal vector.
                     var direction = thisLine.IsVertical
@@ -1908,60 +1883,8 @@ namespace WalkmeshVisualizerWpf.Views
                 regions.Add(regionPoints);
             }
 
-            //// Determine text for regions.
-            //var froms = RimGitLookup[rimName].Waypoints.Structs.Where(s => s.Fields.Any(
-            //    f => f is GFF.CExoString ces &&
-            //    (ces.CEString.ToLower().StartsWith("from") ||
-            //     ces.CEString.ToLower().Contains("ebon_hawk_transition"))));
-            //var fromLabels = new string[transAbortPoints.Count];
-            //for (var i = 0; i < transAbortPoints.Count; i++)
-            //{
-            //    var abortWP = transAbortPoints[i];
-            //    Point? fromWP = null;
-            //    string fromTag = null;
-            //    var distance = double.NaN;
-
-            //    // Find closest from waypoint.
-            //    foreach (var from in froms)
-            //    {
-            //        var x = (from.Fields.FirstOrDefault(f => f.Label == "XPosition") as GFF.FLOAT).Value;
-            //        var y = (from.Fields.FirstOrDefault(f => f.Label == "YPosition") as GFF.FLOAT).Value;
-            //        var thisWP = new Point(x, y);
-            //        var thisDistance = abortWP.Distance(thisWP);
-
-            //        if (!fromWP.HasValue || thisDistance < distance)
-            //        {
-            //            fromWP = thisWP;
-            //            distance = thisDistance;
-            //            fromTag = (from.Fields.First(f => f.Label == "Tag") as GFF.CExoString).CEString.ToLower();
-            //        }
-            //    }
-
-            //    // Determine label from closest waypoint tag.
-            //    if (fromTag.Contains("ebon_hawk_transition"))
-            //    {
-            //        fromLabels[i] = "Ebon Hawk";
-            //    }
-            //    else
-            //    {
-            //        fromTag = fromTag.Replace("from", "");  // Remove starting "from"
-            //        var fromNum = fromTag.Substring(0, 2);  // First two characters contain the number.
-            //        if (fromTag.Length == 2)
-            //        {
-            //            fromLabels[i] = $"m{fromNum}";
-            //        }
-            //        else
-            //        {
-            //            var fromLtr = fromTag.Substring(2, 1);  // Next character is the unique module letter.
-            //            fromLabels[i] = $"m{fromNum}a{fromLtr}";
-            //        }
-            //    }
-            //}
-
             // Draw regions.
             var fillIdx = 0;
-            //var foreIdx = 2;
-            //foreach (var region in regions)
             for (var i = 0; i < regions.Count; i++)
             {
                 var region = regions[i];
@@ -1976,23 +1899,8 @@ namespace WalkmeshVisualizerWpf.Views
                         Points = new PointCollection(region),
                     };
                     _ = transBorderCanvas.Children.Add(poly);
-
-                    //var text = new TextBlock
-                    //{
-                    //    Text = "Hello world",
-                    //    FontSize = 4,
-                    //    Foreground = Brushes.White,
-                    //    Background = Brushes.Black,
-                    //    HorizontalAlignment = HorizontalAlignment.Center,
-                    //    TextAlignment = TextAlignment.Center,
-                    //    RenderTransform = content.Resources["OffsetTransform"] as Transform,
-                    //};
-                    //Canvas.SetLeft(text, transAbortPoints[i].X - (BaseOffset.X / 2));
-                    //Canvas.SetTop(text, -transAbortPoints[i].Y - BaseOffset.Y);
-                    //_ = transBorderCanvas.Children.Add(text);
                 });
                 fillIdx = (fillIdx + 1) % PolyBrushCount.Count;
-                //foreIdx = (foreIdx + 1) % PolyBrushCount.Count;
             }
         }
 
@@ -2034,22 +1942,6 @@ namespace WalkmeshVisualizerWpf.Views
 
             LeftClickPoint = new Point(LeftClickPoint.X + diffLeft, LeftClickPoint.Y + diffBottom);
             RightClickPoint = new Point(RightClickPoint.X + diffLeft, RightClickPoint.Y + diffBottom);
-
-            //Application.Current.Dispatcher.Invoke(() =>
-            //{
-                //foreach (var dlz in DlzData.ModuleDLZs)
-                //{
-                //    var infos = dlz.Doors.Concat(dlz.Triggers.Concat(dlz.Encounters));
-                //    foreach (var info in infos.Where(i => i.LineCanvas != null))
-                //    {
-                //        info.LineCanvas.Dispatcher.Invoke(() =>
-                //        {
-                //            Canvas.SetLeft(info.LineCanvas, LeftOffset);
-                //            Canvas.SetBottom(info.LineCanvas, BottomOffset);
-                //        });
-                //    }
-                //}
-            //});
         }
 
         /// <summary>
@@ -2075,23 +1967,6 @@ namespace WalkmeshVisualizerWpf.Views
                 brush = GetLeastUsedWalkmeshBrush();
                 PolyBrushCount[brush]++;
                 BrushIndex = BrushCycle.IndexOf(GetLeastUsedWalkmeshBrush());
-
-                //// Get most common brushes on canvas.
-                //var max = PolyBrushCount.Where(kvp => kvp.Value == PolyBrushCount.Values.Max()).ToDictionary(kvp => kvp.Key);
-
-                //// If not all brushes are equal AND last used brush is in max frequency, get a new brush.
-                //if (max.Count != PolyBrushCount.Count && max.ContainsKey(RimToBrushUsed[rimToAdd.FileName]))
-                //{
-                //    brush = GetNextBrush();
-                //    PolyBrushCount[brush]++;
-                //}
-                //// Else, don't change the brush.
-                //else
-                //{
-                //    brush = RimToBrushUsed[rimToAdd.FileName];
-                //    brushChanged = false;
-                //    PolyBrushCount[brush]++;
-                //}
             }
             // Else, get next color in cycle.
             else if (cycleColor)
@@ -2182,15 +2057,6 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
-        ///// <summary>
-        ///// Determine next brush to use in sequence.
-        ///// </summary>
-        //private Brush GetNextBrush()
-        //{
-        //    var min = PolyBrushCount.Values.Min();
-        //    return PolyBrushCount.First(pair => pair.Value == min).Key;
-        //}
-
         private Brush GetLeastUsedWalkmeshBrush() => PolyBrushCount.First(kvp => kvp.Value == PolyBrushCount.Values.Min()).Key;
 
         private Brush GetNextWalkmeshBrush() => BrushCycle[BrushIndex];
@@ -2248,7 +2114,6 @@ namespace WalkmeshVisualizerWpf.Views
                 {
                     if (door.MeshVisible)
                     {
-                        //DlzBrushCount[door.MeshColor]--;
                         door.MeshColor = Brushes.Transparent;
                         door.LineColor = Brushes.Transparent;
                     }
@@ -2258,7 +2123,6 @@ namespace WalkmeshVisualizerWpf.Views
                 {
                     if (trigger.MeshVisible)
                     {
-                        //DlzBrushCount[trigger.MeshColor]--;
                         trigger.MeshColor = Brushes.Transparent;
                         trigger.LineColor = Brushes.Transparent;
                     }

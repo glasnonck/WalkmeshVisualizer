@@ -105,9 +105,9 @@
         </RoutedUICommand>
 
         <RoutedUICommand x:Key="Commands.ShowDefaultSpawnPoints">
-            <!--<RoutedUICommand.InputGestures>
-                <KeyGesture></KeyGesture>
-            </RoutedUICommand.InputGestures>-->
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+D</KeyGesture>
+            </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
         <RoutedUICommand x:Key="Commands.ShowTransAbort">
@@ -123,9 +123,9 @@
         </RoutedUICommand>
 
         <RoutedUICommand x:Key="Commands.ShowDlzLines">
-            <!--<RoutedUICommand.InputGestures>
-                <KeyGesture></KeyGesture>
-            </RoutedUICommand.InputGestures>-->
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Z</KeyGesture>
+            </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
         <!--
@@ -332,7 +332,7 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem
-                    Header="Show Default Spawn Points"
+                    Header="Show Default _Spawn Points"
                     Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowDefaultSpawnPoints, Mode=TwoWay}"
@@ -363,7 +363,7 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem
-                    Header="Show Displaced Loading Zone (DLZ) Lines"
+                    Header="Show Displaced Loading _Zone (DLZ) Lines"
                     Command="{StaticResource Commands.ShowDlzLines}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
@@ -538,6 +538,20 @@
                                     <Setter Property="Stroke" Value="Black" />
                                     <Setter Property="StrokeThickness" Value="0.5" />
                                 </Style>
+                                <DataTemplate x:Key="dtPointRimColorTemplate">
+                                    <Grid Margin="-4">
+                                        <Rectangle Style="{StaticResource colorRectangle}">
+                                            <Rectangle.Fill>
+                                                <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
+                                                    <Binding />
+                                                    <Binding ElementName="thisWindow" Path="OnRims" />
+                                                    <Binding Path="Rim.MeshColor" />
+                                                    <Binding ElementName="thisWindow" Path="OffRims" />
+                                                </MultiBinding>
+                                            </Rectangle.Fill>
+                                        </Rectangle>
+                                    </Grid>
+                                </DataTemplate>
                             </Grid.Resources>
 
                             <!-- Match coordinates button. -->
@@ -596,24 +610,7 @@
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18" Header="">
-                                                <GridViewColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="-4">
-                                                            <Rectangle Style="{StaticResource colorRectangle}">
-                                                                <Rectangle.Fill>
-                                                                    <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
-                                                                        <Binding />
-                                                                        <Binding ElementName="thisWindow" Path="OnRims" />
-                                                                        <Binding Path="Rim.MeshColor" />
-                                                                        <Binding ElementName="thisWindow" Path="OffRims" />
-                                                                    </MultiBinding>
-                                                                </Rectangle.Fill>
-                                                            </Rectangle>
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </GridViewColumn.CellTemplate>
-                                            </GridViewColumn>
+                                            <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
                                             <GridViewColumn Width="30" Header="">
                                                 <GridViewColumn.CellTemplate>
                                                     <DataTemplate>
@@ -660,24 +657,7 @@
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18" Header="">
-                                                <GridViewColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="-4">
-                                                            <Rectangle Style="{StaticResource colorRectangle}">
-                                                                <Rectangle.Fill>
-                                                                    <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
-                                                                        <Binding />
-                                                                        <Binding ElementName="thisWindow" Path="OnRims" />
-                                                                        <Binding Path="Rim.MeshColor" />
-                                                                        <Binding ElementName="thisWindow" Path="OffRims" />
-                                                                    </MultiBinding>
-                                                                </Rectangle.Fill>
-                                                            </Rectangle>
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </GridViewColumn.CellTemplate>
-                                            </GridViewColumn>
+                                            <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
                                             <GridViewColumn Width="30" Header="">
                                                 <GridViewColumn.CellTemplate>
                                                     <DataTemplate>
@@ -721,24 +701,7 @@
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18" Header="">
-                                                <GridViewColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="-4">
-                                                            <Rectangle Style="{StaticResource colorRectangle}">
-                                                                <Rectangle.Fill>
-                                                                    <MultiBinding Converter="{StaticResource MatchRectFillMultiConverter}">
-                                                                        <Binding />
-                                                                        <Binding ElementName="thisWindow" Path="OnRims" />
-                                                                        <Binding Path="Rim.MeshColor" />
-                                                                        <Binding ElementName="thisWindow" Path="OffRims" />
-                                                                    </MultiBinding>
-                                                                </Rectangle.Fill>
-                                                            </Rectangle>
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </GridViewColumn.CellTemplate>
-                                            </GridViewColumn>
+                                            <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
                                             <GridViewColumn Width="30" Header="">
                                                 <GridViewColumn.CellTemplate>
                                                     <DataTemplate>
@@ -772,14 +735,9 @@
                             </Grid.RowDefinitions>
 
                             <Grid.Resources>
-                                <Style TargetType="ListViewItem" x:Key="DlzDoorItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzDoor_DoubleClick" />
-                                </Style>
-                                <Style TargetType="ListViewItem" x:Key="DlzTriggerItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzTrigger_DoubleClick" />
-                                </Style>
-                                <Style TargetType="ListViewItem" x:Key="DlzEncounterItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzEncounter_DoubleClick" />
+                                <Style TargetType="ListViewItem" x:Key="DlzInfoItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzInfo_DoubleClick" />
+                                    <EventSetter Event="KeyDown" Handler="lvDlzInfo_KeyDown" />
                                 </Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Margin" Value="5,5,5,0" />
@@ -862,27 +820,7 @@
                                 </DataTemplate>
                             </Grid.Resources>
 
-                            <!--<Button
-                                Grid.Row="0"
-                                Content="DLZ Button"
-                                Margin="5,0"
-                                Width="290"
-                                />-->
-
-                            <!--<xctk:ColorPicker Name="ClrPicker" SelectedColorChanged="ClrPicker_Changed"></xctk:ColorPicker>-->
-
-                            <!--<TextBlock
-                                Grid.Row="0"
-                                Margin="5,5,5,0"
-                                Text="Display one or more modules."
-                                TextWrapping="Wrap"
-                                Width="290"
-                                Visibility="{Binding OnRims.Count, Converter={StaticResource IsZeroToVisibilityConverter}}"
-                                >
-                            </TextBlock>-->
-
                             <Grid x:Name="dlzDoorGrid" Grid.Row="1">
-                                <!--Visibility="{Binding OnRims.Count, Converter={StaticResource IsNonZeroToVisibilityConverter}}"-->
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
@@ -899,7 +837,7 @@
                                 <ListView
                                     x:Name="lvDlzDoor"
                                     Grid.Row="1"
-                                    ItemContainerStyle="{StaticResource DlzDoorItemStyle}"
+                                    ItemContainerStyle="{StaticResource DlzInfoItemStyle}"
                                     ItemsSource="{Binding DlzDoors}"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                                     ScrollViewer.CanContentScroll="False"
@@ -948,7 +886,7 @@
                                 <ListView
                                     x:Name="lvDlzTrigger"
                                     Grid.Row="1"
-                                    ItemContainerStyle="{StaticResource DlzTriggerItemStyle}"
+                                    ItemContainerStyle="{StaticResource DlzInfoItemStyle}"
                                     ItemsSource="{Binding DlzTriggers}"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                                     ScrollViewer.CanContentScroll="False"
@@ -998,7 +936,7 @@
                                 <ListView
                                     x:Name="lvDlzEncounter"
                                     Grid.Row="1"
-                                    ItemContainerStyle="{StaticResource DlzEncounterItemStyle}"
+                                    ItemContainerStyle="{StaticResource DlzInfoItemStyle}"
                                     ItemsSource="{Binding DlzEncounters}"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                                     ScrollViewer.CanContentScroll="False"
@@ -1181,8 +1119,8 @@
                                                                 BorderBrush="{TemplateBinding BorderBrush}"
                                                                 BorderThickness="{TemplateBinding BorderThickness}">
                                                                 <ContentPresenter
-                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                                             </Border>
                                                         </ControlTemplate>
                                                     </Button.Template>
@@ -1323,7 +1261,7 @@
                 <ToolBar Background="GhostWhite">
                     <ToggleButton
                         Margin="2,0"
-                        ToolTip="Show walkable faces."
+                        ToolTip="Show walkable faces. (Ctrl+W)"
                         IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowWalkable}"
                         >
@@ -1331,7 +1269,7 @@
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
-                        ToolTip="Show non-walkable faces."
+                        ToolTip="Show non-walkable faces. (Ctrl+Shift+W)"
                         IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowNonWalkable}"
                         >
@@ -1340,7 +1278,7 @@
                     <Separator />
                     <ToggleButton
                         Margin="2,0"
-                        ToolTip="Show default spawn points."
+                        ToolTip="Show default spawn points. (Ctrl+D)"
                         IsChecked="{Binding ShowDefaultSpawnPoints, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
                         >
@@ -1348,7 +1286,7 @@
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
-                        ToolTip="Show gather party points."
+                        ToolTip="Show gather party points. (Ctrl+G)"
                         IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowTransAbort}"
                         >
@@ -1356,7 +1294,7 @@
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
-                        ToolTip="Show gather party regions."
+                        ToolTip="Show gather party regions. (Ctrl+Shift+G)"
                         IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowTransAbortRegion}"
                         >
@@ -1365,11 +1303,11 @@
                     <Separator />
                     <ToggleButton
                         Margin="2,0"
-                        ToolTip="Show displaced loading zone (DLZ) lines."
+                        ToolTip="Show displaced loading zone (DLZ) lines. (Ctrl+Z)"
                         IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowDlzLines}"
                         >
-                        <Image Source="../Resources/DisplacedLoadingZoneIcon2.png" />
+                        <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
                     </ToggleButton>
                 </ToolBar>
             </ToolBarTray>
