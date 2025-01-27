@@ -26,7 +26,7 @@ using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
 using ZoomAndPan;
-using static WalkmeshVisualizerWpf.Models.DlzData;
+using static WalkmeshVisualizerWpf.Models.RimDataSet;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -41,7 +41,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             InitializeComponent();
             XmlGameData.Initialize();
-            DlzBrushCount = new Dictionary<Brush, int>(PolyBrushCount);
+            RimDataInfoBrushCount = new Dictionary<Brush, int>(PolyBrushCount);
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
 
             // Hide selected game label.
@@ -168,7 +168,7 @@ namespace WalkmeshVisualizerWpf.Views
             { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
         };
 
-        private Dictionary<Brush, int> DlzBrushCount { get; set; }
+        private Dictionary<Brush, int> RimDataInfoBrushCount { get; set; }
 
         private List<Brush> BrushCycle { get; set; }
 
@@ -232,27 +232,27 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _offRims, value);
         }
 
-        public DlzData DlzData { get; set; } = new DlzData();
+        public RimDataSet RimDataSet { get; set; } = new RimDataSet();
 
-        private ObservableCollection<DlzInfo> _dlzDoors = new ObservableCollection<DlzInfo>();
-        public ObservableCollection<DlzInfo> DlzDoors
+        private ObservableCollection<RimDataInfo> _rimDoors = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimDoors
         {
-            get => _dlzDoors;
-            set => SetField(ref _dlzDoors, value);
+            get => _rimDoors;
+            set => SetField(ref _rimDoors, value);
         }
 
-        private ObservableCollection<DlzInfo> _dlzTriggers = new ObservableCollection<DlzInfo>();
-        public ObservableCollection<DlzInfo> DlzTriggers
+        private ObservableCollection<RimDataInfo> _rimTriggers = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimTriggers
         {
-            get => _dlzTriggers;
-            set => SetField(ref _dlzTriggers, value);
+            get => _rimTriggers;
+            set => SetField(ref _rimTriggers, value);
         }
 
-        private ObservableCollection<DlzInfo> _dlzEncounters = new ObservableCollection<DlzInfo>();
-        public ObservableCollection<DlzInfo> DlzEncounters
+        private ObservableCollection<RimDataInfo> _rimEncounters = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimEncounters
         {
-            get => _dlzEncounters;
-            set => SetField(ref _dlzEncounters, value);
+            get => _rimEncounters;
+            set => SetField(ref _rimEncounters, value);
         }
 
         private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
@@ -916,13 +916,13 @@ namespace WalkmeshVisualizerWpf.Views
             if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
             {
                 CurrentGame = XmlGameData.Kotor1Data;
-                DlzData.LoadGameData(K1_STEAM_DEFAULT_PATH);
+                RimDataSet.LoadGameData(K1_STEAM_DEFAULT_PATH);
                 LoadGameFiles(K1_STEAM_DEFAULT_PATH, K1_NAME);
             }
             else if (Directory.Exists(K1_GOG_DEFAULT_PATH))
             {
                 CurrentGame = XmlGameData.Kotor1Data;
-                DlzData.LoadGameData(K1_GOG_DEFAULT_PATH);
+                RimDataSet.LoadGameData(K1_GOG_DEFAULT_PATH);
                 LoadGameFiles(K1_GOG_DEFAULT_PATH, K1_NAME);
             }
             else
@@ -947,13 +947,13 @@ namespace WalkmeshVisualizerWpf.Views
             if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
             {
                 CurrentGame = XmlGameData.Kotor2Data;
-                DlzData.LoadGameData(K2_STEAM_DEFAULT_PATH);
+                RimDataSet.LoadGameData(K2_STEAM_DEFAULT_PATH);
                 LoadGameFiles(K2_STEAM_DEFAULT_PATH, K2_NAME);
             }
             else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
             {
                 CurrentGame = XmlGameData.Kotor2Data;
-                DlzData.LoadGameData(K2_GOG_DEFAULT_PATH);
+                RimDataSet.LoadGameData(K2_GOG_DEFAULT_PATH);
                 LoadGameFiles(K2_GOG_DEFAULT_PATH, K2_NAME);
             }
             else
@@ -1348,65 +1348,65 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Swap Game Methods
 
-        #region Dlz Methods
+        #region RIM Data Info (DLZ) Methods
 
-        private void lvDlzInfo_DoubleClick(object sender, MouseButtonEventArgs e)
+        private void lvRimDataInfo_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            HandleDlz((sender as ListViewItem).Content as DlzInfo);
+            HandleRimDataInfo((sender as ListViewItem).Content as RimDataInfo);
         }
 
-        private void lvDlzInfo_KeyDown(object sender, KeyEventArgs e)
+        private void lvRimDataInfo_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter) HandleDlz((sender as ListViewItem).Content as DlzInfo);
+            if (e.Key == Key.Enter) HandleRimDataInfo((sender as ListViewItem).Content as RimDataInfo);
         }
 
-        private void HandleDlz(DlzInfo dlz)
+        private void HandleRimDataInfo(RimDataInfo rdi)
         {
-            if (dlz.MeshVisible)
+            if (rdi.MeshVisible)
             {
-                HideDlzMeshes(dlz);
-                HideDlzLines(dlz);
+                HideRimDataInfoMesh(rdi);
+                HideDlzLines(rdi);
             }
             else
             {
-                BuildDlzMeshAndLine(dlz);
-                SetDlzMeshBrush(dlz);
+                BuildRimDataInfoMesh(rdi);
+                SetRimDataInfoMeshBrush(rdi);
                 if (ShowDlzLines)
-                    dlz.LineColor = dlz.MeshColor;
+                    rdi.LineColor = rdi.MeshColor;
             }
         }
 
-        private void HideDlzMeshes(DlzInfo dlz)
+        private void HideRimDataInfoMesh(RimDataInfo rdi)
         {
-            dlz.MeshColor = Brushes.Transparent;
+            rdi.MeshColor = Brushes.Transparent;
         }
 
-        private void HideDlzLines(DlzInfo dlz)
+        private void HideDlzLines(RimDataInfo rdi)
         {
-            dlz.LineColor = Brushes.Transparent;
+            rdi.LineColor = Brushes.Transparent;
         }
 
-        private void SetDlzMeshBrush(DlzInfo dlz, Brush brush = null)
+        private void SetRimDataInfoMeshBrush(RimDataInfo rdi, Brush brush = null)
         {
-            if (brush == null) brush = GetNextDlzBrush(dlz.Module, dlz.MeshColor);
-            DlzBrushCount[brush]++;
-            dlz.MeshColor = brush;
+            if (brush == null) brush = GetNextRimDataInfoBrush(rdi.Module, rdi.MeshColor);
+            RimDataInfoBrushCount[brush]++;
+            rdi.MeshColor = brush;
         }
 
-        private void SetDlzLineBrush(DlzInfo dlz, Brush brush = null)
-        {
-            if (brush == null) brush = GetNextDlzBrush(dlz.Module, dlz.MeshColor);
-            DlzBrushCount[brush]++;
-            dlz.LineColor = brush;
-        }
+        //private void SetDlzLineBrush(RimDataInfo rdi, Brush brush = null)
+        //{
+        //    if (brush == null) brush = GetNextRimDataInfoBrush(rdi.Module, rdi.MeshColor);
+        //    RimDataInfoBrushCount[brush]++;
+        //    rdi.LineColor = brush;
+        //}
 
-        private void BuildDlzMeshAndLine(DlzInfo dlz)
+        private void BuildRimDataInfoMesh(RimDataInfo rdi)
         {
-            if (dlz.Lines.Count == 0)
+            if (rdi.Lines.Count == 0)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    dlz.LineCanvas = new Canvas
+                    rdi.LineCanvas = new Canvas
                     {
                         Opacity = 0.8,
                         Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
@@ -1414,7 +1414,7 @@ namespace WalkmeshVisualizerWpf.Views
                     };
                 });
 
-                foreach (var corner in dlz.Geometry)
+                foreach (var corner in rdi.Geometry)
                 {
                     var l = new Line()
                     {
@@ -1426,21 +1426,21 @@ namespace WalkmeshVisualizerWpf.Views
                         X2 = corner.Item1,
                         Y2 = -1000,
                     };
-                    dlz.Lines.Add(l);
-                    dlz.LineCanvas.Children.Add(l);
+                    rdi.Lines.Add(l);
+                    rdi.LineCanvas.Children.Add(l);
                 }
 
-                dlz.Polygon = new Polygon
+                rdi.Polygon = new Polygon
                 {
                     Visibility = Visibility.Visible,
                     Stroke = Brushes.Transparent,
                     StrokeThickness = 0.05,
-                    Points = new PointCollection(dlz.Geometry.Select(g => new Point(g.Item1, g.Item2))),
+                    Points = new PointCollection(rdi.Geometry.Select(g => new Point(g.Item1, g.Item2))),
                     Fill = Brushes.Transparent,
                     Opacity = 0.8
                 };
 
-                foreach (var point in dlz.SpawnPoints)
+                foreach (var point in rdi.SpawnPoints)
                 {
                     const double SIZE = 1;
                     var e = new Ellipse
@@ -1455,15 +1455,15 @@ namespace WalkmeshVisualizerWpf.Views
                     };
                     Canvas.SetLeft(e, point.Item1 - (e.Width / SIZE));
                     Canvas.SetTop(e, -point.Item2 + (e.Height / SIZE));
-                    dlz.Ellipses.Add(e);
+                    rdi.Ellipses.Add(e);
                 }
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    _ = RimFullCanvasLookup[dlz.Module].Children.Add(dlz.Polygon);
-                    foreach (var ellipse in dlz.Ellipses)
-                        _ = RimFullCanvasLookup[dlz.Module].Children.Add(ellipse);
-                    _ = RimFullCanvasLookup[dlz.Module].Children.Add(dlz.LineCanvas);
+                    _ = RimFullCanvasLookup[rdi.Module].Children.Add(rdi.Polygon);
+                    foreach (var ellipse in rdi.Ellipses)
+                        _ = RimFullCanvasLookup[rdi.Module].Children.Add(ellipse);
+                    _ = RimFullCanvasLookup[rdi.Module].Children.Add(rdi.LineCanvas);
                 });
             }
         }
@@ -1517,19 +1517,19 @@ namespace WalkmeshVisualizerWpf.Views
                 sorted.Sort();
                 OnRims = new ObservableCollection<RimModel>(sorted);
 
-                // Add DLZ collections.
-                var dlzmod = DlzData.ModuleDLZs.First(m => m.Module == rim.FileName);
-                var dlzsort = DlzDoors.Concat(dlzmod.Doors).ToList();
-                dlzsort.Sort();
-                DlzDoors = new ObservableCollection<DlzInfo>(dlzsort);
+                // Add RIM data collections.
+                var rdiModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
+                var rdiSort = RimDoors.Concat(rdiModule.Doors).ToList();
+                rdiSort.Sort();
+                RimDoors = new ObservableCollection<RimDataInfo>(rdiSort);
 
-                dlzsort = DlzTriggers.Concat(dlzmod.Triggers).ToList();
-                dlzsort.Sort();
-                DlzTriggers = new ObservableCollection<DlzInfo>(dlzsort);
+                rdiSort = RimTriggers.Concat(rdiModule.Triggers).ToList();
+                rdiSort.Sort();
+                RimTriggers = new ObservableCollection<RimDataInfo>(rdiSort);
 
-                dlzsort = DlzEncounters.Concat(dlzmod.Encounters).ToList();
-                dlzsort.Sort();
-                DlzEncounters = new ObservableCollection<DlzInfo>(dlzsort);
+                rdiSort = RimEncounters.Concat(rdiModule.Encounters).ToList();
+                rdiSort.Sort();
+                RimEncounters = new ObservableCollection<RimDataInfo>(rdiSort);
 
                 // Start worker to add polygons to the canvas.
                 _ = content.Focus();
@@ -2061,11 +2061,11 @@ namespace WalkmeshVisualizerWpf.Views
 
         private Brush GetNextWalkmeshBrush() => BrushCycle[BrushIndex];
 
-        private Brush GetNextDlzBrush(string module, Brush skipColor = null)
+        private Brush GetNextRimDataInfoBrush(string module, Brush skipColor = null)
         {
             var moduleBrush = RimToBrushUsed[module];
-            var min = DlzBrushCount.Where(pair => pair.Key != moduleBrush && pair.Key != skipColor).Min(kvp => kvp.Value);
-            return DlzBrushCount.First(pair => pair.Key != moduleBrush && pair.Key != skipColor && pair.Value == min).Key;
+            var min = RimDataInfoBrushCount.Where(pair => pair.Key != moduleBrush && pair.Key != skipColor).Min(kvp => kvp.Value);
+            return RimDataInfoBrushCount.First(pair => pair.Key != moduleBrush && pair.Key != skipColor && pair.Value == min).Key;
         }
 
         #endregion // END REGION Add Methods
@@ -2108,34 +2108,34 @@ namespace WalkmeshVisualizerWpf.Views
                 sorted.Sort();
                 OffRims = new ObservableCollection<RimModel>(sorted);
 
-                // Remove DLZ collections.
-                var dlzmod = DlzData.ModuleDLZs.First(m => m.Module == rim.FileName);
-                foreach (var door in dlzmod.Doors)
+                // Remove RIM data collections.
+                var rimModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
+                foreach (var door in rimModule.Doors)
                 {
                     if (door.MeshVisible)
                     {
                         door.MeshColor = Brushes.Transparent;
                         door.LineColor = Brushes.Transparent;
                     }
-                    DlzDoors.Remove(door);
+                    RimDoors.Remove(door);
                 }
-                foreach (var trigger in dlzmod.Triggers)
+                foreach (var trigger in rimModule.Triggers)
                 {
                     if (trigger.MeshVisible)
                     {
                         trigger.MeshColor = Brushes.Transparent;
                         trigger.LineColor = Brushes.Transparent;
                     }
-                    DlzTriggers.Remove(trigger);
+                    RimTriggers.Remove(trigger);
                 }
-                foreach (var encounter in dlzmod.Encounters)
+                foreach (var encounter in rimModule.Encounters)
                 {
                     if (encounter.MeshVisible)
                     {
                         encounter.MeshColor = Brushes.Transparent;
                         encounter.LineColor = Brushes.Transparent;
                     }
-                    DlzEncounters.Remove(encounter);
+                    RimEncounters.Remove(encounter);
                 }
 
                 // Start worker to remove polygons from the canvas.
@@ -2239,34 +2239,34 @@ namespace WalkmeshVisualizerWpf.Views
             HideBothPoints();
             ClearBothPointMatches();
 
-            foreach (var dlzmod in DlzData.ModuleDLZs.Where(m => OnRims.Any(n => m.Module == n.FileName)))
+            foreach (var rimModule in RimDataSet.RimData.Where(m => OnRims.Any(n => m.Module == n.FileName)))
             {
-                foreach (var door in dlzmod.Doors)
+                foreach (var door in rimModule.Doors)
                 {
                     if (door.MeshVisible)
                     {
                         door.MeshColor = Brushes.Transparent;
                         door.LineColor = Brushes.Transparent;
                     }
-                    DlzDoors.Remove(door);
+                    RimDoors.Remove(door);
                 }
-                foreach (var trigger in dlzmod.Triggers)
+                foreach (var trigger in rimModule.Triggers)
                 {
                     if (trigger.MeshVisible)
                     {
                         trigger.MeshColor = Brushes.Transparent;
                         trigger.LineColor = Brushes.Transparent;
                     }
-                    DlzTriggers.Remove(trigger);
+                    RimTriggers.Remove(trigger);
                 }
-                foreach (var encounter in dlzmod.Encounters)
+                foreach (var encounter in rimModule.Encounters)
                 {
                     if (encounter.MeshVisible)
                     {
                         encounter.MeshColor = Brushes.Transparent;
                         encounter.LineColor = Brushes.Transparent;
                     }
-                    DlzEncounters.Remove(encounter);
+                    RimEncounters.Remove(encounter);
                 }
 
             }
@@ -2523,12 +2523,12 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        private void DlzButton_Click(object sender, RoutedEventArgs e)
+        private void RimDataInfoColorButton_Click(object sender, RoutedEventArgs e)
         {
-            var info = (sender as Button).DataContext as DlzInfo;
+            var info = (sender as Button).DataContext as RimDataInfo;
             if (info.MeshVisible == false) return;
-            var brush = GetNextDlzBrush(info.Module, info.MeshColor);
-            DlzBrushCount[brush]++;
+            var brush = GetNextRimDataInfoBrush(info.Module, info.MeshColor);
+            RimDataInfoBrushCount[brush]++;
             info.MeshColor = brush;
             if (ShowDlzLines)
                 info.LineColor = brush;
@@ -2886,13 +2886,13 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowDlzLines = !ShowDlzLines;
-            var visibleDlzInfo = DlzDoors.Where(i => i.MeshVisible)
-                .Concat(DlzTriggers.Where(i => i.MeshVisible))
-                .Concat(DlzEncounters.Where(i => i.MeshVisible));
+            var visibleRimDataInfo = RimDoors.Where(i => i.MeshVisible)
+                .Concat(RimTriggers.Where(i => i.MeshVisible))
+                .Concat(RimEncounters.Where(i => i.MeshVisible));
             if (ShowDlzLines)
-                foreach (var dlz in visibleDlzInfo) dlz.LineColor = dlz.MeshColor;
+                foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
             else
-                foreach (var dlz in visibleDlzInfo) HideDlzLines(dlz);
+                foreach (var rdi in visibleRimDataInfo) HideDlzLines(rdi);
         }
 
         private void ShowDlzLines_CanExecute(object sender, CanExecuteRoutedEventArgs e)

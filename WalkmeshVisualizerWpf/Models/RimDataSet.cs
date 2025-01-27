@@ -8,28 +8,24 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using static WalkmeshVisualizerWpf.Models.DlzData;
 
 namespace WalkmeshVisualizerWpf.Models
 {
-    public class DlzData : INotifyPropertyChanged
+    public class RimDataSet : INotifyPropertyChanged
     {
-        private ObservableCollection<ModuleDLZ> _moduleDLZs = new ObservableCollection<ModuleDLZ>();
+        private ObservableCollection<RimData> _rimData = new ObservableCollection<RimData>();
         public string Version = "v1.0";
 
         /// <summary>
         /// Collection of ModuleDLZ objects.
         /// </summary>
-        public ObservableCollection<ModuleDLZ> ModuleDLZs
+        public ObservableCollection<RimData> RimData
         {
-            get => _moduleDLZs;
-            set => SetField(ref _moduleDLZs, value);
+            get => _rimData;
+            set => SetField(ref _rimData, value);
         }
 
         public void LoadDlzDataFile()
@@ -38,27 +34,15 @@ namespace WalkmeshVisualizerWpf.Models
             using (var r = new StreamReader(dataFilePath))
             {
                 var json = r.ReadToEnd();
-                ModuleDLZs = JsonConvert.DeserializeObject<ObservableCollection<ModuleDLZ>>(json);
+                RimData = JsonConvert.DeserializeObject<ObservableCollection<RimData>>(json);
             }
         }
 
         public void LoadGameData(string gamePath)
         {
-            if (!ModuleDLZs.Any()) LoadDlzDataFile();
-
-            //gamePath = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
-            //foreach (var module in ModuleDLZs)
-            //{
-            //    foreach (var door in module.Doors)
-            //        door.Module = module.Module;
-            //    foreach (var trigger in module.Triggers)
-            //        trigger.Module = module.Module;
-            //}
+            if (!RimData.Any()) LoadDlzDataFile();
 
             var kpath = new KPaths(gamePath);
-            //var kpath = new KPaths(@"C:\Program Files (x86)\Steam\steamapps\common\swkotor");
-            //var key = new KEY(kpath.chitin);
-
             foreach (var rimFileInfo in kpath.FilesInModules.Where(fi => !fi.Name.EndsWith("_s.rim") && fi.Extension != ".erf"))
             {
                 var moduleName = rimFileInfo.Name.Substring(0, rimFileInfo.Name.Length - 4);
@@ -69,11 +53,11 @@ namespace WalkmeshVisualizerWpf.Models
                 var rimTriggers = ParseRimTriggers(rim);
                 var rimEncounters = ParseRimEncounters(rim, srim);
 
-                ModuleDLZ module = ModuleDLZs.FirstOrDefault(m => m.Module == moduleName.ToLower());
+                RimData module = RimData.FirstOrDefault(m => m.Module == moduleName.ToLower());
                 if (module == null)
                 {
-                    module = new ModuleDLZ { Module = moduleName.ToLower() };
-                    ModuleDLZs.Add(module);
+                    module = new RimData { Module = moduleName.ToLower() };
+                    RimData.Add(module);
                 }
 
                 // Create doors file for K2...
@@ -86,101 +70,12 @@ namespace WalkmeshVisualizerWpf.Models
                     foreach (var c in door.Corners)
                         door.Geometry.Add(new Tuple<float, float>(c, rimDoor.Y));
                 }
-                module.Triggers = rimTriggers.Select(t => new DlzInfo(t, module.Module)).ToList();
-                module.Encounters = rimEncounters.Select(e => new DlzInfo(e, module.Module)).ToList();
+                module.Triggers = rimTriggers.Select(t => new RimDataInfo(t, module.Module)).ToList();
+                module.Encounters = rimEncounters.Select(e => new RimDataInfo(e, module.Module)).ToList();
             }
-
-            //foreach (var module in ModuleDLZs)
-            //{
-            //    var rim = new RIM(kpath.FilesInModules.FirstOrDefault(r => r.Name == module.Module + ".rim").FullName);
-            //    var srim = new RIM(kpath.FilesInModules.FirstOrDefault(r => r.Name == module.Module + "_s.rim").FullName);
-            //    //var gff_list = srim.File_Table.Where(f => f.TypeID == (int)ResourceType.UTD).Select(f => new GFF(f.File_Data)).ToList();
-
-            //    var rimDoors = ParseRimDoors(rim);
-            //    var rimTriggers = ParseRimTriggers(rim);
-            //    var rimEncounters = ParseRimEncounters(rim, srim);
-
-            //    foreach (var door in module.Doors)
-            //    {
-            //        door.Module = module.Module;
-            //        var xMax = door.Corners.Max();
-            //        var xMin = door.Corners.Min();
-            //        var rimDoor = rimDoors.Single(d => d.LinkedToModule == door.ResRef && d.X > xMin && d.X < xMax);
-            //        foreach (var c in door.Corners)
-            //            door.Geometry.Add(new Tuple<float, float>(c, rimDoor.Y));
-            //    }
-
-            //    module.Triggers = rimTriggers.Select(t => new DlzInfo(t, module.Module)).ToList();
-            //    module.Encounters = rimEncounters.Select(e => new DlzInfo(e, module.Module)).ToList();
-
-            //    //foreach (var trigger in module.Triggers)
-            //    //{
-            //    //    const float delta = 0.00001F;
-            //    //    trigger.Module = module.Module;
-            //    //    trigger.Corners.Sort((a, b) => a.CompareTo(b));
-            //    //    var rimTrigger = rimTriggers
-            //    //        .Where(t => t.TemplateResRef == trigger.ResRef)
-            //    //        .Single(t => t.Corners.Any(rtc => trigger.Corners.Any(tc => Math.Abs(rtc.Item1 - tc) < delta)));
-            //    //    trigger.Geometry = rimTrigger.Corners;
-            //    //}
-            //}
         }
 
-        public DlzData()
-        {
-            //var dataFilePath = @"Resources\DlzData.txt";
-            //using (var r = new StreamReader(dataFilePath))
-            //{
-            //    var json = r.ReadToEnd();
-            //    ModuleDLZs = JsonConvert.DeserializeObject<ObservableCollection<ModuleDLZ>>(json);
-            //}
-
-            ////foreach (var module in ModuleDLZs)
-            ////{
-            ////    foreach (var door in module.Doors)
-            ////        door.Module = module.Module;
-            ////    foreach (var trigger in module.Triggers)
-            ////        trigger.Module = module.Module;
-            ////}
-
-            //var kpath = new KPaths(@"C:\Program Files (x86)\Steam\steamapps\common\swkotor");
-            ////var key = new KEY(kpath.chitin);
-
-            //foreach (var module in ModuleDLZs)
-            //{
-            //    var rim = new RIM(kpath.FilesInModules.FirstOrDefault(r => r.Name == module.Module + ".rim").FullName);
-            //    var srim = new RIM(kpath.FilesInModules.FirstOrDefault(r => r.Name == module.Module + "_s.rim").FullName);
-            //    //var gff_list = srim.File_Table.Where(f => f.TypeID == (int)ResourceType.UTD).Select(f => new GFF(f.File_Data)).ToList();
-
-            //    var rimDoors = ParseRimDoors(rim);
-            //    var rimTriggers = ParseRimTriggers(rim);
-            //    var rimEncounters = ParseRimEncounters(rim, srim);
-
-            //    foreach (var door in module.Doors)
-            //    {
-            //        door.Module = module.Module;
-            //        var xMax = door.Corners.Max();
-            //        var xMin = door.Corners.Min();
-            //        var rimDoor = rimDoors.Single(d => d.LinkedToModule == door.ResRef && d.X > xMin && d.X < xMax);
-            //        foreach (var c in door.Corners)
-            //            door.Geometry.Add(new Tuple<float, float>(c, rimDoor.Y));
-            //    }
-
-            //    module.Triggers = rimTriggers.Select(t => new DlzInfo(t, module.Module)).ToList();
-            //    module.Encounters = rimEncounters.Select(e => new DlzInfo(e, module.Module)).ToList();
-
-            //    //foreach (var trigger in module.Triggers)
-            //    //{
-            //    //    const float delta = 0.00001F;
-            //    //    trigger.Module = module.Module;
-            //    //    trigger.Corners.Sort((a, b) => a.CompareTo(b));
-            //    //    var rimTrigger = rimTriggers
-            //    //        .Where(t => t.TemplateResRef == trigger.ResRef)
-            //    //        .Single(t => t.Corners.Any(rtc => trigger.Corners.Any(tc => Math.Abs(rtc.Item1 - tc) < delta)));
-            //    //    trigger.Geometry = rimTrigger.Corners;
-            //    //}
-            //}
-        }
+        public RimDataSet() { }
 
         private List<Door> ParseRimDoors(RIM rim)
         {
@@ -236,8 +131,6 @@ namespace WalkmeshVisualizerWpf.Models
                         item2: yPos + corner.Item2
                     ));
                 }
-
-                //Corners.Sort((a, b) => a.Item1.CompareTo(b.Item1));
             }
         }
 
@@ -313,13 +206,13 @@ namespace WalkmeshVisualizerWpf.Models
     }
 
     [Serializable]
-    public class ModuleDLZ
+    public class RimData
     {
         public string Module { get; set; }
         public string Name { get; set; }
-        public List<DlzInfo> Doors { get; set; } = new List<DlzInfo>();
-        public List<DlzInfo> Triggers { get; set; } = new List<DlzInfo>();
-        public List<DlzInfo> Encounters { get; set; } = new List<DlzInfo>();
+        public List<RimDataInfo> Doors { get; set; } = new List<RimDataInfo>();
+        public List<RimDataInfo> Triggers { get; set; } = new List<RimDataInfo>();
+        public List<RimDataInfo> Encounters { get; set; } = new List<RimDataInfo>();
 
         public override string ToString()
         {
@@ -328,7 +221,7 @@ namespace WalkmeshVisualizerWpf.Models
     }
 
     [Serializable]
-    public class DlzInfo : INotifyPropertyChanged, IComparable<DlzInfo>
+    public class RimDataInfo : INotifyPropertyChanged, IComparable<RimDataInfo>
     {
         public string Module { get; set; }
         public string ResRef { get; set; }
@@ -347,16 +240,16 @@ namespace WalkmeshVisualizerWpf.Models
         private Brush _meshColor = Brushes.Transparent;
         private Brush _lineColor = Brushes.Transparent;
 
-        public DlzInfo() { }
+        public RimDataInfo() { }
 
-        public DlzInfo(DlzData.Trigger trigger, string module = "")
+        public RimDataInfo(RimDataSet.Trigger trigger, string module = "")
         {
             Module = module;
             ResRef = trigger.TemplateResRef;
             Geometry = trigger.Corners;
         }
 
-        public DlzInfo(DlzData.Encounter encounter, string module = "")
+        public RimDataInfo(RimDataSet.Encounter encounter, string module = "")
         {
             Module = module;
             ResRef = encounter.TemplateResRef;
@@ -415,7 +308,7 @@ namespace WalkmeshVisualizerWpf.Models
 
         #region IComparable<DlzInfo> Implementation
 
-        public int CompareTo(DlzInfo other)
+        public int CompareTo(RimDataInfo other)
         {
             var val = Module.CompareTo(other.Module);
             if (val == 0) val = ResRef.CompareTo(other.ResRef);

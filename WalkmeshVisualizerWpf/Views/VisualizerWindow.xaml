@@ -729,15 +729,15 @@
                         <Grid Width="300">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="2*" x:Name="rowDoorDLZ" />
-                                <RowDefinition Height="3*" x:Name="rowTriggerDLZ" />
-                                <RowDefinition Height="2*" x:Name="rowEncounterDLZ" />
+                                <RowDefinition Height="2*" x:Name="rowRimDoor" />
+                                <RowDefinition Height="3*" x:Name="rowRimTrigger" />
+                                <RowDefinition Height="2*" x:Name="rowRimEncounter" />
                             </Grid.RowDefinitions>
 
                             <Grid.Resources>
-                                <Style TargetType="ListViewItem" x:Key="DlzInfoItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="lvDlzInfo_DoubleClick" />
-                                    <EventSetter Event="KeyDown" Handler="lvDlzInfo_KeyDown" />
+                                <Style TargetType="ListViewItem" x:Key="RimDataInfoItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                    <EventSetter Event="MouseDoubleClick" Handler="lvRimDataInfo_DoubleClick" />
+                                    <EventSetter Event="KeyDown" Handler="lvRimDataInfo_KeyDown" />
                                 </Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Margin" Value="5,5,5,0" />
@@ -770,14 +770,14 @@
                                     <Setter Property="Stroke" Value="Black" />
                                     <Setter Property="StrokeThickness" Value="0.5" />
                                 </Style>
-                                <DataTemplate x:Key="dtDlzInfo">
+                                <DataTemplate x:Key="dtRimDataInfo">
                                     <Grid Margin="-4">
                                         <Button
                                             Margin="0" Padding="0"
                                             Background="Transparent"
                                             BorderBrush="Transparent"
                                             BorderThickness="0"
-                                            Click="DlzButton_Click">
+                                            Click="RimDataInfoColorButton_Click">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border
@@ -820,7 +820,7 @@
                                 </DataTemplate>
                             </Grid.Resources>
 
-                            <Grid x:Name="dlzDoorGrid" Grid.Row="1">
+                            <Grid x:Name="rimDoorGrid" Grid.Row="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
@@ -828,23 +828,23 @@
 
                                 <StackPanel>
                                     <TextBlock>
-                                        <Span>DLZ Doors (</Span>
-                                        <TextBlock Text="{Binding DlzDoors.Count}" />
+                                        <Span>RIM Doors (</Span>
+                                        <TextBlock Text="{Binding RimDoors.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
                                 </StackPanel>
 
                                 <ListView
-                                    x:Name="lvDlzDoor"
+                                    x:Name="lvRimDoor"
                                     Grid.Row="1"
-                                    ItemContainerStyle="{StaticResource DlzInfoItemStyle}"
-                                    ItemsSource="{Binding DlzDoors}"
+                                    ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
+                                    ItemsSource="{Binding RimDoors}"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                                     ScrollViewer.CanContentScroll="False"
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtDlzInfo}">
+                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtRimDataInfo}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="Color" Content="" />
                                                 </GridViewColumn.Header>
@@ -869,7 +869,7 @@
                                 </ListView>
                             </Grid>
 
-                            <Grid x:Name="dlzTriggerGrid" Grid.Row="2">
+                            <Grid x:Name="rimTriggerGrid" Grid.Row="2">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
@@ -877,23 +877,23 @@
 
                                 <StackPanel>
                                     <TextBlock>
-                                        <Span>DLZ Triggers (</Span>
-                                        <TextBlock Text="{Binding DlzTriggers.Count}" />
+                                        <Span>RIM Triggers (</Span>
+                                        <TextBlock Text="{Binding RimTriggers.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
                                 </StackPanel>
 
                                 <ListView
-                                    x:Name="lvDlzTrigger"
+                                    x:Name="lvRimTrigger"
                                     Grid.Row="1"
-                                    ItemContainerStyle="{StaticResource DlzInfoItemStyle}"
-                                    ItemsSource="{Binding DlzTriggers}"
+                                    ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
+                                    ItemsSource="{Binding RimTriggers}"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                                     ScrollViewer.CanContentScroll="False"
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtDlzInfo}">
+                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtRimDataInfo}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="Color" Content="" />
                                                 </GridViewColumn.Header>
@@ -919,7 +919,7 @@
                                 </ListView>
                             </Grid>
 
-                            <Grid x:Name="dlzEncounterGrid" Grid.Row="3">
+                            <Grid x:Name="rimEncounterGrid" Grid.Row="3">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
@@ -927,23 +927,23 @@
 
                                 <StackPanel>
                                     <TextBlock>
-                                        <Span>DLZ Encounters (</Span>
-                                        <TextBlock Text="{Binding DlzEncounters.Count}" />
+                                        <Span>RIM Encounters (</Span>
+                                        <TextBlock Text="{Binding RimEncounters.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
                                 </StackPanel>
 
                                 <ListView
-                                    x:Name="lvDlzEncounter"
+                                    x:Name="lvRimEncounter"
                                     Grid.Row="1"
-                                    ItemContainerStyle="{StaticResource DlzInfoItemStyle}"
-                                    ItemsSource="{Binding DlzEncounters}"
+                                    ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
+                                    ItemsSource="{Binding RimEncounters}"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                                     ScrollViewer.CanContentScroll="False"
                                     >
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtDlzInfo}">
+                                            <GridViewColumn Width="18" CellTemplate="{StaticResource dtRimDataInfo}">
                                                 <GridViewColumn.Header>
                                                     <GridViewColumnHeader Tag="Color" Content="" />
                                                 </GridViewColumn.Header>
