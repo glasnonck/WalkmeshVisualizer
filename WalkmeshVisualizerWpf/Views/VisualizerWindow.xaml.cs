@@ -214,7 +214,7 @@ namespace WalkmeshVisualizerWpf.Views
             get
             {
                 var v = System.Reflection.Assembly.GetAssembly(typeof(MainWindow)).GetName().Version;
-                return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor})";
+                return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
             }
         }
 
