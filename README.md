@@ -47,7 +47,7 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
     </td>
     <td>
       <ul>
-        <li>Display information related to the game's gather party feature. This info is primarily useful in combination with a glitch called a <a href="https://www.speedrun.com/kotor1/guide/77xef">GP warp</a>.</li>
+        <li>Display information related to the game's gather party feature. This info is primarily useful in combination with a glitch called a <a href="https://kotor-speedruns.github.io/kotor1/Techniques/GP%20Warp">GP warp</a>.</li>
         <li>Toggle visibility of the module's transit points. These points are where you are teleported if the game tells you to gather your party.</li>
         <li>While only viewing one module, toggle visibility of regions that indicate the nearest transit point. This is the point you'll be sent to if you perform a GP warp in that region.</li>
       </ul>
@@ -64,7 +64,23 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
         <li>Compare the coordinates of multiple modules at the same time. Modules will be overlayed in 6 different colors.</li>
         <li>Double click to get the coordinate value anywhere on the map. At most, two points can be selected at a time.</li>
         <li>Check for other modules whose modules also contain the selected point(s).</li>
-        <li>This is primarily useful for the <a href="https://www.speedrun.com/kotor1/guide/iarwc#ch4Coordinate_Warping">Coordinate Warp</a> glitch, which allows you to maintain a party member's location from one module to another.</li>
+        <li>This is primarily useful for the <a href="https://kotor-speedruns.github.io/kotor1/Major%20Glitches/Coordinate%20Warps">Coordinate Warp</a> glitch, which allows you to maintain a party member's location from one module to another.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr><td colspan="2" align="center"><b id="items">View Triggers and Doors</b></td></tr>
+  <tr>
+    <td align="center">
+      <img height="200px" src="Screenshots/Triggers/triggers.png" />
+      <img height="200px" src="Screenshots/Triggers/dlz.png" />
+    </td>
+    <td>
+      <ul>
+        <li>View doors, triggers, and encounters from each module.</li>
+        <li>Only doors that are linked to another module can be displayed. The door model files have not yet been analyzed, so the shape of the door is not correctly displayed.</li>
+        <li>Triggers and encounters display their entire geometry, allowing you to find gaps or route around them.</li>
+        <li>Encounters also display the spawn point for enemies created by the encounter.</li>
+        <li>A toggle button will display DLZ lines from each corner. This allows you to see where is possible to perform the <a href="https://kotor-speedruns.github.io/kotor1/Major%20Glitches/Displaced%20Load%20Zone">Displaced Loading Zone</a> glitch, which activates the trigger when your position matches exactly.</li>
       </ul>
     </td>
   </tr>
