@@ -992,11 +992,13 @@ namespace WalkmeshVisualizerWpf.Views
                 if (exe.Name.ToLower() == "swkotor.exe")
                 {
                     CurrentGame = XmlGameData.Kotor1Data;
+                    RimDataSet.LoadGameData(dir.FullName);
                     LoadGameFiles(dir.FullName, K1_NAME);
                 }
                 if (exe.Name.ToLower() == "swkotor2.exe")
                 {
                     CurrentGame = XmlGameData.Kotor2Data;
+                    RimDataSet.LoadGameData(dir.FullName);
                     LoadGameFiles(dir.FullName, K2_NAME);
                 }
             }
