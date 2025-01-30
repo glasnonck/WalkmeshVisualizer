@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -70,6 +71,12 @@ namespace WalkmeshVisualizerWpf.Views
             ClearCacheWorker.ProgressChanged += Bw_ProgressChanged;
             ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
             ClearCacheWorker.DoWork += ClearCacheWorker_DoWork;
+
+            // Set up LivePositionWorker
+            LivePositionWorker.WorkerReportsProgress = false;
+            LivePositionWorker.WorkerSupportsCancellation = true;
+            LivePositionWorker.RunWorkerCompleted += LivePositionWorker_RunWorkerCompleted;
+            LivePositionWorker.DoWork += LivePositionWorker_DoWork;
 
             DataContext = this;
         }
@@ -186,6 +193,7 @@ namespace WalkmeshVisualizerWpf.Views
         public BackgroundWorker AddPolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker ClearCacheWorker { get; set; } = new BackgroundWorker();
+        public BackgroundWorker LivePositionWorker { get; set; } = new BackgroundWorker();
 
         public bool K1Loaded { get; set; }
         public bool K2Loaded { get; set; }
@@ -408,6 +416,28 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showDlzLines, value);
         }
         private bool _showDlzLines = false;
+
+        public bool ShowLivePosition
+        {
+            get => _showLivePosition;
+            set => SetField(ref _showLivePosition, value);
+        }
+        private bool _showLivePosition = false;
+
+        public Point LivePositionPoint
+        {
+            get => _livePositionPoint;
+            set => SetField(ref _livePositionPoint, value);
+        }
+        private Point _livePositionPoint = new Point();
+
+        public Point LivePositionEllipsePoint
+        {
+            get => _livePositionEllipsePoint;
+            set => SetField(ref _livePositionEllipsePoint, value);
+        }
+        private Point _livePositionEllipsePoint = new Point();
+
 
         #endregion // END REGION DataBinding Members
 
@@ -697,6 +727,18 @@ namespace WalkmeshVisualizerWpf.Views
 
                 content.Children.Remove(rightClickCoords);
                 _ = content.Children.Add(rightClickCoords);
+            });
+        }
+
+        private void BringLivePositionPointToTop()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                content.Children.Remove(livePositionEllipse);
+                _ = content.Children.Add(livePositionEllipse);
+
+                content.Children.Remove(livePositionCoords);
+                _ = content.Children.Add(livePositionCoords);
             });
         }
 
@@ -1571,6 +1613,7 @@ namespace WalkmeshVisualizerWpf.Views
 
             if (LeftClickPointVisible) BringLeftPointToTop();
             if (RightClickPointVisible) BringRightPointToTop();
+            if (ShowLivePosition) BringLivePositionPointToTop();
         }
 
         public struct AddPolyWorkerArgs
@@ -2745,6 +2788,99 @@ namespace WalkmeshVisualizerWpf.Views
         private void ViewHelpCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;
+        }
+
+        #endregion
+
+        #region Live Position Methods
+
+        private void ShowLivePosition_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Console.WriteLine("ShowLivePosition_Executed");
+            ShowLivePosition = true;
+
+            if (LivePositionWorker.IsBusy)
+            {
+                LivePositionToggleButton.IsEnabled = false;
+                LivePositionWorker.CancelAsync();
+            }
+            else
+            {
+                BringLivePositionPointToTop();
+                LivePositionWorker.RunWorkerAsync();
+            }
+        }
+
+        private void ShowLivePosition_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            //Console.WriteLine("ShowLivePosition_CanExecute");
+            e.CanExecute = !(LivePositionWorker.IsBusy && LivePositionWorker.CancellationPending);
+        }
+
+        private void LivePositionWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Console.WriteLine("LivePositionWorker_DoWork");
+            var bw = sender as BackgroundWorker;
+            int version = 0;
+            KotorManager km = null;
+
+            try
+            {
+                while (true)
+                {
+                    if (bw.CancellationPending) break;
+                    if (km == null)
+                    {
+                        version = GetRunningKotor();
+                        if (version != 0)
+                        {
+                            km = new KotorManager(version);
+                            km.pr.readInt(km.ka.ADDRESS_BASE, out int testRead);
+                            if (testRead != 0x00905a4d)
+                            {
+                                Console.WriteLine($"Failed Test Read!\r\nExpected: {0x00905a4d}\r\nGot: {testRead}");
+                                km = null;
+                                continue;
+                            }
+                        }
+                    }
+                    if (km != null)
+                    {
+                        try
+                        {
+                            LivePositionPoint = km.getPlayerPosition();
+                            LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
+                        }
+                        catch (NullReferenceException)
+                        {
+                            Console.WriteLine($"Process {km.ka.KOTOR_EXE} no longer exists.");
+                            km = null;
+                            continue;
+                        }
+                    }
+                    Thread.Sleep(100);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unknown exception caught: {ex}");
+            }
+        }
+
+        private static int GetRunningKotor()
+        {
+            var process = Process.GetProcessesByName("swkotor").FirstOrDefault();
+            if (process != null) return 1;
+            process = Process.GetProcessesByName("swkotor2").FirstOrDefault();
+            if (process != null) return 2;
+            return 0;
+        }
+
+        private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            Console.WriteLine("LivePositionWorker_RunWorkerCompleted");
+            ShowLivePosition = false;
+            LivePositionToggleButton.IsEnabled = true;
         }
 
         #endregion
