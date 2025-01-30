@@ -7,6 +7,10 @@ using KotOR_IO.Helpers;
 using System.Diagnostics;
 using System.Security.Permissions;
 using Newtonsoft.Json;
+using System.Runtime.InteropServices;
+using System.Text;
+using WalkmeshVisualizerWpf.Helpers;
+using System.Windows;
 
 namespace WalkmeshCompareConsole
 {
@@ -33,9 +37,69 @@ namespace WalkmeshCompareConsole
         /// </summary>
         private static readonly Dictionary<string, string> RimNamesLookup = new Dictionary<string, string>();
 
+
+        const int PROCESS_WM_READ = 0x0010;
+
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool ReadProcessMemory(int hProcess, int lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
+
+
         static void Main(string[] args)
         {
-            UseGameFilesToCompareWok();
+            ReadKotorMemory();
+        }
+
+        private static void ReadKotorMemory()
+        {
+            int version = 0;
+            while (version == 0) version = GetRunningKotor();
+
+            var km = new KotorManager(version);
+
+            km.pr.readInt(km.ka.ADDRESS_BASE, out int testRead);
+            if (testRead != 0x00905a4d)
+                throw new Exception($"Failed Test Read!\r\nExpected: {0x00905a4d}\r\nGot: {testRead}");
+
+            Console.WriteLine("Reading from swkotor.exe initialized...\r\n");
+            Console.CursorVisible = false;
+
+            //try
+            //{
+
+            //}
+            //catch (Exception e)
+            //{
+
+            //    throw;
+            //}
+            while (true)
+            {
+                var p = km.getPlayerPosition();
+                Console.Write($"({p.X:0.0000}, {p.Y:0.0000})");
+                System.Threading.Thread.Sleep(100);
+                ClearCurrentConsoleLine();
+            }
+        }
+
+        public static void ClearCurrentConsoleLine()
+        {
+            //Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
+            int currentLineCursor = Console.CursorTop;
+            Console.SetCursorPosition(0, currentLineCursor);
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, currentLineCursor);
+        }
+
+        private static int GetRunningKotor()
+        {
+            var process = Process.GetProcessesByName("swkotor").FirstOrDefault();
+            if (process != null) return 1;
+            process = Process.GetProcessesByName("swkotor2").FirstOrDefault();
+            if (process != null) return 2;
+            return 0;
         }
 
         private static void UseGameFilesToCompareWok()

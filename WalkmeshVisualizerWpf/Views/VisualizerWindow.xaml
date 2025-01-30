@@ -128,6 +128,12 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
+        <RoutedUICommand x:Key="Commands.ShowLivePosition">
+            <RoutedUICommand.InputGestures>
+                
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
         <!--
         Converters.
         -->
@@ -278,6 +284,12 @@
             Command="{StaticResource Commands.ShowDlzLines}"
             Executed="ShowDlzLines_Executed"
             CanExecute="ShowDlzLines_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.ShowLivePosition}"
+            Executed="ShowLivePosition_Executed"
+            CanExecute="ShowLivePosition_CanExecute"
             />
 
     </Window.CommandBindings>
@@ -1243,7 +1255,7 @@
             <!--
             ToolBar with shortcut buttons for canvas display options.
             -->
-            <ToolBarTray  Background="White">
+            <ToolBarTray  Background="White" >
                 <ToolBarTray.Resources>
                     <Style TargetType="Image">
                         <Setter Property="Height" Value="20" />
@@ -1309,6 +1321,29 @@
                         >
                         <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
                     </ToggleButton>
+                    <Separator />
+                    <ToggleButton
+                        x:Name="LivePositionToggleButton"
+                        Margin="2,0"
+                        ToolTip="Show live game position."
+                        IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
+                        Command="{StaticResource Commands.ShowLivePosition}"
+                        Content="LIVE"
+                        >
+                    </ToggleButton>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0"
+                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Margin" Value="1,0" />
+                            </Style>
+                        </StackPanel.Resources>
+                        <TextBlock>(</TextBlock>
+                        <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N4}" />
+                        <TextBlock>,</TextBlock>
+                        <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N4}" />
+                        <TextBlock>)</TextBlock>
+                    </StackPanel>
                 </ToolBar>
             </ToolBarTray>
 
@@ -1422,6 +1457,26 @@
                                 <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
                                 <TextBlock Text=", " />
                                 <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
+                                <TextBlock Text=")" />
+                            </StackPanel>
+
+                            <Ellipse
+                                x:Name="livePositionEllipse" Fill="DarkRed" Stroke="DarkGoldenrod"
+                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
+                                Style="{StaticResource CoordPoint}"
+                                />
+                            <StackPanel
+                                x:Name="livePositionCoords"
+                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
+                                >
+                                <TextBlock Text="(" />
+                                <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N4}" />
+                                <TextBlock Text=", " />
+                                <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N4}" />
                                 <TextBlock Text=")" />
                             </StackPanel>
                         </Canvas>

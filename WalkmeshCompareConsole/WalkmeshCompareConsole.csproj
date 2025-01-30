@@ -50,6 +50,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -58,6 +59,12 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WalkmeshVisualizerWpf\WalkmeshVisualizerWpf.csproj">
+      <Project>{b821d9b6-9f5d-4c56-9060-f5a26ba7d262}</Project>
+      <Name>WalkmeshVisualizerWpf</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
