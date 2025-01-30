@@ -148,6 +148,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\LivePositionIcon.png" />
     <Resource Include="Resources\DefaultSpawnPointIcon.png" />
     <Resource Include="Resources\DisplacedLoadingZoneIcon.png" />
     <Content Include="Resources\DlzData.txt">

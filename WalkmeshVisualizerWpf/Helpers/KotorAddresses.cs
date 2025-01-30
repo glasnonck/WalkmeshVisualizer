@@ -45,6 +45,7 @@ namespace WalkmeshVisualizerWpf.Helpers
     {
         public const string KOTOR_1_EXE = "swkotor";
         public const string KOTOR_2_EXE = "swkotor2";
+        public const int TEST_READ_VALUE = 0x00905a4d;
 
         public string KOTOR_EXE;
         public uint ADDRESS_APP_MANAGER;

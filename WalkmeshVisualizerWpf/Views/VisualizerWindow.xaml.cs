@@ -424,6 +424,14 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showLivePosition = false;
 
+        public bool ShowLivePositionCoordinates
+        {
+            get => _showLivePositionCoordinates;
+            set => SetField(ref _showLivePositionCoordinates, value);
+        }
+        private bool _showLivePositionCoordinates = false;
+        private bool _previousShowLivePositionCoordinates = false;
+
         public Point LivePositionPoint
         {
             get => _livePositionPoint;
@@ -2796,10 +2804,17 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region Live Position Methods
 
+        private void ShowLivePositionCoordinates_Executed(object sender, ExecutedRoutedEventArgs e) { }
+
+        private void ShowLivePositionCoordinates_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = LivePositionToggleButton.IsEnabled;
+        }
+
         private void ShowLivePosition_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Console.WriteLine("ShowLivePosition_Executed");
             ShowLivePosition = true;
+            ShowLivePositionCoordinates = _previousShowLivePositionCoordinates;
 
             if (LivePositionWorker.IsBusy)
             {
@@ -2815,13 +2830,11 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowLivePosition_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            //Console.WriteLine("ShowLivePosition_CanExecute");
             e.CanExecute = !(LivePositionWorker.IsBusy && LivePositionWorker.CancellationPending);
         }
 
         private void LivePositionWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            Console.WriteLine("LivePositionWorker_DoWork");
             var bw = sender as BackgroundWorker;
             int version = 0;
             KotorManager km = null;
@@ -2838,9 +2851,9 @@ namespace WalkmeshVisualizerWpf.Views
                         {
                             km = new KotorManager(version);
                             km.pr.readInt(km.ka.ADDRESS_BASE, out int testRead);
-                            if (testRead != 0x00905a4d)
+                            if (testRead != KotorAddresses.TEST_READ_VALUE)
                             {
-                                Console.WriteLine($"Failed Test Read!\r\nExpected: {0x00905a4d}\r\nGot: {testRead}");
+                                Console.WriteLine($"Failed Test Read!\r\nExpected: {KotorAddresses.TEST_READ_VALUE}\r\nGot: {testRead}");
                                 km = null;
                                 continue;
                             }
@@ -2850,7 +2863,7 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         try
                         {
-                            LivePositionPoint = km.getPlayerPosition();
+                            LivePositionPoint = km.getPlayerPosition(); // TODO: Review KotorAddresses code to improve efficiency.
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
                         }
                         catch (NullReferenceException)
@@ -2880,7 +2893,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            Console.WriteLine("LivePositionWorker_RunWorkerCompleted");
+            ShowLivePosition = false;
+            _previousShowLivePositionCoordinates = ShowLivePositionCoordinates;
             ShowLivePosition = false;
             LivePositionToggleButton.IsEnabled = true;
         }
