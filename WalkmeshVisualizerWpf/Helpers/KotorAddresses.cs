@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -71,6 +72,14 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CEXOSTRING_LENGTH;
         public uint OFFSET_CSWSOBJECT_TAG;
 
+        public uint[] AREA_NAME;
+
+        public uint AREA_NAME_BASE;
+        public uint AREA_NAME_OFF1;
+        public uint AREA_NAME_OFF2;
+        public uint AREA_NAME_OFF3;
+        public uint AREA_NAME_OFF4;
+
         public KotorAddresses(int version = 1)
         {
             if (version == 1)
@@ -85,6 +94,16 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_Y_POS = 0x94;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x284;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x288;
+
+                AREA_NAME = new uint[]
+                {
+                    0x007A39E8,
+                    0x4C,
+                    0x0,
+                };
+                //AREA_NAME_BASE = 0x003A39E8;
+                //AREA_NAME_OFF1 = 0x4C;
+                //AREA_NAME_OFF2 = 0x0;
             }
             else if (version == 2)
             {
@@ -98,6 +117,20 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_Y_POS = 0x98;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x2c4;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x2c8;
+
+                AREA_NAME = new uint[]
+                {
+                    0x00a1B4A4,
+                    0x4,
+                    0x4,
+                    0x2FC,
+                    0x5,
+                };
+                //AREA_NAME_BASE = 0x0061B4A4;
+                //AREA_NAME_OFF1 = 0x4;
+                //AREA_NAME_OFF2 = 0x4;
+                //AREA_NAME_OFF3 = 0x2FC;
+                //AREA_NAME_OFF4 = 0x5;
             }
             else
             {
@@ -117,16 +150,16 @@ namespace WalkmeshVisualizerWpf.Helpers
             OFFSET_CSWSOBJECT_TAG = 0x18;
         }
 
-        public void swapK2SteamAddress()
+        public void UseK2SteamAddress()
             => ADDRESS_APP_MANAGER = 0x00a1b4a4;
 
-        public static uint getGOAIndexFromServerID(uint id)
+        public static uint GetGOAIndexFromServerID(uint id)
             => (uint)(((int)id >> 0x1f) * -0x1000 + (id & 0xfff));
 
-        public static uint clientToServerID(uint client_id)
+        public static uint ClientToServerID(uint client_id)
             => client_id & 0x7fffffff;
 
-        public static uint serverToClientID(uint server_id)
+        public static uint ServerToClientID(uint server_id)
             => server_id | 0x80000000;
     }
 
@@ -135,81 +168,101 @@ namespace WalkmeshVisualizerWpf.Helpers
         const int K2_STEAM_MODULE_SIZE = 7049216;
         const int K2_GOG_MODULE_SIZE = 7012352;
 
-        public ProcessReader pr;
+        public ProcessReader pr { get; set; }
+        public KotorAddresses ka { get; set; }
+
         uint app_manager;
         uint client_internal;
         uint server_internal;
         uint server_game_object_array;
-        public KotorAddresses ka;
-        int version;
+        readonly int version;
 
         public KotorManager(int version = 1)
         {
             pr = null;
             this.version = version;
-            refreshAddresses();
+            RefreshAddresses();
         }
 
-        public void refreshAddresses()
+        public void RefreshAddresses()
         {
             ka = new KotorAddresses(version);
             pr = new ProcessReader(ka.KOTOR_EXE);
 
-            if (version == 2 && pr.getModuleSize() == K2_STEAM_MODULE_SIZE)
-                ka.swapK2SteamAddress();
+            if (version == 2 && pr.GetModuleSize() == K2_STEAM_MODULE_SIZE)
+                ka.UseK2SteamAddress();
 
-            //pr.readInt(ka.ADDRESS_BASE, out int testRead);
-
-            var read1 = pr.readUint(ka.ADDRESS_APP_MANAGER, out app_manager);
-                   
-            var read2 = pr.readUint((app_manager + ka.OFFSET_CLIENT), out uint temp);
-            var read3 = pr.readUint((temp + ka.OFFSET_INTERNAL), out client_internal);
+            // get app manager
+            pr.ReadUint(ka.ADDRESS_APP_MANAGER, out app_manager);
             
-            var read4 = pr.readUint((app_manager + ka.OFFSET_SERVER), out temp);
-            var read5 = pr.readUint((temp + ka.OFFSET_INTERNAL), out server_internal);
+            // get client internal
+            pr.ReadUint(app_manager + ka.OFFSET_CLIENT, out uint temp);
+            pr.ReadUint(temp + ka.OFFSET_INTERNAL, out client_internal);
             
-            var read6 = pr.readUint((server_internal + ka.OFFSET_SERVER_GAME_OBJ_ARR), out temp);
-            var read7 = pr.readUint(temp, out server_game_object_array);
-
-            getClientPlayerID();
+            // get server_internal
+            pr.ReadUint(app_manager + ka.OFFSET_SERVER, out temp);
+            pr.ReadUint(temp + ka.OFFSET_INTERNAL, out server_internal);
+            
+            // get server game object array
+            pr.ReadUint(server_internal + ka.OFFSET_SERVER_GAME_OBJ_ARR, out temp);
+            pr.ReadUint(temp, out server_game_object_array);
         }
 
-        public uint getClientPlayerID()
+        public uint GetClientPlayerID()
         {
             if (pr.hasFailed)
             {
-                refreshAddresses();
+                RefreshAddresses();
                 pr.hasFailed = false;
             }
 
-            pr.readUint((client_internal + ka.OFFSET_CLIENT_PLAYER_ID), out uint client_player_id);
+            pr.ReadUint(client_internal + ka.OFFSET_CLIENT_PLAYER_ID, out uint client_player_id);
             return client_player_id;
         }
 
-        public uint getPlayerGameObject() => getGameObjectByClientID(getClientPlayerID());
-
-        private uint getGameObjectByClientID(uint client_id) => getGameObjectByServerID(KotorAddresses.clientToServerID(client_id));
-
-        private uint getGameObjectByServerID(uint server_id)
+        public uint GetPlayerGameObject()
         {
-            uint goa_index = KotorAddresses.getGOAIndexFromServerID(server_id);
+            if (pr.hasFailed)
+            {
+                RefreshAddresses();
+                pr.hasFailed = false;
+            }
+
+            return GetGameObjectByClientID(GetClientPlayerID());
+        }
+
+        private uint GetGameObjectByClientID(uint client_id) => GetGameObjectByServerID(KotorAddresses.ClientToServerID(client_id));
+
+        private uint GetGameObjectByServerID(uint server_id)
+        {
+            if (pr.hasFailed)
+            {
+                RefreshAddresses();
+                pr.hasFailed = false;
+            }
+
+            uint goa_index = KotorAddresses.GetGOAIndexFromServerID(server_id);
             uint goa_offset = goa_index * sizeof(uint);
-            pr.readUint(server_game_object_array + goa_offset, out var goa_ptr);
-            pr.readGameObjectEntry(goa_ptr, out var goa);
-            return goa.game_object_pointer;
+            pr.ReadUint(server_game_object_array + goa_offset, out var goa_ptr);
+            //pr.ReadGameObjectEntry(goa_ptr, out var goa);
+            //return goa.game_object_pointer;
+            pr.ReadUint(goa_ptr + sizeof(uint), out uint gop);
+            return gop;
         }
 
-        private uint getGOAIndexFromServerID(uint server_id)
+        public Point GetPlayerPosition()
         {
-            throw new NotImplementedException();
-        }
-
-        public Point getPlayerPosition()
-        {
-            var pgo = getPlayerGameObject();
-            pr.readFloat(pgo + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
-            pr.readFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
+            var pgo = GetPlayerGameObject();
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
             return new Point(x, y);
+        }
+
+        public bool TestRead()
+        {
+            var readSuccess = pr.ReadInt(ka.ADDRESS_BASE, out int testRead);
+            if (!readSuccess) Console.WriteLine($"Failed Test Read!\r\nExpected: {KotorAddresses.TEST_READ_VALUE}\r\nGot: {testRead}");
+            return readSuccess && KotorAddresses.TEST_READ_VALUE == testRead;
         }
     }
 
@@ -234,9 +287,9 @@ namespace WalkmeshVisualizerWpf.Helpers
             h = OpenProcess(PROCESS_WM_READ, false, p.Id);
         }
 
-        public int getModuleSize() => p.MainModule.ModuleMemorySize;
+        public int GetModuleSize() => p.MainModule.ModuleMemorySize;
 
-        public bool readInt(uint address, out int output)
+        public bool ReadInt(uint address, out int output)
         {
             output = 0;
             var buffer = new byte[sizeof(int)];
@@ -252,7 +305,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
-        public bool readUint(uint address, out uint output)
+        public bool ReadUint(uint address, out uint output)
         {
             output = 0;
             var buffer = new byte[sizeof(uint)];
@@ -268,7 +321,25 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
-        public bool readFloat(uint address, out float output)
+        public bool ReadString(int version, uint address, out string output)
+        {
+            output = null;
+            var size = version == 1 ? 10 : 6;
+            var buffer = new byte[size];
+            int bytesRead = 0;
+
+            if (ReadProcessMemory(h, new IntPtr(address), buffer, buffer.Length, ref bytesRead))
+            {
+                //output = BitConverter.ToString(buffer, 0);
+                output = Encoding.Default.GetString(buffer, 0, bytesRead);
+                return true;
+            }
+
+            hasFailed = true;
+            return false;
+        }
+
+        public bool ReadFloat(uint address, out float output)
         {
             output = 0;
             var buffer = new byte[sizeof(float)];
@@ -284,22 +355,34 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
-        public bool readGameObjectEntry(uint address, out GameObjectEntry output)
+        public bool ReadGameObjectEntry(uint address, out GameObjectEntry output)
         {
             output = new GameObjectEntry();
-            hasFailed = !readUint(address, out uint id);
+            hasFailed = !ReadUint(address, out uint id);
             if (hasFailed) return false;
 
-            hasFailed = !readUint(address + sizeof(uint), out uint gop);
+            hasFailed = !ReadUint(address + sizeof(uint), out uint gop);
             if (hasFailed) return false;
 
-            hasFailed = !readUint(address + (2 * sizeof(uint)), out uint next);
+            hasFailed = !ReadUint(address + (2 * sizeof(uint)), out uint next);
             if (hasFailed) return false;
 
             output.id = id;
             output.game_object_pointer = gop;
             output.next = next;
             return true;
+        }
+
+        public bool ReadAreaName(int version, uint[] addresses, out string output)
+        {
+            output = null;
+            uint idx = 0;
+            for (int i = 0; i < addresses.Length - 1; i++)
+            {
+                hasFailed = !ReadUint(addresses[i] + idx, out idx);
+                if (hasFailed) return false;
+            }
+            return ReadString(version, addresses.Last() + idx, out output);
         }
     }
 }

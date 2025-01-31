@@ -59,7 +59,7 @@ namespace WalkmeshCompareConsole
 
             var km = new KotorManager(version);
 
-            km.pr.readInt(km.ka.ADDRESS_BASE, out int testRead);
+            km.pr.ReadInt(km.ka.ADDRESS_BASE, out int testRead);
             if (testRead != 0x00905a4d)
                 throw new Exception($"Failed Test Read!\r\nExpected: {0x00905a4d}\r\nGot: {testRead}");
 
@@ -77,7 +77,7 @@ namespace WalkmeshCompareConsole
             //}
             while (true)
             {
-                var p = km.getPlayerPosition();
+                var p = km.GetPlayerPosition();
                 Console.Write($"({p.X:0.0000}, {p.Y:0.0000})");
                 System.Threading.Thread.Sleep(100);
                 ClearCurrentConsoleLine();

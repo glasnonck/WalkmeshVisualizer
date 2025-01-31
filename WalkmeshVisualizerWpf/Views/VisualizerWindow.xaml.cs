@@ -10,16 +10,11 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 using KotOR_IO;
 using KotOR_IO.GffFile;
 using KotOR_IO.Helpers;
@@ -27,7 +22,6 @@ using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
 using ZoomAndPan;
-using static WalkmeshVisualizerWpf.Models.RimDataSet;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -446,6 +440,33 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _livePositionEllipsePoint = new Point();
 
+        public bool HidePreviousLiveModule
+        {
+            get => _hidePreviousLiveModule;
+            set => SetField(ref _hidePreviousLiveModule, value);
+        }
+        private bool _hidePreviousLiveModule = false;
+
+        public bool ShowCurrentLiveModule
+        {
+            get => _showCurrentLiveModule;
+            set => SetField(ref _showCurrentLiveModule, value);
+        }
+        private bool _showCurrentLiveModule = false;
+
+        public bool HotswapToLiveGame
+        {
+            get => _hotswapToLiveGame;
+            set => SetField(ref _hotswapToLiveGame, value);
+        }
+        private bool _hotswapToLiveGame = false;
+        
+        public int LivePositionUpdateDelay
+        {
+            get => _livePositionUpdateDelay;
+            set => SetField(ref _livePositionUpdateDelay, value);
+        }
+        private int _livePositionUpdateDelay = 50;
 
         #endregion // END REGION DataBinding Members
 
@@ -2835,25 +2856,27 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void LivePositionWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            var sw = new Stopwatch();
+            sw.Start();
             var bw = sender as BackgroundWorker;
             int version = 0;
             KotorManager km = null;
+            var currentModule = string.Empty;
 
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
                     if (bw.CancellationPending) break;
                     if (km == null)
                     {
+                        currentModule = string.Empty;
                         version = GetRunningKotor();
                         if (version != 0)
                         {
                             km = new KotorManager(version);
-                            km.pr.readInt(km.ka.ADDRESS_BASE, out int testRead);
-                            if (testRead != KotorAddresses.TEST_READ_VALUE)
+                            if (!km.TestRead())
                             {
-                                Console.WriteLine($"Failed Test Read!\r\nExpected: {KotorAddresses.TEST_READ_VALUE}\r\nGot: {testRead}");
                                 km = null;
                                 continue;
                             }
@@ -2863,32 +2886,134 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         try
                         {
-                            LivePositionPoint = km.getPlayerPosition(); // TODO: Review KotorAddresses code to improve efficiency.
+                            // Get current module
+                            km.pr.ReadAreaName(version, km.ka.AREA_NAME, out string moduleName);
+                            var null_index = moduleName.IndexOf('\0');
+                            if (null_index >= 0) moduleName = moduleName.Substring(0, null_index);
+
+                            // If current module not shown, display it
+                            if (currentModule != moduleName)
+                            {
+                                // If HidePreviousLiveModule
+                                if (HidePreviousLiveModule)
+                                {
+                                    foreach (var rim in OnRims.Where(rm => rm.FileName != moduleName.ToLower()).ToList())
+                                    {
+                                        Application.Current.Dispatcher.Invoke(() => {
+                                            RemoveRim(rim);
+                                        });
+                                        while (IsBusy) { Thread.Sleep(10); }
+                                    }
+                                }
+
+                                // If ShowCurrentLiveModule
+                                if (ShowCurrentLiveModule)
+                                {
+                                    var currentRim = OffRims.FirstOrDefault(rm => rm.FileName == moduleName.ToLower());
+                                    if (currentRim != null) Application.Current.Dispatcher.Invoke(() => AddRim(currentRim));
+                                    //while (IsBusy) { Thread.Sleep(10); }
+                                }
+
+                                // Update address information
+                                currentModule = moduleName;
+                                km.RefreshAddresses();
+                            }
+
+                            // Get current position
+                            LivePositionPoint = km.GetPlayerPosition();
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
+
+                            // If position not found, refresh.
+                            if (km.pr.hasFailed) km.RefreshAddresses();
                         }
-                        catch (NullReferenceException)
+                        catch (NullReferenceException ex)
                         {
-                            Console.WriteLine($"Process {km.ka.KOTOR_EXE} no longer exists.");
+                            Console.WriteLine($"NullReferenceException caught: {ex.Message}");
+                            km = null;
+                            continue;
+                        }
+                        catch (Win32Exception ex)
+                        {
+                            Console.WriteLine($"Win32Exception caught: {ex.Message}");
                             km = null;
                             continue;
                         }
                     }
-                    Thread.Sleep(100);
+                    Console.WriteLine(sw.ElapsedMilliseconds);
+                    Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
+                    sw.Restart();
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Unknown exception caught: {ex}");
+                catch (NullReferenceException ex)
+                {
+                    Console.WriteLine($"NullReferenceException caught: {ex.Message}");
+                    km = null;
+                    continue;
+                }
+                catch (Win32Exception ex)
+                {
+                    Console.WriteLine($"Win32Exception caught: {ex.Message}");
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Unknown exception caught: {ex}");
+                    break;
+                }
             }
         }
 
-        private static int GetRunningKotor()
+        private int GetRunningKotor()
         {
-            var process = Process.GetProcessesByName("swkotor").FirstOrDefault();
-            if (process != null) return 1;
-            process = Process.GetProcessesByName("swkotor2").FirstOrDefault();
-            if (process != null) return 2;
-            return 0;
+            while (IsBusy) { Thread.Sleep(10); }
+
+            var version = 0;
+            var gameName = string.Empty;
+            var otherGameName = string.Empty;
+            XmlGame xmlGame = null;
+            var process = Process.GetProcessesByName("swkotor").FirstOrDefault() ??
+                          Process.GetProcessesByName("swkotor2").FirstOrDefault();
+            if (process == null) return version;
+
+            if (process.ProcessName == "swkotor")
+            {
+                version = 1;
+                gameName = K1_NAME;
+                otherGameName = K2_NAME;
+                xmlGame = XmlGameData.Kotor1Data;
+            }
+
+            if (process.ProcessName == "swkotor2")
+            {
+                version = 2;
+                gameName = K2_NAME;
+                otherGameName = K1_NAME;
+                xmlGame = XmlGameData.Kotor2Data;
+            }
+
+            if (HotswapToLiveGame)
+            {
+                // Close other game if needed.
+                if (Game == otherGameName)
+                {
+                    Application.Current.Dispatcher.Invoke(() => SwapGame_Executed(null, null));
+                    while (IsBusy) { Thread.Sleep(10); }
+                }
+
+                // Load live game
+                if (Game != gameName)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        var exeFile = new FileInfo(process.MainModule.FileName);
+                        CurrentGame = xmlGame;
+                        RimDataSet.LoadGameData(exeFile.DirectoryName);
+                        LoadGameFiles(exeFile.DirectoryName, gameName);
+                    });
+                    while (IsBusy) { Thread.Sleep(10); }
+                }
+            }
+
+            return version;
         }
 
         private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
