@@ -319,6 +319,9 @@
                 </Style>
             </Menu.Resources>
 
+            <!--
+            File Menu
+            -->
             <MenuItem Header="_File">
                 <MenuItem Header="Save _Shown Canvas As Image..." Command="{StaticResource Commands.SaveShownCanvas}" />
                 <MenuItem Header="Save _Full Canvas As Image..." Command="{StaticResource Commands.SaveEntireCanvas}" />
@@ -326,6 +329,9 @@
                 <MenuItem Header="_Exit" Command="{StaticResource Commands.Exit}" />
             </MenuItem>
 
+            <!--
+            View Menu
+            -->
             <MenuItem Header="_View">
                 <MenuItem Header="Zoom _In" Command="{StaticResource Commands.ZoomIn}" />
                 <MenuItem Header="Zoom _Out" Command="{StaticResource Commands.ZoomOut}" />
@@ -334,6 +340,18 @@
                 <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
                 <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
                 <Separator />
+                <MenuItem Header="Follow Live Position"
+                          IsChecked="{Binding ViewFollowsLivePosition}">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
+            <!--
+            Layers Menu
+            -->
+            <MenuItem Header="_Layers">
                 <MenuItem
                     Header="Show _Walkable Faces"
                     Command="{StaticResource Commands.ShowWalkable}"
@@ -398,32 +416,35 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="_Live">
-                <MenuItem Header="Show Live Position"
+            <!--
+            Live Menu
+            -->
+            <MenuItem Header="Li_ve">
+                <MenuItem Header="Show Live _Position"
                           IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
                           Command="{StaticResource Commands.ShowLivePosition}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Show Live Position Coordinates" />
-                <MenuItem Header="Show Current Live Module"
+                <MenuItem Header="Show Live Position _Coordinates" />
+                <MenuItem Header="_Show Current Live Module"
                           IsChecked="{Binding ShowCurrentLiveModule, Mode=TwoWay}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/ShowCurrentModuleIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Hide Previous Live Module"
+                <MenuItem Header="_Hide Previous Live Module"
                           IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/HidePreviousModuleIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Hotswap to Live Game Data"
+                <MenuItem Header="Hotswap to _Live Game Data"
                           IsChecked="{Binding HotswapToLiveGame, Mode=TwoWay}" />
-                <Separator />
+                <!--<Separator />
                 <MenuItem Header="Live Position Fill Color" />
-                <MenuItem Header="Live Position Stroke Color" />
+                <MenuItem Header="Live Position Stroke Color" />-->
                 <!--<Separator />
                 <MenuItem Header="Update at 60 FPS" />
                 <MenuItem Header="Update at 40 FPS" />
@@ -431,6 +452,9 @@
                 <MenuItem Header="Update at 10 FPS" />-->
             </MenuItem>
 
+            <!--
+            Help Menu
+            -->
             <MenuItem Header="_Help">
                 <MenuItem Header="_View Help" Command="{StaticResource Commands.ViewHelp}" />
             </MenuItem>
@@ -1377,6 +1401,10 @@
                         >
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </ToggleButton>
+                    <ToggleButton Margin="2,0" ToolTip="View follows live position."
+                                  IsChecked="{Binding ViewFollowsLivePosition, Mode=TwoWay}">
+                        <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
+                    </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show current live module."
                                   IsChecked="{Binding ShowCurrentLiveModule, Mode=TwoWay}">
                         <Image Source="../Resources/ShowCurrentModuleIcon.png" />
@@ -1385,8 +1413,7 @@
                                   IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
                         <Image Source="../Resources/HidePreviousModuleIcon.png" />
                     </ToggleButton>
-                    <ToggleButton Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
-                                  Margin="2,0" ToolTip="Show live coordinates on canvas."
+                    <ToggleButton Margin="2,0" ToolTip="Show live coordinates on canvas."
                                   IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}"
                                   Command="{StaticResource Commands.ShowLivePositionCoordinates}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -1396,9 +1423,13 @@
                                 </Style>
                             </StackPanel.Resources>
                             <TextBlock>(</TextBlock>
-                            <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
+                            <TextBlock
+                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
                             <TextBlock>,</TextBlock>
-                            <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
+                            <TextBlock
+                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
                             <TextBlock>)</TextBlock>
                         </StackPanel>
                     </ToggleButton>
@@ -1525,18 +1556,21 @@
                                 Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
                                 Style="{StaticResource CoordPoint}"
                                 />
-                            <StackPanel
+                            <Border 
                                 x:Name="livePositionCoords"
-                                Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
                                 Canvas.Left="{Binding LivePositionEllipsePoint.X}"
-                                Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
-                                >
-                                <TextBlock Text="(" />
-                                <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
-                                <TextBlock Text=", " />
-                                <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
-                                <TextBlock Text=")" />
-                            </StackPanel>
+                                Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}">
+                                <StackPanel
+                                    Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    >
+                                    <TextBlock Text="(" />
+                                    <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
+                                    <TextBlock Text=", " />
+                                    <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
+                                    <TextBlock Text=")" />
+                                </StackPanel>
+                            </Border>
                         </Canvas>
 
                         <!--

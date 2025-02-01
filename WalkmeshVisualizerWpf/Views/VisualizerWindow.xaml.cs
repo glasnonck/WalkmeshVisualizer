@@ -460,7 +460,14 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _hotswapToLiveGame, value);
         }
         private bool _hotswapToLiveGame = false;
-        
+
+        public bool ViewFollowsLivePosition
+        {
+            get => _viewFollowsLivePosition;
+            set => SetField(ref _viewFollowsLivePosition, value);
+        }
+        private bool _viewFollowsLivePosition = true;
+
         public int LivePositionUpdateDelay
         {
             get => _livePositionUpdateDelay;
@@ -494,7 +501,9 @@ namespace WalkmeshVisualizerWpf.Views
             else if (mouseButtonDown == MouseButton.Left)
             {
                 // Just a plain old left-down initiates panning mode.
-                mouseHandlingMode = MouseHandlingMode.Panning;
+                // If following live position, ignore mouse panning.
+                if (!ViewFollowsLivePosition)
+                    mouseHandlingMode = MouseHandlingMode.Panning;
             }
 
             if (mouseHandlingMode != MouseHandlingMode.None)
@@ -2835,7 +2844,6 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowLivePosition_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             ShowLivePosition = true;
-            ShowLivePositionCoordinates = _previousShowLivePositionCoordinates;
 
             if (LivePositionWorker.IsBusy)
             {
@@ -2861,7 +2869,7 @@ namespace WalkmeshVisualizerWpf.Views
             var bw = sender as BackgroundWorker;
             int version = 0;
             KotorManager km = null;
-            var currentModule = string.Empty;
+            var thisModuleName = string.Empty;
 
             while (true)
             {
@@ -2870,7 +2878,7 @@ namespace WalkmeshVisualizerWpf.Views
                     if (bw.CancellationPending) break;
                     if (km == null)
                     {
-                        currentModule = string.Empty;
+                        thisModuleName = string.Empty;
                         version = GetRunningKotor();
                         if (version != 0)
                         {
@@ -2886,42 +2894,72 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         try
                         {
-                            // Get current module
-                            km.pr.ReadAreaName(version, km.ka.AREA_NAME, out string moduleName);
-                            var null_index = moduleName.IndexOf('\0');
-                            if (null_index >= 0) moduleName = moduleName.Substring(0, null_index);
+                            string nextModuleName = string.Empty;
+
+                            if (ShowCurrentLiveModule || HidePreviousLiveModule)
+                            {
+                                // Get current module
+                                km.pr.ReadAreaName(version, km.ka.AREA_NAME, out nextModuleName);
+                                var null_index = nextModuleName.IndexOf('\0');
+                                if (null_index >= 0) nextModuleName = nextModuleName.Substring(0, null_index);
+                            }
+                            else
+                            {
+                                thisModuleName = string.Empty;
+                                nextModuleName = string.Empty;
+                            }
+
+                            // If HidePreviousLiveModule
+                            if (HidePreviousLiveModule)
+                            {
+                                // Hide all other modules.
+                                //foreach (var rim in OnRims.Where(rm => rm.FileName != nextModule.ToLower()).ToList())
+                                //{
+                                //    Application.Current.Dispatcher.Invoke(() => {
+                                //        RemoveRim(rim);
+                                //    });
+                                //    while (IsBusy) { Thread.Sleep(10); }
+                                //}
+
+                                // Hide previous module.
+                                var lastRim = OnRims.FirstOrDefault(rm => rm.FileName == thisModuleName.ToLower());
+                                if (lastRim != null) Application.Current.Dispatcher.Invoke(() => RemoveRim(lastRim));
+                                while (IsBusy) { Thread.Sleep(10); }
+                            }
+
+                            // If ShowCurrentLiveModule
+                            if (ShowCurrentLiveModule)
+                            {
+                                var thisRim = OffRims.FirstOrDefault(rm => rm.FileName == nextModuleName.ToLower());
+                                if (thisRim != null) Application.Current.Dispatcher.Invoke(() => AddRim(thisRim));
+                                //while (IsBusy) { Thread.Sleep(10); }
+                            }
 
                             // If current module not shown, display it
-                            if (currentModule != moduleName)
+                            if (thisModuleName != nextModuleName)
                             {
-                                // If HidePreviousLiveModule
-                                if (HidePreviousLiveModule)
-                                {
-                                    foreach (var rim in OnRims.Where(rm => rm.FileName != moduleName.ToLower()).ToList())
-                                    {
-                                        Application.Current.Dispatcher.Invoke(() => {
-                                            RemoveRim(rim);
-                                        });
-                                        while (IsBusy) { Thread.Sleep(10); }
-                                    }
-                                }
-
-                                // If ShowCurrentLiveModule
-                                if (ShowCurrentLiveModule)
-                                {
-                                    var currentRim = OffRims.FirstOrDefault(rm => rm.FileName == moduleName.ToLower());
-                                    if (currentRim != null) Application.Current.Dispatcher.Invoke(() => AddRim(currentRim));
-                                    //while (IsBusy) { Thread.Sleep(10); }
-                                }
-
                                 // Update address information
-                                currentModule = moduleName;
+                                thisModuleName = nextModuleName;
                                 km.RefreshAddresses();
                             }
 
                             // Get current position
                             LivePositionPoint = km.GetPlayerPosition();
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
+
+                            // Follow live position
+                            if (ViewFollowsLivePosition)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    var scale = zoomAndPanControl.ContentScale;
+                                    var yExtent = zoomAndPanControl.ExtentHeight;
+                                    var snapPoint = new Point(
+                                        LivePositionEllipsePoint.X,
+                                        (yExtent/scale)-LivePositionEllipsePoint.Y);
+                                    zoomAndPanControl.SnapTo(snapPoint);
+                                });
+                            }
 
                             // If position not found, refresh.
                             if (km.pr.hasFailed) km.RefreshAddresses();
@@ -3019,7 +3057,6 @@ namespace WalkmeshVisualizerWpf.Views
         private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ShowLivePosition = false;
-            _previousShowLivePositionCoordinates = ShowLivePositionCoordinates;
             ShowLivePosition = false;
             LivePositionToggleButton.IsEnabled = true;
         }
