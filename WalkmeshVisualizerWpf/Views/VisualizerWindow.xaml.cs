@@ -459,7 +459,7 @@ namespace WalkmeshVisualizerWpf.Views
             get => _hotswapToLiveGame;
             set => SetField(ref _hotswapToLiveGame, value);
         }
-        private bool _hotswapToLiveGame = false;
+        private bool _hotswapToLiveGame = true;
 
         public bool ViewFollowsLivePosition
         {
@@ -2910,7 +2910,7 @@ namespace WalkmeshVisualizerWpf.Views
                             }
 
                             // If HidePreviousLiveModule
-                            if (HidePreviousLiveModule)
+                            if (HidePreviousLiveModule && thisModuleName != nextModuleName)
                             {
                                 // Hide all other modules.
                                 //foreach (var rim in OnRims.Where(rm => rm.FileName != nextModule.ToLower()).ToList())
@@ -3212,6 +3212,38 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowDlzLines_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = !IsBusy;
+        }
+
+        private void ShowAllOfRimData_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var rdis = ((e.Source as Button)
+                .DataContext as ObservableCollection<RimDataInfo>)
+                .Where(rdi => !rdi.MeshVisible);
+            foreach (var rdi in rdis) HandleRimDataInfo(rdi);
+        }
+
+        private void ShowAllOfRimData_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            var anyHidden = ((e.Source as Button)
+                ?.DataContext as ObservableCollection<RimDataInfo>)
+                ?.Any(rdi => !rdi.MeshVisible) ?? false;
+            e.CanExecute = !IsBusy && anyHidden;
+        }
+
+        private void HideAllOfRimData_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var rdis = ((e.Source as Button)
+                .DataContext as ObservableCollection<RimDataInfo>)
+                .Where(rdi => rdi.MeshVisible);
+            foreach (var rdi in rdis) HandleRimDataInfo(rdi);
+        }
+
+        private void HideAllOfRimData_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            var anyVisible = ((e.Source as Button)
+                ?.DataContext as ObservableCollection<RimDataInfo>)
+                ?.Any(rdi => rdi.MeshVisible) ?? false;
+            e.CanExecute = !IsBusy && anyVisible;
         }
 
         #endregion

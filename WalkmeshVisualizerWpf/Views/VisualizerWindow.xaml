@@ -140,6 +140,18 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
+        <RoutedUICommand x:Key="Commands.ShowAllOfRimData">
+            <RoutedUICommand.InputGestures>
+
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.HideAllOfRimData">
+            <RoutedUICommand.InputGestures>
+
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
         <!--
         Converters.
         -->
@@ -304,6 +316,18 @@
             CanExecute="ShowLivePositionCoordinates_CanExecute"
             />
 
+        <CommandBinding
+            Command="{StaticResource Commands.ShowAllOfRimData}"
+            Executed="ShowAllOfRimData_Executed"
+            CanExecute="ShowAllOfRimData_CanExecute"
+            />
+
+        <CommandBinding
+            Command="{StaticResource Commands.HideAllOfRimData}"
+            Executed="HideAllOfRimData_Executed"
+            CanExecute="HideAllOfRimData_CanExecute"
+            />
+
     </Window.CommandBindings>
 
     <DockPanel>
@@ -411,7 +435,7 @@
                     IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
                     >
                     <MenuItem.Icon>
-                        <Image Source="../Resources/DefaultSpawnPointIcon.png" />
+                        <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
@@ -420,27 +444,32 @@
             Live Menu
             -->
             <MenuItem Header="Li_ve">
-                <MenuItem Header="Show Live _Position"
+                <MenuItem Header="Show Live _Position" IsCheckable="True"
                           IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
                           Command="{StaticResource Commands.ShowLivePosition}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Show Live Position _Coordinates" />
-                <MenuItem Header="_Show Current Live Module"
+                <MenuItem Header="Show Live Position _Coordinates" IsCheckable="True"
+                          IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}">
+                    <MenuItem.Icon>
+                        <TextBlock VerticalAlignment="Center" Text="x,y" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Show Current Live Module" IsCheckable="True"
                           IsChecked="{Binding ShowCurrentLiveModule, Mode=TwoWay}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/ShowCurrentModuleIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="_Hide Previous Live Module"
+                <MenuItem Header="_Hide Previous Live Module" IsCheckable="True"
                           IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/HidePreviousModuleIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Hotswap to _Live Game Data"
+                <MenuItem Header="Hotswap to _Live Game Data" IsCheckable="True"
                           IsChecked="{Binding HotswapToLiveGame, Mode=TwoWay}" />
                 <!--<Separator />
                 <MenuItem Header="Live Position Fill Color" />
@@ -811,9 +840,9 @@
                         <Grid Width="300">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="2*" x:Name="rowRimDoor" />
-                                <RowDefinition Height="3*" x:Name="rowRimTrigger" />
-                                <RowDefinition Height="2*" x:Name="rowRimEncounter" />
+                                <RowDefinition Height="4*" x:Name="rowRimDoor" />
+                                <RowDefinition Height="5*" x:Name="rowRimTrigger" />
+                                <RowDefinition Height="3*" x:Name="rowRimEncounter" />
                             </Grid.RowDefinitions>
 
                             <Grid.Resources>
@@ -825,8 +854,9 @@
                                     <Setter Property="Margin" Value="5,5,5,0" />
                                 </Style>
                                 <Style TargetType="StackPanel">
-                                    <Setter Property="Margin" Value="5,0" />
+                                    <!--<Setter Property="Margin" Value="5,0" />-->
                                     <Setter Property="Orientation" Value="Horizontal" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
                                 </Style>
                                 <Style TargetType="Ellipse">
                                     <Setter Property="Height" Value="8" />
@@ -900,12 +930,20 @@
                                         </Button>
                                     </Grid>
                                 </DataTemplate>
+                                <Style TargetType="Button" x:Key="btnRimDataShowHide">
+                                    <Setter Property="Padding" Value="3,1" />
+                                    <Setter Property="Width" Value="64" />
+                                </Style>
                             </Grid.Resources>
 
+                            <!--
+                            RIM Doors
+                            -->
                             <Grid x:Name="rimDoorGrid" Grid.Row="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
+                                    <RowDefinition Height="5" />
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
@@ -914,6 +952,19 @@
                                         <TextBlock Text="{Binding RimDoors.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel HorizontalAlignment="Right">
+                                    <Button Content="Show All" Margin="0"
+                                            DataContext="{Binding RimDoors}"
+                                            Style="{StaticResource btnRimDataShowHide}"
+                                            Command="{StaticResource Commands.ShowAllOfRimData}"
+                                            />
+                                    <Button Content="Hide All" Margin="5,0,0,0"
+                                            DataContext="{Binding RimDoors}"
+                                            Style="{StaticResource btnRimDataShowHide}"
+                                            Command="{StaticResource Commands.HideAllOfRimData}"
+                                            />
                                 </StackPanel>
 
                                 <ListView
@@ -951,10 +1002,14 @@
                                 </ListView>
                             </Grid>
 
+                            <!--
+                            RIM Triggers
+                            -->
                             <Grid x:Name="rimTriggerGrid" Grid.Row="2">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
+                                    <RowDefinition Height="5" />
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
@@ -963,6 +1018,19 @@
                                         <TextBlock Text="{Binding RimTriggers.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel HorizontalAlignment="Right">
+                                    <Button Content="Show All" Margin="0"
+                                            DataContext="{Binding RimTriggers}"
+                                            Style="{StaticResource btnRimDataShowHide}"
+                                            Command="{StaticResource Commands.ShowAllOfRimData}"
+                                            />
+                                    <Button Content="Hide All" Margin="5,0,0,0"
+                                            DataContext="{Binding RimTriggers}"
+                                            Style="{StaticResource btnRimDataShowHide}"
+                                            Command="{StaticResource Commands.HideAllOfRimData}"
+                                            />
                                 </StackPanel>
 
                                 <ListView
@@ -997,10 +1065,12 @@
                                             </GridViewColumn>
                                         </GridView>
                                     </ListView.View>
-                                
                                 </ListView>
                             </Grid>
 
+                            <!--
+                            RIM Encounters
+                            -->
                             <Grid x:Name="rimEncounterGrid" Grid.Row="3">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -1013,6 +1083,19 @@
                                         <TextBlock Text="{Binding RimEncounters.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel HorizontalAlignment="Right">
+                                    <Button Content="Show All" Margin="0"
+                                            DataContext="{Binding RimEncounters}"
+                                            Style="{StaticResource btnRimDataShowHide}"
+                                            Command="{StaticResource Commands.ShowAllOfRimData}"
+                                            />
+                                    <Button Content="Hide All" Margin="5,0,0,0"
+                                            DataContext="{Binding RimEncounters}"
+                                            Style="{StaticResource btnRimDataShowHide}"
+                                            Command="{StaticResource Commands.HideAllOfRimData}"
+                                            />
                                 </StackPanel>
 
                                 <ListView
@@ -1047,7 +1130,6 @@
                                             </GridViewColumn>
                                         </GridView>
                                     </ListView.View>
-
                                 </ListView>
                             </Grid>
                         </Grid>
