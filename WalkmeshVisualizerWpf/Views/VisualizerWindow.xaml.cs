@@ -459,7 +459,7 @@ namespace WalkmeshVisualizerWpf.Views
             get => _hotswapToLiveGame;
             set => SetField(ref _hotswapToLiveGame, value);
         }
-        private bool _hotswapToLiveGame = true;
+        private bool _hotswapToLiveGame = false;
 
         public bool ViewFollowsLivePosition
         {
@@ -2977,7 +2977,7 @@ namespace WalkmeshVisualizerWpf.Views
                             continue;
                         }
                     }
-                    Console.WriteLine(sw.ElapsedMilliseconds);
+                    //Console.WriteLine(sw.ElapsedMilliseconds);
                     Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
                     sw.Restart();
                 }
@@ -2998,6 +2998,41 @@ namespace WalkmeshVisualizerWpf.Views
                     break;
                 }
             }
+        }
+
+        private static void WriteToConsoleAllDoorsInLiveModule(KotorManager km, string nextModuleName)
+        {
+            var doors = km.GetDoorCorners();
+            Console.WriteLine();
+            Console.WriteLine($"\t\t\"Module\": \"{nextModuleName.ToLower()}\",");
+            Console.WriteLine($"\t\t\"Doors\": [");
+            for (int i = 0; i < doors.Count; i++)
+            {
+                var door = doors[i];
+                var cornersX = string.Empty;
+                var cornersY = string.Empty;
+                for (int j = 0; j < door.Item2.Count; j++)
+                {
+                    var c = door.Item2[j];
+                    cornersX += $"\"{c.x}\"";
+                    cornersY += $"\"{c.y}\"";
+                    if (j+1 < door.Item2.Count)
+                    {
+                        cornersX += ", ";
+                        cornersY += ", ";
+                    }
+                }
+
+                Console.WriteLine("\t\t\t{");
+                Console.WriteLine($"\t\t\t\t\"ResRef\": \"{door.Item1.ToLower()}\",");
+                Console.WriteLine($"\t\t\t\t\"CornersX\": [{cornersX}],");
+                Console.WriteLine($"\t\t\t\t\"CornersY\": [{cornersY}]");
+                var text = "\t\t\t}";
+                if (i+1 != doors.Count) text += ",";
+                Console.WriteLine(text);
+            }
+            Console.WriteLine($"\t\t]");
+            Console.WriteLine();
         }
 
         private int GetRunningKotor()

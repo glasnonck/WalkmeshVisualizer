@@ -64,11 +64,8 @@ namespace WalkmeshVisualizerWpf.Models
                 foreach (var door in module.Doors)
                 {
                     door.Module = module.Module;
-                    var xMax = door.Corners.Max();
-                    var xMin = door.Corners.Min();
-                    var rimDoor = rimDoors.Single(d => d.LinkedToModule == door.ResRef && d.X > xMin && d.X < xMax);
-                    foreach (var c in door.Corners)
-                        door.Geometry.Add(new Tuple<float, float>(c, rimDoor.Y));
+                    for (int i = 0; i < door.CornersX.Count; i++)
+                        door.Geometry.Add(new Tuple<float, float>(door.CornersX[i], door.CornersY[i]));
                 }
                 module.Triggers = rimTriggers.Select(t => new RimDataInfo(t, module.Module)).ToList();
                 module.Encounters = rimEncounters.Select(e => new RimDataInfo(e, module.Module)).ToList();
@@ -225,7 +222,8 @@ namespace WalkmeshVisualizerWpf.Models
     {
         public string Module { get; set; }
         public string ResRef { get; set; }
-        public List<float> Corners { get; set; } = new List<float>();
+        public List<float> CornersX { get; set; } = new List<float>();
+        public List<float> CornersY { get; set; } = new List<float>();
         public List<Tuple<float, float>> Geometry { get; set; } = new List<Tuple<float, float>>();
         public List<Tuple<float, float>> SpawnPoints { get; set; } = new List<Tuple<float, float>>();
 
@@ -312,7 +310,8 @@ namespace WalkmeshVisualizerWpf.Models
         {
             var val = Module.CompareTo(other.Module);
             if (val == 0) val = ResRef.CompareTo(other.ResRef);
-            if (val == 0) val = Corners.Count.CompareTo(other.Corners.Count);
+            if (val == 0) val = CornersX.Count.CompareTo(other.CornersX.Count);
+            if (val == 0) val = CornersY.Count.CompareTo(other.CornersY.Count);
             return val;
         }
 

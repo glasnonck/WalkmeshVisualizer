@@ -23,6 +23,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public float x;
         public float y;
         public float z;
+        public override string ToString() => $"({x},{y},{z})";
     }
 
     public enum GameObjectTypes : byte
@@ -56,6 +57,10 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CSWSDOOR_LINKED_TO_MODULE;
         public uint OFFSET_CSWSOBJECT_X_POS;
         public uint OFFSET_CSWSOBJECT_Y_POS;
+        public uint OFFSET_CSWSOBJECT_Z_POS;
+        public uint OFFSET_CSWSOBJECT_X_DIR;
+        public uint OFFSET_CSWSOBJECT_Y_DIR;
+        public uint OFFSET_CSWSOBJECT_Z_DIR;
         public uint OFFSET_CSWSTRIGGER_GEOMETRY_COUNT;
         public uint OFFSET_CSWSTRIGGER_GEOMETRY;
 
@@ -92,6 +97,10 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSDOOR_LINKED_TO_MODULE = 0x390;
                 OFFSET_CSWSOBJECT_X_POS = 0x90;
                 OFFSET_CSWSOBJECT_Y_POS = 0x94;
+                OFFSET_CSWSOBJECT_Z_POS = 0x98;
+                OFFSET_CSWSOBJECT_X_DIR = 0x9c;
+                OFFSET_CSWSOBJECT_Y_DIR = 0xa0;
+                OFFSET_CSWSOBJECT_Z_DIR = 0xa4;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x284;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x288;
 
@@ -115,6 +124,10 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSDOOR_LINKED_TO_MODULE = 0x3e0;
                 OFFSET_CSWSOBJECT_X_POS = 0x94;
                 OFFSET_CSWSOBJECT_Y_POS = 0x98;
+                OFFSET_CSWSOBJECT_Z_POS = 0x9c;
+                OFFSET_CSWSOBJECT_X_DIR = 0xa0;
+                OFFSET_CSWSOBJECT_Y_DIR = 0xa4;
+                OFFSET_CSWSOBJECT_Z_DIR = 0xa8;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x2c4;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x2c8;
 
@@ -258,6 +271,90 @@ namespace WalkmeshVisualizerWpf.Helpers
             return new Point(x, y);
         }
 
+        public Point GetPlayerDirection()
+        {
+            var pgo = GetPlayerGameObject();
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_DIR, out float x);
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_DIR, out float y);
+            return new Point(x, y);
+        }
+
+        public List<Tuple<string,List<GameVector>>> GetDoorCorners()
+        {
+            var output = new List<Tuple<string,List<GameVector>>>();
+
+            List<uint> areaObjects = GetAllObjectsInArea();
+            List<uint> areaDoors = new List<uint>();
+            foreach (var objPtr in areaObjects)
+            {
+                var obj = GetGameObjectByServerID(objPtr);
+                pr.ReadByte(obj + ka.OFFSET_GAME_OBJECT_TYPE, out byte type);
+                if ((GameObjectTypes)type == GameObjectTypes.Door)
+                {
+                    pr.ReadByte(obj + ka.OFFSET_CSWSDOOR_LINKED_TO_FLAGS, out byte flags);
+                    if (flags != 0) areaDoors.Add(obj);
+                }
+            }
+
+            foreach (var doorPtr in areaDoors)
+            {
+                pr.ReadUint(doorPtr + ka.OFFSET_CSWSDOOR_LINKED_TO_MODULE + ka.OFFSET_CEXOSTRING_LENGTH, out uint length);
+                pr.ReadUint(doorPtr + ka.OFFSET_CSWSDOOR_LINKED_TO_MODULE, out uint strPtr);
+                pr.ReadString(strPtr, out string module, length);
+                var null_index = module.IndexOf('\0');
+                if (null_index >= 0) module = module.Substring(0, null_index);
+
+                var corners = new List<GameVector>();
+                pr.ReadVector(doorPtr + ka.OFFSET_CSWSDOOR_CORNERS, out GameVector c1);
+                corners.Add(c1);
+                pr.ReadVector(doorPtr + ka.OFFSET_CSWSDOOR_CORNERS + 12, out GameVector c2);
+                corners.Add(c2);
+                pr.ReadVector(doorPtr + ka.OFFSET_CSWSDOOR_CORNERS + 24, out GameVector c3);
+                corners.Add(c3);
+                pr.ReadVector(doorPtr + ka.OFFSET_CSWSDOOR_CORNERS + 36, out GameVector c4);
+                corners.Add(c4);
+                output.Add(new Tuple<string,List<GameVector>>(module, corners));
+            }
+
+            return output;
+        }
+
+        private List<uint> GetAllObjectsInArea()
+        {
+            var agop = GetAreaGameObject();
+            if (agop == 0x0) return null;
+
+            var output = new List<uint>();
+
+            pr.ReadUint(agop + ka.OFFSET_AREA_GAME_OBJECT_ARRAY, out uint arrayPointer);
+            pr.ReadUint(agop + ka.OFFSET_AREA_GAME_OBJECT_ARRAY_LENGTH, out uint arrayLength);
+
+            uint size = sizeof(uint);
+            for (uint i = 0; i < arrayLength; i++)
+            {
+                pr.ReadUint(arrayPointer + (size * i), out uint temp);
+                output.Add(temp);
+            }
+
+            return output;
+        }
+
+        private uint GetAreaGameObject()
+        {
+            var pgo = GetPlayerGameObject();
+            pr.ReadUint(pgo + ka.OFFSET_CSWSOBJECT_AREA_ID, out uint areaId);
+            var areaGameObjectPointer = GetGameObjectByServerID(areaId);
+            pr.ReadByte(areaGameObjectPointer + ka.OFFSET_GAME_OBJECT_TYPE, out byte temp);
+            var areaGameObjectType = (GameObjectTypes)temp;
+            if (areaGameObjectType != GameObjectTypes.Area)
+            {
+                Console.WriteLine("Not In Module...");
+                pr.hasFailed = true;
+                return 0x0;
+            }
+            return areaGameObjectPointer;
+        }
+
         public bool TestRead()
         {
             var readSuccess = pr.ReadInt(ka.ADDRESS_BASE, out int testRead);
@@ -305,6 +402,22 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
+        public bool ReadByte(uint address, out byte output)
+        {
+            output = 0;
+            var buffer = new byte[sizeof(byte)];
+            int bytesRead = 0;
+
+            if (ReadProcessMemory(h, new IntPtr(address), buffer, buffer.Length, ref bytesRead))
+            {
+                output = buffer[0];
+                return true;
+            }
+
+            hasFailed = true;
+            return false;
+        }
+
         public bool ReadUint(uint address, out uint output)
         {
             output = 0;
@@ -321,11 +434,10 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
-        public bool ReadString(int version, uint address, out string output)
+        public bool ReadString(uint address, out string output, uint length)
         {
             output = null;
-            var size = version == 1 ? 10 : 6;
-            var buffer = new byte[size];
+            var buffer = new byte[length];
             int bytesRead = 0;
 
             if (ReadProcessMemory(h, new IntPtr(address), buffer, buffer.Length, ref bytesRead))
@@ -355,6 +467,24 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
+        internal bool ReadVector(uint address, out GameVector output)
+        {
+            output = new GameVector();
+            hasFailed = !ReadFloat(address, out float x);
+            if (hasFailed) return false;
+
+            hasFailed = !ReadFloat(address + 4, out float y);
+            if (hasFailed) return false;
+
+            hasFailed = !ReadFloat(address + 8, out float z);
+            if (hasFailed) return false;
+
+            output.x = x;
+            output.y = y;
+            output.z = z;
+            return true;
+        }
+
         public bool ReadGameObjectEntry(uint address, out GameObjectEntry output)
         {
             output = new GameObjectEntry();
@@ -382,7 +512,9 @@ namespace WalkmeshVisualizerWpf.Helpers
                 hasFailed = !ReadUint(addresses[i] + idx, out idx);
                 if (hasFailed) return false;
             }
-            return ReadString(version, addresses.Last() + idx, out output);
+
+            var length = version == 1 ? 10 : 6;
+            return ReadString(addresses.Last() + idx, out output, (uint)length);
         }
     }
 }
