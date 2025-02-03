@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -238,6 +239,8 @@ namespace WalkmeshVisualizerWpf.Models
         private Brush _meshColor = Brushes.Transparent;
         private Brush _lineColor = Brushes.Transparent;
 
+        #region Constructors
+
         public RimDataInfo() { }
 
         public RimDataInfo(RimDataSet.Trigger trigger, string module = "")
@@ -254,6 +257,8 @@ namespace WalkmeshVisualizerWpf.Models
             Geometry = encounter.Corners;
             SpawnPoints = encounter.SpawnPoints;
         }
+
+        #endregion
 
         public Brush MeshColor
         {
@@ -330,5 +335,24 @@ namespace WalkmeshVisualizerWpf.Models
                 LineColor = Brushes.Transparent;
             }
         }
+
+        public bool IsTouching(Point p)
+        {
+            const double NEAR_POINT_DISTANCE = 1.0;
+            var output = false;
+
+            // True if near a spawn point.
+            foreach (var sp in SpawnPoints)
+            {
+                if ((new Point(sp.Item1, sp.Item2) - p).Length >= NEAR_POINT_DISTANCE)
+                    return true;
+            }
+
+            // True if inside geometry.
+            // TODO: write inside check
+
+            return output;
+        }
+
     }
 }

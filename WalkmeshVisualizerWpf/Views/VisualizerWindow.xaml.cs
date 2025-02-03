@@ -440,6 +440,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _livePositionEllipsePoint = new Point();
 
+        public float LiveLeaderBearing
+        {
+            get => _liveLeaderBearing;
+            set => SetField(ref _liveLeaderBearing, value);
+        }
+        private float _liveLeaderBearing = 0f;
+
         public bool HidePreviousLiveModule
         {
             get => _hidePreviousLiveModule;
@@ -772,8 +779,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                content.Children.Remove(livePositionEllipse);
-                _ = content.Children.Add(livePositionEllipse);
+                content.Children.Remove(livePositionArrow);
+                _ = content.Children.Add(livePositionArrow);
 
                 content.Children.Remove(livePositionCoords);
                 _ = content.Children.Add(livePositionCoords);
@@ -2944,7 +2951,8 @@ namespace WalkmeshVisualizerWpf.Views
                             }
 
                             // Get current position
-                            LivePositionPoint = km.GetPlayerPosition();
+                            LiveLeaderBearing = km.GetPlayerBearing();
+                            LivePositionPoint = km.GetLeaderPosition();
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
 
                             // Follow live position

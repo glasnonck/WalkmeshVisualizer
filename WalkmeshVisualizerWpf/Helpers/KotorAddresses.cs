@@ -58,9 +58,11 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CSWSOBJECT_X_POS;
         public uint OFFSET_CSWSOBJECT_Y_POS;
         public uint OFFSET_CSWSOBJECT_Z_POS;
-        public uint OFFSET_CSWSOBJECT_X_DIR;
-        public uint OFFSET_CSWSOBJECT_Y_DIR;
-        public uint OFFSET_CSWSOBJECT_Z_DIR;
+        public uint LEADER_BEARING;
+        public uint LEADER_X_POS;
+        public uint LEADER_Y_POS;
+        public uint LEADER_Z_POS;
+        public uint[] CAMERA_ANGLE;
         public uint OFFSET_CSWSTRIGGER_GEOMETRY_COUNT;
         public uint OFFSET_CSWSTRIGGER_GEOMETRY;
 
@@ -98,21 +100,15 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_X_POS = 0x90;
                 OFFSET_CSWSOBJECT_Y_POS = 0x94;
                 OFFSET_CSWSOBJECT_Z_POS = 0x98;
-                OFFSET_CSWSOBJECT_X_DIR = 0x9c;
-                OFFSET_CSWSOBJECT_Y_DIR = 0xa0;
-                OFFSET_CSWSOBJECT_Z_DIR = 0xa4;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x284;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x288;
 
-                AREA_NAME = new uint[]
-                {
-                    0x007A39E8,
-                    0x4C,
-                    0x0,
-                };
-                //AREA_NAME_BASE = 0x003A39E8;
-                //AREA_NAME_OFF1 = 0x4C;
-                //AREA_NAME_OFF2 = 0x0;
+                AREA_NAME = new uint[] { 0x007A39E8, 0x4C, 0x0 };
+                LEADER_BEARING = 0x00833924;
+                LEADER_X_POS = 0x00833928;
+                LEADER_Y_POS = 0x0083392c;
+                LEADER_Z_POS = 0x00833930;
+                CAMERA_ANGLE = new uint[] { 0x00833bb4, 0x20, 0x184, 0x58c };
             }
             else if (version == 2)
             {
@@ -125,25 +121,15 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_X_POS = 0x94;
                 OFFSET_CSWSOBJECT_Y_POS = 0x98;
                 OFFSET_CSWSOBJECT_Z_POS = 0x9c;
-                OFFSET_CSWSOBJECT_X_DIR = 0xa0;
-                OFFSET_CSWSOBJECT_Y_DIR = 0xa4;
-                OFFSET_CSWSOBJECT_Z_DIR = 0xa8;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x2c4;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x2c8;
 
-                AREA_NAME = new uint[]
-                {
-                    0x00a1B4A4,
-                    0x4,
-                    0x4,
-                    0x2FC,
-                    0x5,
-                };
-                //AREA_NAME_BASE = 0x0061B4A4;
-                //AREA_NAME_OFF1 = 0x4;
-                //AREA_NAME_OFF2 = 0x4;
-                //AREA_NAME_OFF3 = 0x2FC;
-                //AREA_NAME_OFF4 = 0x5;
+                AREA_NAME = new uint[] { 0x00a1B4A4, 0x4, 0x4, 0x2FC, 0x5 };
+                LEADER_BEARING = 0x00a13458;
+                LEADER_X_POS = 0x00a1345c;
+                LEADER_Y_POS = 0x00a13460;
+                LEADER_Z_POS = 0x00a13464;
+                CAMERA_ANGLE = new uint[] { };
             }
             else
             {
@@ -164,7 +150,13 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
 
         public void UseK2SteamAddress()
-            => ADDRESS_APP_MANAGER = 0x00a1b4a4;
+        {
+            ADDRESS_APP_MANAGER = 0x00a1b4a4;
+            LEADER_BEARING = 0x00a7fe80;
+            LEADER_X_POS = 0x00a7fe84;
+            LEADER_Y_POS = 0x00a7fe88;
+            LEADER_Z_POS = 0x00a7fe8c;
+        }
 
         public static uint GetGOAIndexFromServerID(uint id)
             => (uint)(((int)id >> 0x1f) * -0x1000 + (id & 0xfff));
@@ -263,20 +255,27 @@ namespace WalkmeshVisualizerWpf.Helpers
             return gop;
         }
 
-        public Point GetPlayerPosition()
+        public Point GetLeaderPosition()
         {
-            var pgo = GetPlayerGameObject();
-            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
-            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
+            pr.ReadFloat(ka.LEADER_X_POS, out float x);
+            pr.ReadFloat(ka.LEADER_Y_POS, out float y);
             return new Point(x, y);
         }
 
-        public Point GetPlayerDirection()
+        public float GetPlayerBearing()
         {
-            var pgo = GetPlayerGameObject();
-            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_DIR, out float x);
-            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_DIR, out float y);
-            return new Point(x, y);
+            pr.ReadFloat(ka.LEADER_BEARING, out float b);
+            return b;
+        }
+
+        public float GetCameraAngle()
+        {
+            if (version == 2) { pr.hasFailed = true; return 0; }
+            pr.GetFinalPointerAddress(ka.CAMERA_ANGLE, out uint address);
+            if (pr.hasFailed) return 0;
+            pr.ReadFloat(address, out float output);
+            if (pr.hasFailed) return 0;
+            return output;
         }
 
         public List<Tuple<string,List<GameVector>>> GetDoorCorners()
@@ -501,6 +500,21 @@ namespace WalkmeshVisualizerWpf.Helpers
             output.game_object_pointer = gop;
             output.next = next;
             return true;
+        }
+
+        public bool GetFinalPointerAddress(uint[] addresses, out uint output)
+        {
+            output = 0;
+            uint idx = 0;
+
+            for (int i = 0; i < addresses.Length - 1; i++)
+            {
+                hasFailed = !ReadUint(addresses[i] + idx, out idx);
+                if (hasFailed) return false;
+            }
+
+            output = addresses.Last() + idx;
+            return !hasFailed;
         }
 
         public bool ReadAreaName(int version, uint[] addresses, out string output)

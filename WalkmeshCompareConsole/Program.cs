@@ -77,7 +77,7 @@ namespace WalkmeshCompareConsole
             //}
             while (true)
             {
-                var p = km.GetPlayerPosition();
+                var p = km.GetLeaderPosition();
                 Console.Write($"({p.X:0.0000}, {p.Y:0.0000})");
                 System.Threading.Thread.Sleep(100);
                 ClearCurrentConsoleLine();

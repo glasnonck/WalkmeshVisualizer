@@ -1631,21 +1631,34 @@
                                 <TextBlock Text=")" />
                             </StackPanel>
 
-                            <Ellipse
-                                x:Name="livePositionEllipse" Fill="DarkRed" Stroke="DarkGoldenrod"
-                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
-                                Canvas.Left="{Binding LivePositionEllipsePoint.X}"
-                                Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
-                                Style="{StaticResource CoordPoint}"
-                                />
-                            <Border 
-                                x:Name="livePositionCoords"
-                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
-                                Canvas.Left="{Binding LivePositionEllipsePoint.X}"
-                                Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}">
-                                <StackPanel
-                                    Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    >
+                            <!--Points="0.5,0.25 0,0 0.5,1 1,0 0.5,0.25"-->
+                            <!--Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"-->
+                            <!--Points="0,0 -1,-0.5 0,1 1,-0.5"-->
+                            
+                            <Grid x:Name="livePositionArrow" Margin="0"
+                                  Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                  Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
+                                  Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Ellipse Fill="#4E6BDF" Stroke="black"
+                                         Style="{StaticResource CoordPoint}" />
+                                <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
+                                         Stroke="Black" Fill="#4E6BDF"
+                                         StrokeLineJoin="Round" StrokeThickness=".1">
+                                    <Polygon.RenderTransform>
+                                        <TransformGroup>
+                                            <RotateTransform Angle="{Binding LiveLeaderBearing}" />
+                                            <TranslateTransform X=".5" Y="-.5" />
+                                            <ScaleTransform ScaleY="-1"/>
+                                        </TransformGroup>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+                            </Grid>
+
+                            <Border x:Name="livePositionCoords"
+                                    Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                    Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}">
+                                <StackPanel Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <TextBlock Text="(" />
                                     <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
                                     <TextBlock Text=", " />
