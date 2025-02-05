@@ -36,8 +36,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             InitializeComponent();
             XmlGameData.Initialize();
-            RimDataInfoBrushCount = new Dictionary<Brush, int>(PolyBrushCount);
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
+            CurrentRimDataInfoBrush = BrushCycle.First();
 
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
@@ -169,7 +169,7 @@ namespace WalkmeshVisualizerWpf.Views
             { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
         };
 
-        private Dictionary<Brush, int> RimDataInfoBrushCount { get; set; }
+        private Brush CurrentRimDataInfoBrush { get; set; }
 
         private List<Brush> BrushCycle { get; set; }
 
@@ -482,6 +482,27 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private int _livePositionUpdateDelay = 50;
 
+        public bool ShowDoorsOnAddRim
+        {
+            get => _showDoorsOnAddRim;
+            set => SetField(ref _showDoorsOnAddRim, value);
+        }
+        private bool _showDoorsOnAddRim = true;
+
+        public bool ShowTriggersOnAddRim
+        {
+            get => _showTriggersOnAddRim;
+            set => SetField(ref _showTriggersOnAddRim, value);
+        }
+        private bool _showTriggersOnAddRim = true;
+
+        public bool ShowEncountersOnAddRim
+        {
+            get => _showEncountersOnAddRim;
+            set => SetField(ref _showEncountersOnAddRim, value);
+        }
+        private bool _showEncountersOnAddRim = true;
+
         #endregion // END REGION DataBinding Members
 
         #region ZoomAndPanControl
@@ -509,7 +530,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 // Just a plain old left-down initiates panning mode.
                 // If following live position, ignore mouse panning.
-                if (!ViewFollowsLivePosition)
+                if (!ShowLivePosition || !ViewFollowsLivePosition)
                     mouseHandlingMode = MouseHandlingMode.Panning;
             }
 
@@ -1449,6 +1470,16 @@ namespace WalkmeshVisualizerWpf.Views
             if (e.Key == Key.Enter) HandleRimDataInfo((sender as ListViewItem).Content as RimDataInfo);
         }
 
+        private void ShowAllRimDataInfo(ObservableCollection<RimDataInfo> rdis)
+        {
+            foreach (var rdi in rdis)
+            {
+                BuildRimDataInfoMesh(rdi);
+                SetRimDataInfoMeshBrush(rdi);
+                if (ShowDlzLines) rdi.LineColor = rdi.MeshColor;
+            }
+        }
+
         private void HandleRimDataInfo(RimDataInfo rdi)
         {
             if (rdi.MeshVisible)
@@ -1475,19 +1506,18 @@ namespace WalkmeshVisualizerWpf.Views
             rdi.LineColor = Brushes.Transparent;
         }
 
-        private void SetRimDataInfoMeshBrush(RimDataInfo rdi, Brush brush = null)
+        private void SetRimDataInfoMeshBrush(RimDataInfo rdi, Brush setColor = null)
         {
-            if (brush == null) brush = GetNextRimDataInfoBrush(rdi.Module, rdi.MeshColor);
-            RimDataInfoBrushCount[brush]++;
-            rdi.MeshColor = brush;
-        }
+            if (setColor != null)
+            {
+                rdi.MeshColor = setColor;
+                return;
+            }
 
-        //private void SetDlzLineBrush(RimDataInfo rdi, Brush brush = null)
-        //{
-        //    if (brush == null) brush = GetNextRimDataInfoBrush(rdi.Module, rdi.MeshColor);
-        //    RimDataInfoBrushCount[brush]++;
-        //    rdi.LineColor = brush;
-        //}
+            setColor = GetNextRimDataInfoBrush();
+            if (setColor == RimToBrushUsed[rdi.Module]) setColor = GetNextRimDataInfoBrush();
+            rdi.MeshColor = setColor;
+        }
 
         private void BuildRimDataInfoMesh(RimDataInfo rdi)
         {
@@ -1505,46 +1535,54 @@ namespace WalkmeshVisualizerWpf.Views
 
                 foreach (var corner in rdi.Geometry)
                 {
-                    var l = new Line()
+                    Application.Current.Dispatcher.Invoke(() => {
+                        var l = new Line()
+                        {
+                            Visibility = Visibility.Visible,
+                            Stroke = Brushes.Transparent,
+                            StrokeThickness = .05,
+                            X1 = corner.Item1,
+                            Y1 = corner.Item2,
+                            X2 = corner.Item1,
+                            Y2 = -1000,
+                        };
+                        rdi.Lines.Add(l);
+                        rdi.LineCanvas.Children.Add(l);
+                    });
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    rdi.Polygon = new Polygon
                     {
                         Visibility = Visibility.Visible,
                         Stroke = Brushes.Transparent,
-                        StrokeThickness = .05,
-                        X1 = corner.Item1,
-                        Y1 = corner.Item2,
-                        X2 = corner.Item1,
-                        Y2 = -1000,
+                        StrokeThickness = 0.05,
+                        Points = new PointCollection(rdi.Geometry.Select(g => new Point(g.Item1, g.Item2))),
+                        Fill = Brushes.Transparent,
+                        Opacity = 0.8
                     };
-                    rdi.Lines.Add(l);
-                    rdi.LineCanvas.Children.Add(l);
-                }
-
-                rdi.Polygon = new Polygon
-                {
-                    Visibility = Visibility.Visible,
-                    Stroke = Brushes.Transparent,
-                    StrokeThickness = 0.05,
-                    Points = new PointCollection(rdi.Geometry.Select(g => new Point(g.Item1, g.Item2))),
-                    Fill = Brushes.Transparent,
-                    Opacity = 0.8
-                };
+                });
 
                 foreach (var point in rdi.SpawnPoints)
                 {
-                    const double SIZE = 1;
-                    var e = new Ellipse
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        Stroke = Brushes.Black,
-                        StrokeThickness = 0.1,
-                        Height = SIZE,
-                        Width = SIZE,
-                        Opacity = 0.8,
-                        RenderTransform = content.Resources["CartesianTransform"] as Transform,
-                        Fill = Brushes.Transparent,
-                    };
-                    Canvas.SetLeft(e, point.Item1 - (e.Width / SIZE));
-                    Canvas.SetTop(e, -point.Item2 + (e.Height / SIZE));
-                    rdi.Ellipses.Add(e);
+                        const double SIZE = 1;
+                        var e = new Ellipse
+                        {
+                            Stroke = Brushes.Black,
+                            StrokeThickness = 0.1,
+                            Height = SIZE,
+                            Width = SIZE,
+                            Opacity = 0.8,
+                            RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                            Fill = Brushes.Transparent,
+                        };
+                        Canvas.SetLeft(e, point.Item1 - (e.Width / SIZE));
+                        Canvas.SetTop(e, -point.Item2 + (e.Height / SIZE));
+                        rdi.Ellipses.Add(e);
+                    });
                 }
 
                 Application.Current.Dispatcher.Invoke(() =>
@@ -1649,7 +1687,6 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void AddPolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            //var rimToAdd = (RimModel)e.Argument;  // grab rim info
             var args = (AddPolyWorkerArgs)e.Argument;
 
             BuildNewWalkmeshes();
@@ -1657,6 +1694,13 @@ namespace WalkmeshVisualizerWpf.Views
             ResizeCanvas();
 
             ShowWalkmeshOnCanvas(args.rimToAdd, args.getLeastUsedBrush, args.cycleColor);
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (ShowDoorsOnAddRim) ShowAllRimDataInfo(RimDoors);
+                if (ShowTriggersOnAddRim) ShowAllRimDataInfo(RimTriggers);
+                if (ShowEncountersOnAddRim) ShowAllRimDataInfo(RimEncounters);
+            });
 
             if (LeftClickPointVisible) BringLeftPointToTop();
             if (RightClickPointVisible) BringRightPointToTop();
@@ -2151,12 +2195,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private Brush GetNextWalkmeshBrush() => BrushCycle[BrushIndex];
 
-        private Brush GetNextRimDataInfoBrush(string module, Brush skipColor = null)
-        {
-            var moduleBrush = RimToBrushUsed[module];
-            var min = RimDataInfoBrushCount.Where(pair => pair.Key != moduleBrush && pair.Key != skipColor).Min(kvp => kvp.Value);
-            return RimDataInfoBrushCount.First(pair => pair.Key != moduleBrush && pair.Key != skipColor && pair.Value == min).Key;
-        }
+        private Brush GetNextRimDataInfoBrush() => CurrentRimDataInfoBrush = BrushCycle[(BrushCycle.IndexOf(CurrentRimDataInfoBrush) + 1) % BrushCycle.Count];
 
         #endregion // END REGION Add Methods
 
@@ -2617,11 +2656,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var info = (sender as Button).DataContext as RimDataInfo;
             if (info.MeshVisible == false) return;
-            var brush = GetNextRimDataInfoBrush(info.Module, info.MeshColor);
-            RimDataInfoBrushCount[brush]++;
-            info.MeshColor = brush;
-            if (ShowDlzLines)
-                info.LineColor = brush;
+            SetRimDataInfoMeshBrush(info);
+            if (ShowDlzLines) info.LineColor = info.MeshColor;
         }
 
         //private void ClrPcker_Background_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color> e)

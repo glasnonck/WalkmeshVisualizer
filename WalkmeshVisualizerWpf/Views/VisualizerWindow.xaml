@@ -947,6 +947,8 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
+                                    <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
+                                              IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}" />
                                     <TextBlock>
                                         <Span>RIM Doors (</Span>
                                         <TextBlock Text="{Binding RimDoors.Count}" />
@@ -1013,6 +1015,8 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
+                                    <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
+                                              IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}" />
                                     <TextBlock>
                                         <Span>RIM Triggers (</Span>
                                         <TextBlock Text="{Binding RimTriggers.Count}" />
@@ -1078,6 +1082,8 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel>
+                                    <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
+                                              IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}" />
                                     <TextBlock>
                                         <Span>RIM Encounters (</Span>
                                         <TextBlock Text="{Binding RimEncounters.Count}" />
@@ -1639,10 +1645,10 @@
                                   Canvas.Left="{Binding LivePositionEllipsePoint.X}"
                                   Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
                                   Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <Ellipse Fill="#4E6BDF" Stroke="black"
+                                <Ellipse Stroke="Black" Fill="#4E6BDF"
                                          Style="{StaticResource CoordPoint}" />
                                 <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
-                                         Stroke="Black" Fill="#4E6BDF"
+                                         Stroke="Black" Fill="#42BFA4"
                                          StrokeLineJoin="Round" StrokeThickness=".1">
                                     <Polygon.RenderTransform>
                                         <TransformGroup>
@@ -1653,6 +1659,17 @@
                                     </Polygon.RenderTransform>
                                 </Polygon>
                             </Grid>
+
+                            <Polygon Points="-2.4142,-1  -1,-2.4142  1,-2.4142  2.4142,-1  2.4142,1  1,2.4142  -1,2.4142  -2.4142,1"
+                                     Stroke="Black" Fill="#42BFA4" StrokeThickness=".4">
+                                <Polygon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="22.5" />
+                                        <TranslateTransform X="5" Y="15" />
+                                        <ScaleTransform ScaleX="0.2071" ScaleY="0.2071" />
+                                    </TransformGroup>
+                                </Polygon.RenderTransform>
+                            </Polygon>
 
                             <Border x:Name="livePositionCoords"
                                     Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"

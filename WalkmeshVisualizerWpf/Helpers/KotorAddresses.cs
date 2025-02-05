@@ -257,8 +257,11 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public Point GetLeaderPosition()
         {
-            pr.ReadFloat(ka.LEADER_X_POS, out float x);
-            pr.ReadFloat(ka.LEADER_Y_POS, out float y);
+            var pgo = GetPlayerGameObject();
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
+            //pr.ReadFloat(ka.LEADER_X_POS, out float x);
+            //pr.ReadFloat(ka.LEADER_Y_POS, out float y);
             return new Point(x, y);
         }
 
