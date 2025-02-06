@@ -363,13 +363,6 @@
                 <MenuItem Header="_Fill Page Zoom" Command="{StaticResource Commands.Fill}" />
                 <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
                 <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
-                <Separator />
-                <MenuItem Header="Follow Live Position"
-                          IsChecked="{Binding ViewFollowsLivePosition}">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
             </MenuItem>
 
             <!--
@@ -451,6 +444,12 @@
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Follow Live Position"
+                          IsChecked="{Binding ViewFollowsLivePosition}">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Show Live Position _Coordinates" IsCheckable="True"
                           IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}">
                     <MenuItem.Icon>
@@ -470,7 +469,11 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Hotswap to _Live Game Data" IsCheckable="True"
-                          IsChecked="{Binding HotswapToLiveGame, Mode=TwoWay}" />
+                          IsChecked="{Binding HotswapToLiveGame, Mode=TwoWay}">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/HotswapIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <!--<Separator />
                 <MenuItem Header="Live Position Fill Color" />
                 <MenuItem Header="Live Position Stroke Color" />-->
@@ -1665,7 +1668,8 @@
                                 </Polygon>
                             </Grid>
 
-                            <Polygon Points="-2.4142,-1  -1,-2.4142  1,-2.4142  2.4142,-1  2.4142,1  1,2.4142  -1,2.4142  -2.4142,1"
+                            <!--Octagon for correct player shape-->
+                            <!--<Polygon Points="-2.4142,-1  -1,-2.4142  1,-2.4142  2.4142,-1  2.4142,1  1,2.4142  -1,2.4142  -2.4142,1"
                                      Stroke="Black" Fill="#42BFA4" StrokeThickness=".4">
                                 <Polygon.RenderTransform>
                                     <TransformGroup>
@@ -1674,7 +1678,7 @@
                                         <ScaleTransform ScaleX="0.2071" ScaleY="0.2071" />
                                     </TransformGroup>
                                 </Polygon.RenderTransform>
-                            </Polygon>
+                            </Polygon>-->
 
                             <Border x:Name="livePositionCoords"
                                     Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"

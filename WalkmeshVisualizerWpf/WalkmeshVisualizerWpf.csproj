@@ -148,6 +148,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\HotswapIcon.png" />
     <Resource Include="Resources\ViewFollowsLivePositionIcon.png" />
     <Resource Include="Resources\HidePreviousModuleIcon.png" />
     <Resource Include="Resources\ShowCurrentModuleIcon.png" />
