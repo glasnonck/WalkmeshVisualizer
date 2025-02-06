@@ -2307,32 +2307,11 @@ namespace WalkmeshVisualizerWpf.Views
                 // Remove RIM data collections.
                 var rimModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
                 foreach (var door in rimModule.Doors)
-                {
-                    if (door.MeshVisible)
-                    {
-                        door.MeshColor = Brushes.Transparent;
-                        door.LineColor = Brushes.Transparent;
-                    }
                     RimDoors.Remove(door);
-                }
                 foreach (var trigger in rimModule.Triggers)
-                {
-                    if (trigger.MeshVisible)
-                    {
-                        trigger.MeshColor = Brushes.Transparent;
-                        trigger.LineColor = Brushes.Transparent;
-                    }
                     RimTriggers.Remove(trigger);
-                }
                 foreach (var encounter in rimModule.Encounters)
-                {
-                    if (encounter.MeshVisible)
-                    {
-                        encounter.MeshColor = Brushes.Transparent;
-                        encounter.LineColor = Brushes.Transparent;
-                    }
                     RimEncounters.Remove(encounter);
-                }
 
                 // Start worker to remove polygons from the canvas.
                 _ = content.Focus();
@@ -2438,33 +2417,11 @@ namespace WalkmeshVisualizerWpf.Views
             foreach (var rimModule in RimDataSet.RimData.Where(m => OnRims.Any(n => m.Module == n.FileName)))
             {
                 foreach (var door in rimModule.Doors)
-                {
-                    if (door.MeshVisible)
-                    {
-                        door.MeshColor = Brushes.Transparent;
-                        door.LineColor = Brushes.Transparent;
-                    }
                     RimDoors.Remove(door);
-                }
                 foreach (var trigger in rimModule.Triggers)
-                {
-                    if (trigger.MeshVisible)
-                    {
-                        trigger.MeshColor = Brushes.Transparent;
-                        trigger.LineColor = Brushes.Transparent;
-                    }
                     RimTriggers.Remove(trigger);
-                }
                 foreach (var encounter in rimModule.Encounters)
-                {
-                    if (encounter.MeshVisible)
-                    {
-                        encounter.MeshColor = Brushes.Transparent;
-                        encounter.LineColor = Brushes.Transparent;
-                    }
                     RimEncounters.Remove(encounter);
-                }
-
             }
 
             // Move all ON names to the OFF collection.
