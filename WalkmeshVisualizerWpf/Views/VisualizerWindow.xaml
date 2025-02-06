@@ -965,12 +965,14 @@
 
                                 <StackPanel>
                                     <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                              IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}" />
-                                    <TextBlock>
+                                              IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}"
+                                              VerticalContentAlignment="Center">
+                                        <TextBlock>
                                         <Span>RIM Doors (</Span>
                                         <TextBlock Text="{Binding RimDoors.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
+                                    </CheckBox>
                                 </StackPanel>
 
                                 <StackPanel HorizontalAlignment="Right">
@@ -1033,12 +1035,14 @@
 
                                 <StackPanel>
                                     <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                              IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}" />
-                                    <TextBlock>
+                                              IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}"
+                                              VerticalContentAlignment="Center">
+                                        <TextBlock>
                                         <Span>RIM Triggers (</Span>
                                         <TextBlock Text="{Binding RimTriggers.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
+                                    </CheckBox>
                                 </StackPanel>
 
                                 <StackPanel HorizontalAlignment="Right">
@@ -1100,12 +1104,14 @@
 
                                 <StackPanel>
                                     <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                              IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}" />
-                                    <TextBlock>
+                                              IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}"
+                                              VerticalContentAlignment="Center">
+                                        <TextBlock>
                                         <Span>RIM Encounters (</Span>
                                         <TextBlock Text="{Binding RimEncounters.Count}" />
                                         <Span>)</Span>
                                     </TextBlock>
+                                    </CheckBox>
                                 </StackPanel>
 
                                 <StackPanel HorizontalAlignment="Right">
