@@ -326,6 +326,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _lastLeftClickModuleCoords, value);
         }
 
+        private bool _showLeftClickPointCoordinates = true;
+        public bool ShowLeftClickPointCoordinates
+        {
+            get => _showLeftClickPointCoordinates;
+            set => SetField(ref _showLeftClickPointCoordinates, value);
+        }
+
         private bool _rightClickPointVisible;
         public bool RightClickPointVisible
         {
@@ -352,6 +359,13 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _lastRightClickModuleCoords;
             set => SetField(ref _lastRightClickModuleCoords, value);
+        }
+
+        private bool _showRightClickPointCoordinates = true;
+        public bool ShowRightClickPointCoordinates
+        {
+            get => _showRightClickPointCoordinates;
+            set => SetField(ref _showRightClickPointCoordinates, value);
         }
 
         private bool _isBusy;
@@ -676,10 +690,14 @@ namespace WalkmeshVisualizerWpf.Views
                 if (e.ChangedButton == MouseButton.Left)
                 {
                     HandleLeftDoubleClick(e.GetPosition(content));
+                    // Last coords not updated so coordinate matches are still accurate.
+                    //LastLeftClickModuleCoords = LeftClickModuleCoords;
                 }
                 else if (e.ChangedButton == MouseButton.Right)
                 {
                     HandleRightDoubleClick(e.GetPosition(content));
+                    // Last coords not updated so coordinate matches are still accurate.
+                    //LastRightClickModuleCoords = RightClickModuleCoords;
                 }
             }
 

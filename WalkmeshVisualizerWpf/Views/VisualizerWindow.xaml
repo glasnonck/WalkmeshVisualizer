@@ -705,6 +705,13 @@
                                 <StackPanel>
                                     <Ellipse Fill="Black" />
                                     <TextBlock Text="Black Point" FontWeight="SemiBold" />
+                                    <ToggleButton
+                                        Content="(x,y)" FontSize="11"
+                                        Background="Transparent" BorderBrush="Transparent"
+                                        Margin="6,2,0,2" Padding="0,-3,0,0"
+                                        VerticalContentAlignment="Center"
+                                        IsChecked="{Binding ShowLeftClickPointCoordinates}"
+                                        />
                                 </StackPanel>
 
                                 <Button
@@ -752,6 +759,13 @@
                                 <StackPanel>
                                     <Ellipse Fill="White" />
                                     <TextBlock Text="White Point" FontWeight="SemiBold" />
+                                    <ToggleButton
+                                        Content="(x,y)" FontSize="11"
+                                        Background="Transparent" BorderBrush="Transparent"
+                                        Margin="6,2,0,2" Padding="0,-3,0,0"
+                                        VerticalContentAlignment="Center"
+                                        IsChecked="{Binding ShowRightClickPointCoordinates}"
+                                        />
                                 </StackPanel>
 
                                 <Button
@@ -833,7 +847,7 @@
                         </Grid>
                     </Border>
                 </TabItem>
-                
+
                 <TabItem Header="RIM Data" IsSelected="True">
                     <Border 
                         BorderBrush="Black"
@@ -1612,18 +1626,17 @@
                                 Canvas.Bottom="{Binding LeftClickPoint.Y}"
                                 Style="{StaticResource CoordPoint}"
                                 />
-                            <StackPanel
-                                x:Name="leftClickCoords"
-                                Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                Canvas.Left="{Binding LeftClickPoint.X}"
-                                Canvas.Bottom="{Binding LeftClickPoint.Y}"
-                                >
-                                <TextBlock Text="(" />
-                                <TextBlock Text="{Binding LeftClickModuleCoords.X, StringFormat=N2}" />
-                                <TextBlock Text=", " />
-                                <TextBlock Text="{Binding LeftClickModuleCoords.Y, StringFormat=N2}" />
-                                <TextBlock Text=")" />
-                            </StackPanel>
+                            <Border x:Name="leftClickCoords"
+                                    Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                    Canvas.Left="{Binding LeftClickPoint.X}" Canvas.Bottom="{Binding LeftClickPoint.Y}">
+                                <StackPanel Visibility="{Binding ShowLeftClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <TextBlock Text="(" />
+                                    <TextBlock Text="{Binding LeftClickModuleCoords.X, StringFormat=N2}" />
+                                    <TextBlock Text=", " />
+                                    <TextBlock Text="{Binding LeftClickModuleCoords.Y, StringFormat=N2}" />
+                                    <TextBlock Text=")" />
+                                </StackPanel>
+                            </Border>
 
                             <Ellipse
                                 x:Name="rightClickEllipse" Fill="White" Stroke="Black"
@@ -1632,18 +1645,20 @@
                                 Canvas.Bottom="{Binding RightClickPoint.Y}"
                                 Style="{StaticResource CoordPoint}"
                                 />
-                            <StackPanel
+                            <Border
                                 x:Name="rightClickCoords"
                                 Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                 Canvas.Left="{Binding RightClickPoint.X}"
                                 Canvas.Bottom="{Binding RightClickPoint.Y}"
                                 >
-                                <TextBlock Text="(" />
-                                <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
-                                <TextBlock Text=", " />
-                                <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
-                                <TextBlock Text=")" />
-                            </StackPanel>
+                                <StackPanel Visibility="{Binding ShowRightClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <TextBlock Text="(" />
+                                    <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
+                                    <TextBlock Text=", " />
+                                    <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
+                                    <TextBlock Text=")" />
+                                </StackPanel>
+                            </Border>
 
                             <!--Points="0.5,0.25 0,0 0.5,1 1,0 0.5,0.25"-->
                             <!--Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"-->
