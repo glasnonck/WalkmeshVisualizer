@@ -273,6 +273,7 @@ namespace WalkmeshVisualizerWpf.Models
 
                 Polygon.Fill = value;
                 Polygon.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
+                Polygon.StrokeLineJoin = PenLineJoin.Round;
                 
                 SetField(ref _meshColor, value);
                 NotifyPropertyChanged(nameof(MeshVisible));

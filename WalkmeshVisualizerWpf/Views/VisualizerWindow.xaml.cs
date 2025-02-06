@@ -54,6 +54,12 @@ namespace WalkmeshVisualizerWpf.Views
             AddPolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
             AddPolyWorker.DoWork += AddPolyWorker_DoWork;
 
+            // Set up UpdateLayerVisibilityWorker
+            UpdateLayerVisibilityWorker.WorkerReportsProgress = true;
+            UpdateLayerVisibilityWorker.ProgressChanged += Bw_ProgressChanged;
+            UpdateLayerVisibilityWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
+            UpdateLayerVisibilityWorker.DoWork += UpdateLayerVisibilityWorker_DoWork;
+
             // Set up RemovePolyWorker
             RemovePolyWorker.WorkerReportsProgress = true;
             RemovePolyWorker.ProgressChanged += Bw_ProgressChanged;
@@ -73,6 +79,13 @@ namespace WalkmeshVisualizerWpf.Views
             LivePositionWorker.DoWork += LivePositionWorker_DoWork;
 
             DataContext = this;
+        }
+
+        private void UpdateLayerVisibilityWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BuildNewWalkmeshes(UpdateLayerVisibilityWorker, true);
+            //foreach (var rim in OnRims.ToList())
+            //    ShowWalkmeshOnCanvas(rim, false, false);
         }
 
         /// <summary>
@@ -131,6 +144,7 @@ namespace WalkmeshVisualizerWpf.Views
         private Dictionary<string, Canvas> RimTransAbortPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimTransAbortRegionCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
         private Dictionary<string, Canvas> RimDefaultSpawnPointCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
+        private Dictionary<string, Canvas> RimDataCanvasLookup { get; set; } = new Dictionary<string, Canvas>();
 
         /// <summary> Lookup from a RIM filename to the WOKs it contains. </summary>
         private Dictionary<string, IEnumerable<WOK>> RimWoksLookup { get; set; } = new Dictionary<string, IEnumerable<WOK>>();
@@ -152,6 +166,11 @@ namespace WalkmeshVisualizerWpf.Views
 
         /// <summary> Lookup from RIM filename to a collection of trans_abort points. </summary>
         private Dictionary<string, IEnumerable<Ellipse>> RimTransAborts { get; set; } = new Dictionary<string, IEnumerable<Ellipse>>();
+
+        private Dictionary<string, IEnumerable<Point>> RimTransAbortPoints { get; set; } = new Dictionary<string, IEnumerable<Point>>();
+
+        /// <summary> Lookup from RIM filename to a collection of trans_abort region polygons. </summary>
+        private Dictionary<string, IEnumerable<Polygon>> RimTransRegions { get; set; } = new Dictionary<string, IEnumerable<Polygon>>();
 
         /// <summary> </summary>
         private Dictionary<string, Polygon> RimDefaultSpawnPoint { get; set; } = new Dictionary<string, Polygon>();
@@ -185,6 +204,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         public BackgroundWorker GameDataWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker AddPolyWorker { get; set; } = new BackgroundWorker();
+        public BackgroundWorker UpdateLayerVisibilityWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker ClearCacheWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker LivePositionWorker { get; set; } = new BackgroundWorker();
@@ -1472,7 +1492,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowAllRimDataInfo(ObservableCollection<RimDataInfo> rdis)
         {
-            foreach (var rdi in rdis)
+            foreach (var rdi in rdis.Where(rdi => !rdi.MeshVisible))
             {
                 BuildRimDataInfoMesh(rdi);
                 SetRimDataInfoMeshBrush(rdi);
@@ -1587,10 +1607,16 @@ namespace WalkmeshVisualizerWpf.Views
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    _ = RimFullCanvasLookup[rdi.Module].Children.Add(rdi.Polygon);
+                    var canvas = RimDataCanvasLookup[rdi.Module];
+                    _ = canvas.Children.Add(rdi.Polygon);
                     foreach (var ellipse in rdi.Ellipses)
-                        _ = RimFullCanvasLookup[rdi.Module].Children.Add(ellipse);
-                    _ = RimFullCanvasLookup[rdi.Module].Children.Add(rdi.LineCanvas);
+                        _ = canvas.Children.Add(ellipse);
+                    _ = canvas.Children.Add(rdi.LineCanvas);
+
+                    //_ = RimFullCanvasLookup[rdi.Module].Children.Add(rdi.Polygon);
+                    //foreach (var ellipse in rdi.Ellipses)
+                    //    _ = RimFullCanvasLookup[rdi.Module].Children.Add(ellipse);
+                    //_ = RimFullCanvasLookup[rdi.Module].Children.Add(rdi.LineCanvas);
                 });
             }
         }
@@ -1689,7 +1715,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var args = (AddPolyWorkerArgs)e.Argument;
 
-            BuildNewWalkmeshes();
+            BuildNewWalkmeshes(AddPolyWorker);
 
             ResizeCanvas();
 
@@ -1717,162 +1743,232 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Build any new walkmesh in the ON collection.
         /// </summary>
-        private void BuildNewWalkmeshes()
+        private void BuildNewWalkmeshes(BackgroundWorker bw, bool useModuleBrush = false)
         {
+            Brush brushToUse = null;
+            content.Dispatcher.Invoke(() => content.Background = ShowTransAbortRegions ? Brushes.Black : Brushes.White);
+
             // Build unbuilt RIM walkmeshes.
-            var unbuilt = OnRims.Where(n => !RimPolyLookup.ContainsKey(n.FileName)).ToList();
+            //var unbuilt = OnRims.Where(n => !RimPolyLookup.ContainsKey(n.FileName)).ToList();
+            var unbuilt = OnRims.ToList();
             for (var i = 0; i < unbuilt.Count; i++)
             {
                 var rimmodel = unbuilt[i];
+                if (useModuleBrush) brushToUse = rimmodel.MeshColor;
+                if (ShowTransAbortRegions) brushToUse = GrayScaleBrush;
+
                 var name = rimmodel.FileName;
-                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, fullCanvas = null, defaultSpawnPointCanvas = null;
+                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, defaultSpawnPointCanvas = null, rimDataCanvas = null, fullCanvas = null;
+
+                if (RimWalkableCanvasLookup.ContainsKey(name)) walkCanvas = RimWalkableCanvasLookup[name];
+                if (RimNonwalkableCanvasLookup.ContainsKey(name)) nonWalkCanvas = RimNonwalkableCanvasLookup[name];
+                if (RimTransAbortPointCanvasLookup.ContainsKey(name)) transAbortCanvas = RimTransAbortPointCanvasLookup[name];
+                if (RimTransAbortRegionCanvasLookup.ContainsKey(name)) transBorderCanvas = RimTransAbortRegionCanvasLookup[name];
+                if (RimDefaultSpawnPointCanvasLookup.ContainsKey(name)) defaultSpawnPointCanvas = RimDefaultSpawnPointCanvasLookup[name];
+                if (RimDataCanvasLookup.ContainsKey(name)) rimDataCanvas = RimDataCanvasLookup[name];
+                if (RimFullCanvasLookup.ContainsKey(name)) fullCanvas = RimFullCanvasLookup[name];
+                
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    walkCanvas = new Canvas
+                    if (fullCanvas == null)
                     {
-                        Opacity = 0.8,
-                        Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    nonWalkCanvas = new Canvas
+                        fullCanvas = new Canvas();
+                        RimFullCanvasLookup.Add(name, fullCanvas);
+                    }
+                    if (walkCanvas == null)
                     {
-                        Opacity = 0.8,
-                        Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    defaultSpawnPointCanvas = new Canvas
+                        walkCanvas = new Canvas
+                        {
+                            Opacity = 0.8,
+                            Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
+                        };
+                        _ = fullCanvas.Children.Add(walkCanvas);
+                        RimWalkableCanvasLookup.Add(name, walkCanvas);
+                    }
+                    if (nonWalkCanvas == null)
                     {
-                        Opacity = 0.8,
-                        Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    transAbortCanvas = new Canvas
+                        nonWalkCanvas = new Canvas
+                        {
+                            Opacity = 0.8,
+                            Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
+                        };
+                        _ = fullCanvas.Children.Add(nonWalkCanvas);
+                        RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);
+                    }
+                    if (transBorderCanvas == null)
                     {
-                        Opacity = 0.8,
-                        Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    transBorderCanvas = new Canvas
+                        transBorderCanvas = new Canvas
+                        {
+                            Opacity = 0.4,
+                            Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed,
+                        };
+                        _ = fullCanvas.Children.Add(transBorderCanvas);
+                        RimTransAbortRegionCanvasLookup.Add(name, transBorderCanvas);
+                    }
+                    if (rimDataCanvas == null)
                     {
-                        Opacity = 0.5,
-                        Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed,
-                    };
+                        rimDataCanvas = new Canvas
+                        {
+                            Opacity = 0.9,
+                            Visibility = Visibility.Visible,
+                        };
+                        _ = fullCanvas.Children.Add(rimDataCanvas);
+                        RimDataCanvasLookup.Add(name, rimDataCanvas);
+                    }
+                    if (defaultSpawnPointCanvas == null)
+                    {
+                        defaultSpawnPointCanvas = new Canvas
+                        {
+                            Opacity = 0.8,
+                            Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed,
+                        };
+                        _ = fullCanvas.Children.Add(defaultSpawnPointCanvas);
+                        RimDefaultSpawnPointCanvasLookup.Add(name, defaultSpawnPointCanvas);
+                    }
+                    if (transAbortCanvas == null)
+                    {
+                        transAbortCanvas = new Canvas
+                        {
+                            Opacity = 0.8,
+                            Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed,
+                        };
+                        _ = fullCanvas.Children.Add(transAbortCanvas);
+                        RimTransAbortPointCanvasLookup.Add(name, transAbortCanvas);
+                    }
                 });
 
                 // Select all faces from mesh.
                 //var woks = RimWoksLookup[name];
                 var allfaces = RimWoksLookup[name].SelectMany(w => w.Faces).ToList();
 
-                // Create a polygon for each face.
+                // Create walkable polygons.
                 var polys = new List<Polygon>();    // walkable polygons
-                var unpolys = new List<Polygon>();  // unwalkable polygons
-                var tas = new List<Ellipse>();  // trans_abort points
-                //var tabs = new List<Line>();    // trans_abort borders
-                for (var j = 0; j < allfaces.Count; j++)
+                if (ShowWalkableFaces && !RimPolyLookup.ContainsKey(name))
                 {
-                    AddPolyWorker.ReportProgress(100 * j / allfaces.Count);
-                    var points = allfaces[j].ToPoints();    // points of this face
-
-                    // Create polygons, sorted based on walkability.
-                    if (allfaces[j].IsWalkable)
+                    var walkFaces = RimWoksLookup[name].SelectMany(w => w.Faces).Where(f => f.IsWalkable).ToList();
+                    //var binding = new Binding("MeshColor");
+                    //binding.Source = rimmodel;
+                    for (int j = 0; j < walkFaces.Count; j++)
                     {
+                        bw.ReportProgress(100 * j / walkFaces.Count);
+                        var points = walkFaces[j].ToPoints();
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            var poly = new Polygon { Points = new PointCollection(points) };
+                            var poly = new Polygon { Points = new PointCollection(points), Fill = brushToUse };
+                            //BindingOperations.SetBinding(poly, Polygon.FillProperty, binding);
                             polys.Add(poly);
                             _ = walkCanvas.Children.Add(poly);
                         });
                     }
-                    else
+                    RimPolyLookup.Add(name, polys); // Cache the created polygons.
+                    //RimWalkableCanvasLookup.Add(name, walkCanvas);  // Cache the canvas.
+                    //Application.Current.Dispatcher.Invoke(() => _ = fullCanvas.Children.Add(walkCanvas));
+                }
+
+                // Create nonwalkable polygons.
+                var unpolys = new List<Polygon>();  // unwalkable polygons
+                if (ShowNonWalkableFaces && !RimOutlinePolyLookup.ContainsKey(name))
+                {
+                    var nonwalkFaces = RimWoksLookup[name].SelectMany(w => w.Faces).Where(f => !f.IsWalkable).ToList();
+                    for (int j = 0; j < nonwalkFaces.Count; j++)
                     {
+                        bw.ReportProgress(100 * j / nonwalkFaces.Count);
+                        var points = nonwalkFaces[j].ToPoints();
                         Application.Current.Dispatcher.Invoke(() =>
                         {
                             var poly = new Polygon
                             {
                                 Points = new PointCollection(points),
+                                Stroke = brushToUse,
                                 StrokeThickness = .1,
+                                StrokeLineJoin = PenLineJoin.Round,
                             };
                             unpolys.Add(poly);
                             _ = nonWalkCanvas.Children.Add(poly);
                         });
                     }
+                    RimOutlinePolyLookup.Add(name, unpolys);    // Cache the created polygons.
+                    //RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);    // Cache the canvas.
+                    //Application.Current.Dispatcher.Invoke(() => _ = fullCanvas.Children.Add(nonWalkCanvas));
                 }
 
-                //
-                Polygon dspStar = null;
-                Application.Current.Dispatcher.Invoke(() =>
+                // Create default spawn points.
+                if (ShowDefaultSpawnPoints && !RimDefaultSpawnPoint.ContainsKey(name))
                 {
-                    dspStar = new Polygon
-                    {
-                        Stroke = Brushes.Black,
-                        StrokeThickness = 0.25,
-                        Points = new PointCollection
-                        {
-                            new Point(rimmodel.EntryPoint.X-1, rimmodel.EntryPoint.Y  ),
-                            new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y+1),
-                            new Point(rimmodel.EntryPoint.X+1, rimmodel.EntryPoint.Y  ),
-                            new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y-1),
-                        },
-                    };
-                    _ = defaultSpawnPointCanvas.Children.Add(dspStar);
-                });
-
-                //
-                var taWaypoints = RimGitLookup[name].Waypoints.Structs.Where(s => s.Fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t && t.CEString == "wp_transabort").ToList();
-                var transAbortPoints = new List<Point>();
-                foreach (var waypoint in taWaypoints)
-                {
-                    var x = (waypoint.Fields.FirstOrDefault(f => f.Label == "XPosition") is GFF.FLOAT xf) ? xf.Value : double.NaN;
-                    var y = (waypoint.Fields.FirstOrDefault(f => f.Label == "YPosition") is GFF.FLOAT yf) ? yf.Value : double.NaN;
-                    var z = (waypoint.Fields.FirstOrDefault(f => f.Label == "ZPosition") is GFF.FLOAT zf) ? zf.Value : double.NaN;
-
-                    if (double.IsNaN(x) || double.IsNaN(y)) continue;
-                    transAbortPoints.Add(new Point(x, y));
-                }
-
-                foreach (var point in transAbortPoints)
-                {
-                    // Create TransAbort points as ellipses.
+                    Polygon dspStar = null;
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        var e = new Ellipse
+                        dspStar = new Polygon
                         {
                             Stroke = Brushes.Black,
                             StrokeThickness = 0.25,
-                            Height = 2,
-                            Width = 2,
-                            RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                            Fill = brushToUse,
+                            Points = new PointCollection
+                            {
+                                new Point(rimmodel.EntryPoint.X-1, rimmodel.EntryPoint.Y  ),
+                                new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y+1),
+                                new Point(rimmodel.EntryPoint.X+1, rimmodel.EntryPoint.Y  ),
+                                new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y-1),
+                            },
                         };
-                        Canvas.SetLeft(e, point.X - (e.Width / 2));
-                        Canvas.SetTop(e, -point.Y + (e.Height / 2));
-                        tas.Add(e);
-                        _ = transAbortCanvas.Children.Add(e);
+                        _ = defaultSpawnPointCanvas.Children.Add(dspStar);
                     });
+                    RimDefaultSpawnPoint.Add(name, dspStar);    // Cache the created polygons.
+                    //RimDefaultSpawnPointCanvasLookup.Add(name, defaultSpawnPointCanvas);    // Cache the canvas.
+                    //Application.Current.Dispatcher.Invoke(() => _ = fullCanvas.Children.Add(defaultSpawnPointCanvas));
+                }
+
+                // Create trans_abort points.
+                if ((ShowTransAbortPoints || ShowTransAbortRegions) && !RimTransAborts.ContainsKey(name))
+                {
+                    var tas = new List<Ellipse>();  // trans_abort points
+                    var taWaypoints = RimGitLookup[name].Waypoints.Structs.Where(s => s.Fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t && t.CEString == "wp_transabort").ToList();
+                    var transAbortPoints = new List<Point>();
+                    foreach (var waypoint in taWaypoints)
+                    {
+                        var x = (waypoint.Fields.FirstOrDefault(f => f.Label == "XPosition") is GFF.FLOAT xf) ? xf.Value : double.NaN;
+                        var y = (waypoint.Fields.FirstOrDefault(f => f.Label == "YPosition") is GFF.FLOAT yf) ? yf.Value : double.NaN;
+                        var z = (waypoint.Fields.FirstOrDefault(f => f.Label == "ZPosition") is GFF.FLOAT zf) ? zf.Value : double.NaN;
+
+                        if (double.IsNaN(x) || double.IsNaN(y)) continue;
+                        transAbortPoints.Add(new Point(x, y));
+                    }
+
+                    foreach (var point in transAbortPoints)
+                    {
+                        // Create TransAbort points as ellipses.
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var e = new Ellipse
+                            {
+                                Stroke = Brushes.Black,
+                                Fill = brushToUse,
+                                StrokeThickness = 0.25,
+                                Height = 2,
+                                Width = 2,
+                                RenderTransform = content.Resources["CartesianTransform"] as Transform,
+                            };
+                            Canvas.SetLeft(e, point.X - (e.Width / 2));
+                            Canvas.SetTop(e, -point.Y + (e.Height / 2));
+                            tas.Add(e);
+                            _ = transAbortCanvas.Children.Add(e);
+                        });
+                    }
+                    RimTransAborts.Add(name, tas);  // Cache the created polygons.
+                    RimTransAbortPoints.Add(name, transAbortPoints);
+                    //RimTransAbortPointCanvasLookup.Add(name, transAbortCanvas); // Cache the canvas.
+                    //Application.Current.Dispatcher.Invoke(() => _ = fullCanvas.Children.Add(transAbortCanvas));
                 }
 
                 // Calculate border lines between each pair of trans_abort points.
-                CalculateTransAbortBorders(transBorderCanvas, name, transAbortPoints);
-
-                // Cache the created polygons.
-                RimPolyLookup.Add(name, polys);
-                RimOutlinePolyLookup.Add(name, unpolys);
-                RimTransAborts.Add(name, tas);
-                RimDefaultSpawnPoint.Add(name, dspStar);
-
-                // Cache the canvases.
-                RimWalkableCanvasLookup.Add(name, walkCanvas);
-                RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);
-                RimTransAbortPointCanvasLookup.Add(name, transAbortCanvas);
-                RimTransAbortRegionCanvasLookup.Add(name, transBorderCanvas);
-                RimDefaultSpawnPointCanvasLookup.Add(name, defaultSpawnPointCanvas);
-
-                Application.Current.Dispatcher.Invoke(() =>
+                if (ShowTransAbortRegions && !RimTransRegions.ContainsKey(name))
                 {
-                    fullCanvas = new Canvas();
-                    _ = fullCanvas.Children.Add(walkCanvas);
-                    _ = fullCanvas.Children.Add(nonWalkCanvas);
-                    _ = fullCanvas.Children.Add(defaultSpawnPointCanvas);
-                    _ = fullCanvas.Children.Add(transAbortCanvas);
-                    _ = fullCanvas.Children.Add(transBorderCanvas);
-                });
+                    CalculateTransAbortBorders(transBorderCanvas, name, RimTransAbortPoints[name].ToList());
+                    //RimTransAbortRegionCanvasLookup.Add(name, transBorderCanvas);   // Cache the canvas.
+                    //Application.Current.Dispatcher.Invoke(() => _ = fullCanvas.Children.Add(transBorderCanvas));
+                }
 
-                RimFullCanvasLookup.Add(name, fullCanvas);
+                //if (!RimFullCanvasLookup.ContainsKey(name)) RimFullCanvasLookup.Add(name, fullCanvas);
             }
         }
 
@@ -2018,6 +2114,7 @@ namespace WalkmeshVisualizerWpf.Views
             }
 
             // Draw regions.
+            var polys = new List<Polygon>();
             var fillIdx = 0;
             for (var i = 0; i < regions.Count; i++)
             {
@@ -2033,9 +2130,11 @@ namespace WalkmeshVisualizerWpf.Views
                         Points = new PointCollection(region),
                     };
                     _ = transBorderCanvas.Children.Add(poly);
+                    polys.Add(poly);
                 });
                 fillIdx = (fillIdx + 1) % PolyBrushCount.Count;
             }
+            RimTransRegions.Add(rimName, polys);
         }
 
         /// <summary>
@@ -2165,30 +2264,62 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void UpdateRimFillColor(BackgroundWorker bw, Brush brush, RimModel rimModel)
         {
-            var fills = RimPolyLookup[rimModel.FileName].Select(p => p as Shape).ToList();  // walkable
-            fills.AddRange(RimTransAborts[rimModel.FileName]);  // trans_abort points
-            fills.Add(RimDefaultSpawnPoint[rimModel.FileName]); // default spawn point
-            var strokes = RimOutlinePolyLookup[rimModel.FileName].ToList();   // non-walkable
-            var i = 0;
+            List<Shape> fills = new List<Shape>();
+            if (RimPolyLookup.ContainsKey(rimModel.FileName)) fills.AddRange(RimPolyLookup[rimModel.FileName]); // walkable
+            if (RimTransAborts.ContainsKey(rimModel.FileName)) fills.AddRange(RimTransAborts[rimModel.FileName]);   // trans_abort points
+            if (RimDefaultSpawnPoint.ContainsKey(rimModel.FileName)) fills.Add(RimDefaultSpawnPoint[rimModel.FileName]);    // default spawn point
+
+            List<Polygon> strokes = new List<Polygon>();
+            if (RimOutlinePolyLookup.ContainsKey(rimModel.FileName)) strokes.AddRange(RimOutlinePolyLookup[rimModel.FileName]); // non-walkable
+
+            //var fills = RimPolyLookup[rimModel.FileName].Select(p => p as Shape).ToList();  // walkable
+            //fills.AddRange(RimTransAborts[rimModel.FileName]);  // trans_abort points
+            //fills.Add(RimDefaultSpawnPoint[rimModel.FileName]); // default spawn point
+            //var strokes = RimOutlinePolyLookup[rimModel.FileName].ToList();   // non-walkable
+
+            //RimFullCanvasLookup[rimModel.FileName].Dispatcher.Invoke(() =>
+            //{
+            //    fills.ForEach((Shape p) => p.Fill = brush);
+            //    strokes.ForEach((Polygon p) => p.Stroke = brush);
+            //});
 
             // If the brush is different, update with new color.
-            fills.ForEach((Shape p) =>
+            RimFullCanvasLookup[rimModel.FileName].Dispatcher.Invoke(() =>
+            //content.Dispatcher.Invoke(() =>
             {
-                content.Dispatcher.Invoke(() =>
+                var i = 0;
+                fills.Where(f => f.Fill != brush).ToList().ForEach((Shape p) =>
                 {
                     bw?.ReportProgress(100 * i++ / fills.Count);
                     p.Fill = brush;
                 });
-            });
-            i = 0;  // reset count
-            strokes.ForEach((Polygon p) =>
-            {
-                content.Dispatcher.Invoke(() =>
+                i = 0;  // reset count
+                strokes.Where(s => s.Stroke != brush).ToList().ForEach((Polygon p) =>
                 {
                     bw?.ReportProgress(100 * i++ / strokes.Count);
                     p.Stroke = brush;
                 });
             });
+            //var i = 0;
+            //fills.ForEach((Shape p) =>
+            //{
+            //    content.Dispatcher.Invoke(() =>
+            //    {
+            //        bw?.ReportProgress(100 * i++ / fills.Count);
+            //        if (p.Fill != brush)
+            //            p.Fill = brush;
+            //    });
+            //});
+            //i = 0;  // reset count
+            //strokes.ForEach((Polygon p) =>
+            //{
+            //    content.Dispatcher.Invoke(() =>
+            //    {
+            //        bw?.ReportProgress(100 * i++ / strokes.Count);
+            //        if (p.Stroke != brush)
+            //            p.Stroke = brush;
+            //    });
+            //});
         }
 
         private Brush GetLeastUsedWalkmeshBrush() => PolyBrushCount.First(kvp => kvp.Value == PolyBrushCount.Values.Min()).Key;
@@ -3235,7 +3366,12 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowNonWalkableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowNonWalkableFaces = !ShowNonWalkableFaces;
-            UpdateNonWalkableVisibility();
+
+            // If any OnRim is not in Keys, build walkmeshes...
+            if (OnRims.Any(r => !RimOutlinePolyLookup.ContainsKey(r.FileName)))
+                UpdateLayerVisibilityWorker.RunWorkerAsync();
+            else
+                UpdateNonWalkableVisibility();
         }
 
         private void ShowNonWalkableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -3246,7 +3382,12 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowTransAbortCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowTransAbortPoints = !ShowTransAbortPoints;
-            UpdateTransAbortPointVisibility();
+
+            // If any OnRim is not in Keys, build walkmeshes...
+            if (OnRims.Any(r => !RimTransAbortPoints.ContainsKey(r.FileName)))
+                UpdateLayerVisibilityWorker.RunWorkerAsync();
+            else
+                UpdateTransAbortPointVisibility();
         }
 
         private void ShowTransAbortCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -3257,6 +3398,10 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowTransAbortRegionCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowTransAbortRegions = !ShowTransAbortRegions;
+
+            // If any OnRim is not in Keys, build walkmeshes...
+            if (OnRims.Any(r => !RimTransRegions.ContainsKey(r.FileName)))
+                UpdateLayerVisibilityWorker.RunWorkerAsync();
             UpdateTransAbortRegionVisibility();
         }
 
@@ -3268,7 +3413,12 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowDefaultSpawnPoints_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowDefaultSpawnPoints = !ShowDefaultSpawnPoints;
-            UpdateDefaultSpawnPointVisibility();
+
+            // If any OnRim is not in Keys, build walkmeshes...
+            if (OnRims.Any(r => !RimDefaultSpawnPoint.ContainsKey(r.FileName)))
+                UpdateLayerVisibilityWorker.RunWorkerAsync();
+            else
+                UpdateDefaultSpawnPointVisibility();
         }
 
         private void ShowDefaultSpawnPoints_CanExecute(object sender, CanExecuteRoutedEventArgs e)

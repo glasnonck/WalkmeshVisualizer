@@ -1558,6 +1558,11 @@
                         <!-- This Canvas is the main part of the content that is displayed. -->
                         <Canvas x:Name="content" Background="White">
                             <Canvas.Resources>
+                                <!--<help:ThresholdEffect x:Key="shader"
+                                    Threshold=".25"
+                                    BlankColor="Blue"
+                                    />-->
+
                                 <TransformGroup x:Key="CartesianTransform">
                                     <TranslateTransform Y="{Binding BottomOffset}" X="{Binding LeftOffset}"/>
                                     <ScaleTransform ScaleY="-1" />
