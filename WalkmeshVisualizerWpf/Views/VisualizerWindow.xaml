@@ -129,29 +129,9 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
-        <RoutedUICommand x:Key="Commands.ShowLivePosition">
-            <RoutedUICommand.InputGestures>
-                
-            </RoutedUICommand.InputGestures>
-        </RoutedUICommand>
-
-        <RoutedUICommand x:Key="Commands.ShowLivePositionCoordinates">
-            <RoutedUICommand.InputGestures>
-                
-            </RoutedUICommand.InputGestures>
-        </RoutedUICommand>
-
-        <RoutedUICommand x:Key="Commands.ShowAllOfRimData">
-            <RoutedUICommand.InputGestures>
-
-            </RoutedUICommand.InputGestures>
-        </RoutedUICommand>
-
-        <RoutedUICommand x:Key="Commands.HideAllOfRimData">
-            <RoutedUICommand.InputGestures>
-
-            </RoutedUICommand.InputGestures>
-        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.ShowLivePosition" />
+        <RoutedUICommand x:Key="Commands.ShowAllOfRimData" />
+        <RoutedUICommand x:Key="Commands.HideAllOfRimData" />
 
         <!--
         Converters.
@@ -312,12 +292,6 @@
             />
 
         <CommandBinding
-            Command="{StaticResource Commands.ShowLivePositionCoordinates}"
-            Executed="ShowLivePositionCoordinates_Executed"
-            CanExecute="ShowLivePositionCoordinates_CanExecute"
-            />
-
-        <CommandBinding
             Command="{StaticResource Commands.ShowAllOfRimData}"
             Executed="ShowAllOfRimData_Executed"
             CanExecute="ShowAllOfRimData_CanExecute"
@@ -445,8 +419,8 @@
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Follow Live Position"
-                          IsChecked="{Binding ViewFollowsLivePosition}">
+                <MenuItem Header="Follow Live Position" IsCheckable="True"
+                          IsChecked="{Binding ViewFollowsLivePosition, Mode=TwoWay}">
                     <MenuItem.Icon>
                         <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
                     </MenuItem.Icon>
@@ -1526,8 +1500,7 @@
                         <Image Source="../Resources/HidePreviousModuleIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show live coordinates on canvas."
-                                  IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}"
-                                  Command="{StaticResource Commands.ShowLivePositionCoordinates}">
+                                  IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <StackPanel.Resources>
                                 <Style TargetType="TextBlock">

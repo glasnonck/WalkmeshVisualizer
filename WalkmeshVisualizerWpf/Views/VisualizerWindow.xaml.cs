@@ -2944,13 +2944,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region Live Position Methods
 
-        private void ShowLivePositionCoordinates_Executed(object sender, ExecutedRoutedEventArgs e) { }
-
-        private void ShowLivePositionCoordinates_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = LivePositionToggleButton.IsEnabled;
-        }
-
         private void ShowLivePosition_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             ShowLivePosition = true;
