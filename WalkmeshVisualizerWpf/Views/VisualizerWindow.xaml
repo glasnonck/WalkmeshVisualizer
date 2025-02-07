@@ -13,6 +13,7 @@
     MinHeight="600" Height="800"
     MinWidth="800" Width="1200"
     Loaded="MainWindow_Loaded"
+    Closed="MainWindow_Closed"
     Icon="../Resources/Icon.png"
     d:DataContext="{d:DesignInstance views:VisualizerWindow, IsDesignTimeCreatable=False}"
     ResizeMode="CanResizeWithGrip"

@@ -22,5 +22,221 @@ namespace WalkmeshVisualizerWpf.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowWalkableFaces {
+            get {
+                return ((bool)(this["ShowWalkableFaces"]));
+            }
+            set {
+                this["ShowWalkableFaces"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowNonWalkableFaces {
+            get {
+                return ((bool)(this["ShowNonWalkableFaces"]));
+            }
+            set {
+                this["ShowNonWalkableFaces"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowTransAbortPoints {
+            get {
+                return ((bool)(this["ShowTransAbortPoints"]));
+            }
+            set {
+                this["ShowTransAbortPoints"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowTransAbortRegions {
+            get {
+                return ((bool)(this["ShowTransAbortRegions"]));
+            }
+            set {
+                this["ShowTransAbortRegions"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowDefaultSpawnPoints {
+            get {
+                return ((bool)(this["ShowDefaultSpawnPoints"]));
+            }
+            set {
+                this["ShowDefaultSpawnPoints"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowLeftClickPointCoordinates {
+            get {
+                return ((bool)(this["ShowLeftClickPointCoordinates"]));
+            }
+            set {
+                this["ShowLeftClickPointCoordinates"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRightClickPointCoordinates {
+            get {
+                return ((bool)(this["ShowRightClickPointCoordinates"]));
+            }
+            set {
+                this["ShowRightClickPointCoordinates"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowDlzLines {
+            get {
+                return ((bool)(this["ShowDlzLines"]));
+            }
+            set {
+                this["ShowDlzLines"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowDoorsOnAddRim {
+            get {
+                return ((bool)(this["ShowDoorsOnAddRim"]));
+            }
+            set {
+                this["ShowDoorsOnAddRim"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowTriggersOnAddRim {
+            get {
+                return ((bool)(this["ShowTriggersOnAddRim"]));
+            }
+            set {
+                this["ShowTriggersOnAddRim"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowEncountersOnAddRim {
+            get {
+                return ((bool)(this["ShowEncountersOnAddRim"]));
+            }
+            set {
+                this["ShowEncountersOnAddRim"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowLivePosition {
+            get {
+                return ((bool)(this["ShowLivePosition"]));
+            }
+            set {
+                this["ShowLivePosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowLivePositionCoordinates {
+            get {
+                return ((bool)(this["ShowLivePositionCoordinates"]));
+            }
+            set {
+                this["ShowLivePositionCoordinates"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ViewFollowsLivePosition {
+            get {
+                return ((bool)(this["ViewFollowsLivePosition"]));
+            }
+            set {
+                this["ViewFollowsLivePosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowCurrentLiveModule {
+            get {
+                return ((bool)(this["ShowCurrentLiveModule"]));
+            }
+            set {
+                this["ShowCurrentLiveModule"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool HidePreviousLiveModule {
+            get {
+                return ((bool)(this["HidePreviousLiveModule"]));
+            }
+            set {
+                this["HidePreviousLiveModule"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool HotswapToLiveGame {
+            get {
+                return ((bool)(this["HotswapToLiveGame"]));
+            }
+            set {
+                this["HotswapToLiveGame"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public int LivePositionUpdateDelay {
+            get {
+                return ((int)(this["LivePositionUpdateDelay"]));
+            }
+            set {
+                this["LivePositionUpdateDelay"] = value;
+            }
+        }
     }
 }

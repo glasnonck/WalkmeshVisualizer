@@ -84,8 +84,28 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Event raised when the Window has loaded.
         /// </summary>
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e) { }
-
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            var settings = Properties.Settings.Default;
+            ShowWalkableFaces = settings.ShowWalkableFaces;
+            ShowNonWalkableFaces = settings.ShowNonWalkableFaces;
+            ShowTransAbortPoints = settings.ShowTransAbortPoints;
+            ShowTransAbortRegions = settings.ShowTransAbortRegions;
+            ShowDefaultSpawnPoints = settings.ShowDefaultSpawnPoints;
+            ShowLeftClickPointCoordinates = settings.ShowLeftClickPointCoordinates;
+            ShowRightClickPointCoordinates = settings.ShowRightClickPointCoordinates;
+            ShowDlzLines = settings.ShowDlzLines;
+            ShowDoorsOnAddRim = settings.ShowDoorsOnAddRim;
+            ShowTriggersOnAddRim = settings.ShowTriggersOnAddRim;
+            ShowEncountersOnAddRim = settings.ShowEncountersOnAddRim;
+            ShowLivePosition = settings.ShowLivePosition;
+            ShowLivePositionCoordinates = settings.ShowLivePositionCoordinates;
+            HidePreviousLiveModule = settings.HidePreviousLiveModule;
+            ShowCurrentLiveModule = settings.ShowCurrentLiveModule;
+            HotswapToLiveGame = settings.HotswapToLiveGame;
+            ViewFollowsLivePosition = settings.ViewFollowsLivePosition;
+            LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
+        }
 
         #endregion // END REGION Constructors
 
@@ -211,7 +231,7 @@ namespace WalkmeshVisualizerWpf.Views
         public const string LOADING = "Loading";
         public const string K1_NAME = "KotOR 1";
         public const string K2_NAME = "KotOR 2";
-        private const string TRANS_ABORT_RESREF = "k_trans_abort";
+        //private const string TRANS_ABORT_RESREF = "k_trans_abort";
         private const string K1_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
@@ -451,7 +471,6 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showLivePositionCoordinates, value);
         }
         private bool _showLivePositionCoordinates = false;
-        private bool _previousShowLivePositionCoordinates = false;
 
         public Point LivePositionPoint
         {
@@ -2773,6 +2792,30 @@ namespace WalkmeshVisualizerWpf.Views
         #endregion // END REGION INotifyPropertyChanged Implementation
 
         #region Menu Related Command Methods
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            var settings = Properties.Settings.Default;
+            settings.ShowWalkableFaces = ShowWalkableFaces;
+            settings.ShowNonWalkableFaces = ShowNonWalkableFaces;
+            settings.ShowTransAbortPoints = ShowTransAbortPoints;
+            settings.ShowTransAbortRegions = ShowTransAbortRegions;
+            settings.ShowDefaultSpawnPoints = ShowDefaultSpawnPoints;
+            settings.ShowLeftClickPointCoordinates = ShowLeftClickPointCoordinates;
+            settings.ShowRightClickPointCoordinates = ShowRightClickPointCoordinates;
+            settings.ShowDlzLines = ShowDlzLines;
+            settings.ShowDoorsOnAddRim = ShowDoorsOnAddRim;
+            settings.ShowTriggersOnAddRim = ShowTriggersOnAddRim;
+            settings.ShowEncountersOnAddRim = ShowEncountersOnAddRim;
+            settings.ShowLivePosition = ShowLivePosition;
+            settings.ShowLivePositionCoordinates = ShowLivePositionCoordinates;
+            settings.HidePreviousLiveModule = HidePreviousLiveModule;
+            settings.ShowCurrentLiveModule = ShowCurrentLiveModule;
+            settings.HotswapToLiveGame = HotswapToLiveGame;
+            settings.ViewFollowsLivePosition = ViewFollowsLivePosition;
+            settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
+            settings.Save();
+        }
 
         private void ExitCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
