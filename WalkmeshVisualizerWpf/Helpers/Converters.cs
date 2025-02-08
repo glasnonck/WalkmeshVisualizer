@@ -6,6 +6,7 @@ using System.Windows.Media;
 using WalkmeshVisualizerWpf.Models;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
@@ -55,13 +56,83 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
     }
 
+    public class StringEqualsConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value.ToString().ToLower() == parameter.ToString().ToLower();
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
+    public class IntLessEqualConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (int)value <= int.Parse(parameter.ToString());
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Note: One way by design
+            throw new NotImplementedException();
+        }
+    }
+
+    public class IntGreaterEqualConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (int)value >= int.Parse(parameter.ToString());
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Note: One way by design
+            throw new NotImplementedException();
+        }
+    }
+
+    public class BoolMultiConverter : IMultiValueConverter
+    {
+        enum Operator { Unknown = 0, And = 1, Or = 2, }
+
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be of type bool.");
+            foreach (var value in values) if (!bool.TryParse(value.ToString(), out _)) return false;
+
+            var op = (Operator)Enum.Parse(typeof(Operator), parameter.ToString());
+            if (op == Operator.And)
+            {
+                var combined = true;
+                foreach (var value in values) combined &= (bool)value;
+                return combined;
+            }
+            if (op == Operator.Or)
+            {
+                var combined = false;
+                foreach (var value in values) combined |= (bool)value;
+                return combined;
+            }
+            return false;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+    }
+
     public class AndBoolToVisibilityMultiConverter : IMultiValueConverter
     {
         #region IMultiValueConverter Members
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
             var combined = true;
+            foreach (var value in values) if (!bool.TryParse(value.ToString(), out _)) return false;
             foreach (var value in values) combined &= (bool)value;
             return combined ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -78,8 +149,8 @@ namespace WalkmeshVisualizerWpf.Helpers
         #region IMultiValueConverter Members
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
             var combined = false;
+            foreach (var value in values) if (!bool.TryParse(value.ToString(), out _)) return false;
             foreach (var value in values) combined |= (bool)value;
             return combined ? Visibility.Collapsed : Visibility.Visible;
         }
@@ -148,6 +219,22 @@ namespace WalkmeshVisualizerWpf.Helpers
         #endregion
     }
 
+    [ValueConversion(typeof(Visibility), typeof(bool))]
+    public class VisibilityToBoolConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (Visibility)value == Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+        }
+        #endregion
+    }
+
     [ValueConversion(typeof(bool), typeof(Visibility))]
     public class InverseBoolToVisibilityConverter : IValueConverter
     {
@@ -168,21 +255,35 @@ namespace WalkmeshVisualizerWpf.Helpers
         #endregion
     }
 
+    [ValueConversion(typeof(RimDataInfo), typeof(bool))]
+    public class AnyHiddenRdiConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value as IEnumerable<RimDataInfo>)?.Any(rdi => !rdi.MeshVisible) ?? false;
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    [ValueConversion(typeof(RimDataInfo), typeof(bool))]
+    public class AnyVisibleRdiConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value as IEnumerable<RimDataInfo>)?.Any(rdi => rdi.MeshVisible) ?? false;
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
     [ValueConversion(typeof(bool), typeof(bool))]
     public class InverseBooleanConverter : IValueConverter
     {
         #region IValueConverter Members
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(bool))
-                throw new InvalidOperationException("The target must be a boolean.");
             return !(bool)value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(bool))
-                throw new InvalidOperationException("The target must be a boolean.");
             return !(bool)value;
         }
         #endregion

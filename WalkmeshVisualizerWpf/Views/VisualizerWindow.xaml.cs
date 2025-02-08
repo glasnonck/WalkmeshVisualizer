@@ -66,12 +66,6 @@ namespace WalkmeshVisualizerWpf.Views
             RemovePolyWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
             RemovePolyWorker.DoWork += RemovePolyWorker_DoWork;
 
-            // Set up ClearCacheWorker
-            ClearCacheWorker.WorkerReportsProgress = true;
-            ClearCacheWorker.ProgressChanged += Bw_ProgressChanged;
-            ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-            ClearCacheWorker.DoWork += ClearCacheWorker_DoWork;
-
             // Set up LivePositionWorker
             LivePositionWorker.WorkerReportsProgress = false;
             LivePositionWorker.WorkerSupportsCancellation = true;
@@ -219,7 +213,6 @@ namespace WalkmeshVisualizerWpf.Views
         public BackgroundWorker AddPolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker UpdateLayerVisibilityWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
-        public BackgroundWorker ClearCacheWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker LivePositionWorker { get; set; } = new BackgroundWorker();
 
         public bool K1Loaded { get; set; }
@@ -276,6 +269,20 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _rimDoors, value);
         }
 
+        private int _visibleRimDoors = 0;
+        public int VisibleRimDoors
+        {
+            get => _visibleRimDoors;
+            set => SetField(ref _visibleRimDoors, value);
+        }
+
+        private int _hiddenRimDoors = 0;
+        public int HiddenRimDoors
+        {
+            get => _hiddenRimDoors;
+            set => SetField(ref _hiddenRimDoors, value);
+        }
+
         private ObservableCollection<RimDataInfo> _rimTriggers = new ObservableCollection<RimDataInfo>();
         public ObservableCollection<RimDataInfo> RimTriggers
         {
@@ -283,11 +290,39 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _rimTriggers, value);
         }
 
+        private int _visibleRimTriggers = 0;
+        public int VisibleRimTriggers
+        {
+            get => _visibleRimTriggers;
+            set => SetField(ref _visibleRimTriggers, value);
+        }
+
+        private int _hiddenRimTriggers = 0;
+        public int HiddenRimTriggers
+        {
+            get => _hiddenRimTriggers;
+            set => SetField(ref _hiddenRimTriggers, value);
+        }
+
         private ObservableCollection<RimDataInfo> _rimEncounters = new ObservableCollection<RimDataInfo>();
         public ObservableCollection<RimDataInfo> RimEncounters
         {
             get => _rimEncounters;
             set => SetField(ref _rimEncounters, value);
+        }
+
+        private int _visibleRimEncounters = 0;
+        public int VisibleRimEncounters
+        {
+            get => _visibleRimEncounters;
+            set => SetField(ref _visibleRimEncounters, value);
+        }
+
+        private int _hiddenRimEncounters = 0;
+        public int HiddenRimEncounters
+        {
+            get => _hiddenRimEncounters;
+            set => SetField(ref _hiddenRimEncounters, value);
         }
 
         private ObservableCollection<WalkabilityModel> _leftPointMatches = new ObservableCollection<WalkabilityModel>();
@@ -318,11 +353,20 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _currentProgress, value);
         }
 
-        private bool _leftClickPointVisible;
+        public bool LeftOrRightClickPointVisible
+        {
+            get => _leftClickPointVisible || _rightClickPointVisible;
+        }
+
+        private bool _leftClickPointVisible = false;
         public bool LeftClickPointVisible
         {
             get => _leftClickPointVisible;
-            set => SetField(ref _leftClickPointVisible, value);
+            set
+            {
+                SetField(ref _leftClickPointVisible, value);
+                NotifyPropertyChanged(nameof(LeftOrRightClickPointVisible));
+            }
         }
 
         private Point _leftClickPoint;
@@ -353,11 +397,15 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showLeftClickPointCoordinates, value);
         }
 
-        private bool _rightClickPointVisible;
+        private bool _rightClickPointVisible = false;
         public bool RightClickPointVisible
         {
             get => _rightClickPointVisible;
-            set => SetField(ref _rightClickPointVisible, value);
+            set
+            {
+                SetField(ref _rightClickPointVisible, value);
+                NotifyPropertyChanged(nameof(LeftOrRightClickPointVisible));
+            }
         }
 
         private Point _rightClickPoint;
@@ -1197,17 +1245,6 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /// <summary>
-        /// Resets clear cache worker and starts the game data worker.
-        /// </summary>
-        private void ClearAndLoad_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            ClearCacheWorker.RunWorkerCompleted -= ClearAndLoad_RunWorkerCompleted;
-            ClearCacheWorker.RunWorkerCompleted += Bw_RunWorkerCompleted;
-
-            GameDataWorker.RunWorkerAsync(e.Result);
-        }
-
-        /// <summary>
         /// Performs steps to load required game data.
         /// </summary>
         private void GameDataWorker_DoWork(object sender, DoWorkEventArgs e)
@@ -1475,6 +1512,9 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void SwapGame_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            // If selected game panel is not visible, ignore the command request.
+            if (pnlSelectedGame.Visibility != Visibility.Visible) return;
+
             // If any walkmeshes are active, remove them.
             if (OnRims.Any()) RemoveAll_Executed(this, null);
 
@@ -1544,6 +1584,13 @@ namespace WalkmeshVisualizerWpf.Views
                 if (ShowDlzLines)
                     rdi.LineColor = rdi.MeshColor;
             }
+
+            VisibleRimDoors = RimDoors.Count(d => d.MeshVisible);
+            HiddenRimDoors = RimDoors.Count(d => !d.MeshVisible);
+            VisibleRimTriggers = RimTriggers.Count(d => d.MeshVisible);
+            HiddenRimTriggers = RimTriggers.Count(d => !d.MeshVisible);
+            VisibleRimEncounters = RimEncounters.Count(d => d.MeshVisible);
+            HiddenRimEncounters = RimEncounters.Count(d => !d.MeshVisible);
         }
 
         private void HideRimDataInfoMesh(RimDataInfo rdi)
@@ -1753,6 +1800,13 @@ namespace WalkmeshVisualizerWpf.Views
                 if (ShowEncountersOnAddRim) ShowAllRimDataInfo(RimEncounters);
             });
 
+            VisibleRimDoors = RimDoors.Count(d => d.MeshVisible);
+            HiddenRimDoors = RimDoors.Count(d => !d.MeshVisible);
+            VisibleRimTriggers = RimTriggers.Count(d => d.MeshVisible);
+            HiddenRimTriggers = RimTriggers.Count(d => !d.MeshVisible);
+            VisibleRimEncounters = RimEncounters.Count(d => d.MeshVisible);
+            HiddenRimEncounters = RimEncounters.Count(d => !d.MeshVisible);
+
             if (LeftClickPointVisible) BringLeftPointToTop();
             if (RightClickPointVisible) BringRightPointToTop();
             if (ShowLivePosition) BringLivePositionPointToTop();
@@ -1783,7 +1837,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (ShowTransAbortRegions) brushToUse = GrayScaleBrush;
 
                 var name = rimmodel.FileName;
-                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, defaultSpawnPointCanvas = null, rimDataCanvas = null, fullCanvas = null;
+                Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, defaultSpawnCanvas = null, rimDataCanvas = null, fullCanvas = null;
 
                 if (RimFullCanvasLookup.ContainsKey(name))
                 {
@@ -1792,48 +1846,24 @@ namespace WalkmeshVisualizerWpf.Views
                     nonWalkCanvas = RimNonwalkableCanvasLookup[name];
                     transAbortCanvas = RimTransAbortPointCanvasLookup[name];
                     transBorderCanvas = RimTransAbortRegionCanvasLookup[name];
-                    defaultSpawnPointCanvas = RimDefaultSpawnPointCanvasLookup[name];
+                    defaultSpawnCanvas = RimDefaultSpawnPointCanvasLookup[name];
                     rimDataCanvas = RimDataCanvasLookup[name];
                 }
                 else Application.Current.Dispatcher.Invoke(() =>
                 {
-                    fullCanvas = new Canvas();
-                    walkCanvas = new Canvas
-                    {
-                        Opacity = 0.8,
-                        Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    nonWalkCanvas = new Canvas
-                    {
-                        Opacity = 0.8,
-                        Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    transBorderCanvas = new Canvas
-                    {
-                        Opacity = 0.4,
-                        Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    rimDataCanvas = new Canvas
-                    {
-                        Opacity = 0.9,
-                        Visibility = Visibility.Visible,
-                    };
-                    defaultSpawnPointCanvas = new Canvas
-                    {
-                        Opacity = 0.8,
-                        Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed,
-                    };
-                    transAbortCanvas = new Canvas
-                    {
-                        Opacity = 0.8,
-                        Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed,
-                    };
+                    fullCanvas         = new Canvas();
+                    walkCanvas         = new Canvas { Opacity = 0.8, Visibility = Visibility.Hidden, };
+                    nonWalkCanvas      = new Canvas { Opacity = 0.8, Visibility = Visibility.Hidden, };
+                    transBorderCanvas  = new Canvas { Opacity = 0.4, Visibility = Visibility.Hidden, };
+                    rimDataCanvas      = new Canvas { Opacity = 0.9, Visibility = Visibility.Visible, };
+                    defaultSpawnCanvas = new Canvas { Opacity = 0.8, Visibility = Visibility.Hidden, };
+                    transAbortCanvas   = new Canvas { Opacity = 0.8, Visibility = Visibility.Hidden, };
 
                     _ = fullCanvas.Children.Add(walkCanvas);
                     _ = fullCanvas.Children.Add(nonWalkCanvas);
                     _ = fullCanvas.Children.Add(transBorderCanvas);
                     _ = fullCanvas.Children.Add(rimDataCanvas);
-                    _ = fullCanvas.Children.Add(defaultSpawnPointCanvas);
+                    _ = fullCanvas.Children.Add(defaultSpawnCanvas);
                     _ = fullCanvas.Children.Add(transAbortCanvas);
 
                     RimFullCanvasLookup.Add(name, fullCanvas);
@@ -1841,7 +1871,7 @@ namespace WalkmeshVisualizerWpf.Views
                     RimNonwalkableCanvasLookup.Add(name, nonWalkCanvas);
                     RimTransAbortRegionCanvasLookup.Add(name, transBorderCanvas);
                     RimDataCanvasLookup.Add(name, rimDataCanvas);
-                    RimDefaultSpawnPointCanvasLookup.Add(name, defaultSpawnPointCanvas);
+                    RimDefaultSpawnPointCanvasLookup.Add(name, defaultSpawnCanvas);
                     RimTransAbortPointCanvasLookup.Add(name, transAbortCanvas);
                 });
 
@@ -1908,7 +1938,7 @@ namespace WalkmeshVisualizerWpf.Views
                                 new Point(rimmodel.EntryPoint.X  , rimmodel.EntryPoint.Y-1),
                             },
                         };
-                        _ = defaultSpawnPointCanvas.Children.Add(dspStar);
+                        _ = defaultSpawnCanvas.Children.Add(dspStar);
                     });
                     RimDefaultSpawnPoint.Add(name, dspStar);    // Cache the created polygons.
                 }
@@ -1956,6 +1986,15 @@ namespace WalkmeshVisualizerWpf.Views
                 // Calculate border lines between each pair of trans_abort points.
                 if (ShowTransAbortRegions && !RimTransRegions.ContainsKey(name))
                     CalculateTransAbortBorders(transBorderCanvas, name, RimTransAbortPoints[name].ToList());
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    walkCanvas.Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
+                    nonWalkCanvas.Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
+                    transBorderCanvas.Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed;
+                    defaultSpawnCanvas.Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed;
+                    transAbortCanvas.Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed;
+                });
             }
         }
 
@@ -2483,70 +2522,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Remove All Methods
 
-        #region Clear Cache Methods
-
-        /// <summary>
-        /// Clear the cache of saved polygons.
-        /// </summary>
-        private void ClearCache_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            IsBusy = true;
-            OnRims.Clear();
-            _ = content.Focus();
-            ClearCacheWorker.RunWorkerAsync();
-        }
-
-        /// <summary>
-        /// Clear cache can execute if the ON collection is empty and if there are any saved polygons.
-        /// </summary>
-        private void ClearCache_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = (!IsBusy) && (!OnRims?.Any() ?? false) && (RimPolysCreated?.Any() ?? false);
-        }
-
-        /// <summary>
-        /// Perform steps to clear the cache of saved polygons.
-        /// </summary>
-        private void ClearCacheWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            // Save game name sent if started from Game Data load.
-            e.Result = e.Argument;
-
-            // Retrieve all polygons from the cache.
-            var polys = RimPolyLookup.SelectMany(kvp => kvp.Value).ToList();
-            polys.AddRange(RimOutlinePolyLookup.SelectMany(kvp => kvp.Value));
-
-            // Clear bindings for each polygon.
-            for (var i = 0; i < polys.Count; i++)
-            {
-                ClearCacheWorker.ReportProgress(100 * i / polys.Count);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var rt = polys[i].RenderTransform as TransformGroup;
-
-                    // Remove bindings for each of the transforms.
-                    foreach (var transform in rt.Children)
-                    {
-                        BindingOperations.ClearAllBindings(transform);
-                    }
-
-                    // Remove bindings on the polygon.
-                    BindingOperations.ClearBinding(polys[i], RenderTransformProperty);
-                });
-            }
-
-            // Clear the caches.
-            RimPolyLookup = new Dictionary<string, IEnumerable<Polygon>>();
-            RimOutlinePolyLookup = new Dictionary<string, IEnumerable<Polygon>>();
-            RimPolysCreated = new List<string>();
-
-            // Clear the canvas.
-            Application.Current.Dispatcher.Invoke(() =>
-            { content.Children.Clear(); });
-        }
-
-        #endregion // END REGION Clear Cache Methods
-
         #region Find Matching Coord Methods
 
         /// <summary>
@@ -2565,14 +2540,6 @@ namespace WalkmeshVisualizerWpf.Views
             FindMatchingCoords();
 
             IsBusy = false;
-        }
-
-        /// <summary>
-        /// Find matching coords can execute if a point has been selected and there are any modules currently displayed.
-        /// </summary>
-        private void FindMatchingCoords_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy && (LeftClickPointVisible || RightClickPointVisible) && (OnRims?.Any() ?? false);
         }
 
         /// <summary>
@@ -3282,14 +3249,12 @@ namespace WalkmeshVisualizerWpf.Views
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimPolyLookup.ContainsKey(r.FileName)))
+            {
+                IsBusy = true;
                 UpdateLayerVisibilityWorker.RunWorkerAsync();
+            }
 
             UpdateWalkableVisibility();
-        }
-
-        private void ShowWalkableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy;
         }
 
         private void ShowNonWalkableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3298,14 +3263,12 @@ namespace WalkmeshVisualizerWpf.Views
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimOutlinePolyLookup.ContainsKey(r.FileName)))
+            {
+                IsBusy = true;
                 UpdateLayerVisibilityWorker.RunWorkerAsync();
+            }
 
             UpdateNonWalkableVisibility();
-        }
-
-        private void ShowNonWalkableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy;
         }
 
         private void ShowTransAbortCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3314,14 +3277,12 @@ namespace WalkmeshVisualizerWpf.Views
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimTransAbortPoints.ContainsKey(r.FileName)))
+            {
+                IsBusy = true;
                 UpdateLayerVisibilityWorker.RunWorkerAsync();
+            }
 
             UpdateTransAbortPointVisibility();
-        }
-
-        private void ShowTransAbortCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy;
         }
 
         private void ShowTransAbortRegionCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3330,14 +3291,12 @@ namespace WalkmeshVisualizerWpf.Views
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimTransRegions.ContainsKey(r.FileName)))
+            {
+                IsBusy = true;
                 UpdateLayerVisibilityWorker.RunWorkerAsync();
+            }
 
             UpdateTransAbortRegionVisibility();
-        }
-
-        private void ShowTransAbortRegionCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy && OnRims.Count < 2;
         }
 
         private void ShowDefaultSpawnPoints_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3346,14 +3305,12 @@ namespace WalkmeshVisualizerWpf.Views
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimDefaultSpawnPoint.ContainsKey(r.FileName)))
+            {
+                IsBusy = true;
                 UpdateLayerVisibilityWorker.RunWorkerAsync();
+            }
 
             UpdateDefaultSpawnPointVisibility();
-        }
-
-        private void ShowDefaultSpawnPoints_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy;
         }
 
         private void ShowDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3368,15 +3325,10 @@ namespace WalkmeshVisualizerWpf.Views
                 foreach (var rdi in visibleRimDataInfo) HideDlzLines(rdi);
         }
 
-        private void ShowDlzLines_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy;
-        }
-
         private void ShowAllOfRimData_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var rdis = ((e.Source as Button)
-                .DataContext as ObservableCollection<RimDataInfo>)
+                .Tag as ObservableCollection<RimDataInfo>)
                 .Where(rdi => !rdi.MeshVisible);
             foreach (var rdi in rdis) HandleRimDataInfo(rdi);
         }
@@ -3384,7 +3336,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowAllOfRimData_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             var anyHidden = ((e.Source as Button)
-                ?.DataContext as ObservableCollection<RimDataInfo>)
+                ?.Tag as ObservableCollection<RimDataInfo>)
                 ?.Any(rdi => !rdi.MeshVisible) ?? false;
             e.CanExecute = !IsBusy && anyHidden;
         }
@@ -3392,7 +3344,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void HideAllOfRimData_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var rdis = ((e.Source as Button)
-                .DataContext as ObservableCollection<RimDataInfo>)
+                .Tag as ObservableCollection<RimDataInfo>)
                 .Where(rdi => rdi.MeshVisible);
             foreach (var rdi in rdis) HandleRimDataInfo(rdi);
         }
@@ -3400,7 +3352,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void HideAllOfRimData_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             var anyVisible = ((e.Source as Button)
-                ?.DataContext as ObservableCollection<RimDataInfo>)
+                ?.Tag as ObservableCollection<RimDataInfo>)
                 ?.Any(rdi => rdi.MeshVisible) ?? false;
             e.CanExecute = !IsBusy && anyVisible;
         }

@@ -139,8 +139,15 @@
         <help:ScaleToPercentConverter x:Key="scaleToPercentConverter" />
         <help:ScaleTextToPercentConverter x:Key="scaleTextToPercentConverter" />
         <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <help:VisibilityToBoolConverter x:Key="VisibilityToBoolConverter" />
         <help:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
         <help:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <help:AnyVisibleRdiConverter x:Key="AnyVisibleRdiConverter" />
+        <help:AnyHiddenRdiConverter x:Key="AnyHiddenRdiConverter" />
+        <help:StringEqualsConverter x:Key="StringEqualsConverter" />
+        <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
+        <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
+        <help:BoolMultiConverter x:Key="BoolMultiConverter" />
         <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
         <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
         <help:MatchRectFillMultiConverter x:Key="MatchRectFillMultiConverter" />
@@ -185,37 +192,26 @@
         <CommandBinding
             Command="{StaticResource Commands.LoadK1}"
             Executed="LoadK1_Executed"
-            CanExecute="LoadK1_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.LoadK2}"
             Executed="LoadK2_Executed"
-            CanExecute="LoadK2_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.LoadCustom}"
             Executed="LoadCustom_Executed"
-            CanExecute="LoadCustom_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.RemoveAll}"
             Executed="RemoveAll_Executed"
-            CanExecute="RemoveAll_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.SwapGame}"
             Executed="SwapGame_Executed"
-            CanExecute="SwapGame_CanExecute"
-            />
-        <CommandBinding
-            Command="{StaticResource Commands.ClearCache}"
-            Executed="ClearCache_Executed"
-            CanExecute="ClearCache_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.FindMatchingCoords}"
             Executed="FindMatchingCoords_Executed"
-            CanExecute="FindMatchingCoords_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.FifteenHundredPercent}"
@@ -252,57 +248,40 @@
         <CommandBinding
             Command="{StaticResource Commands.ShowWalkable}"
             Executed="ShowWalkableCommand_Executed"
-            CanExecute="ShowWalkableCommand_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowNonWalkable}"
             Executed="ShowNonWalkableCommand_Executed"
-            CanExecute="ShowNonWalkableCommand_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
             Executed="ShowDefaultSpawnPoints_Executed"
-            CanExecute="ShowDefaultSpawnPoints_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowTransAbort}"
             Executed="ShowTransAbortCommand_Executed"
-            CanExecute="ShowTransAbortCommand_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowTransAbortRegion}"
             Executed="ShowTransAbortRegionCommand_Executed"
-            CanExecute="ShowTransAbortRegionCommand_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowDlzLines}"
             Executed="ShowDlzLines_Executed"
-            CanExecute="ShowDlzLines_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowLivePosition}"
             Executed="ShowLivePosition_Executed"
             CanExecute="ShowLivePosition_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.ShowAllOfRimData}"
             Executed="ShowAllOfRimData_Executed"
-            CanExecute="ShowAllOfRimData_CanExecute"
             />
-
         <CommandBinding
             Command="{StaticResource Commands.HideAllOfRimData}"
             Executed="HideAllOfRimData_Executed"
-            CanExecute="HideAllOfRimData_CanExecute"
             />
-
     </Window.CommandBindings>
 
     <DockPanel>
@@ -349,6 +328,7 @@
                     Command="{StaticResource Commands.ShowWalkable}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/WalkIcon.png" />
@@ -359,6 +339,7 @@
                     Command="{StaticResource Commands.ShowNonWalkable}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/NonWalkIcon.png" />
@@ -370,6 +351,7 @@
                     Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowDefaultSpawnPoints, Mode=TwoWay}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/DefaultSpawnPointIcon.png" />
@@ -380,6 +362,7 @@
                     Command="{StaticResource Commands.ShowTransAbort}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/GatherPartyIcon.png" />
@@ -391,6 +374,12 @@
                     IsCheckable="True"
                     IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
                     >
+                    <MenuItem.IsEnabled>
+                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                            <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                            <Binding Path="OnRims.Count" Converter="{StaticResource IntLessEqualConverter}" ConverterParameter="1" />
+                        </MultiBinding>
+                    </MenuItem.IsEnabled>
                     <MenuItem.Icon>
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </MenuItem.Icon>
@@ -401,6 +390,7 @@
                     Command="{StaticResource Commands.ShowDlzLines}"
                     IsCheckable="True"
                     IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                     >
                     <MenuItem.Icon>
                         <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
@@ -644,13 +634,21 @@
                             </Grid.Resources>
 
                             <!-- Match coordinates button. -->
-                            <Button
-                                Grid.Row="0"
-                                Content="Update Matches"
-                                Margin="5,0"
-                                Width="290"
-                                Command="{StaticResource Commands.FindMatchingCoords}"
-                                />
+                            <Button Grid.Row="0" Content="Update Matches"
+                                    Margin="5,0" Width="290"
+                                    Command="{StaticResource Commands.FindMatchingCoords}"
+                                    >
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                        <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                        <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="LeftOrRightClickPointVisible" />
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                            </Button>
 
                             <!-- No point set text. -->
                             <TextBlock
@@ -658,8 +656,7 @@
                                 Margin="5,5,5,0"
                                 Text="Place a point by double clicking to begin matching walkmesh coordinates."
                                 TextWrapping="Wrap"
-                                Width="290"
-                                >
+                                Width="290">
                                 <TextBlock.Visibility>
                                     <MultiBinding Converter="{StaticResource OrInverseBoolToVisibilityMultiConverter}">
                                         <Binding Path="LeftClickPointVisible" />
@@ -950,17 +947,38 @@
                                     </CheckBox>
                                 </StackPanel>
 
-                                <StackPanel HorizontalAlignment="Right">
+                                <StackPanel HorizontalAlignment="Right"
+                                            IsEnabled="{Binding RimDoors.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
                                     <Button Content="Show All" Margin="0"
-                                            DataContext="{Binding RimDoors}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.ShowAllOfRimData}"
-                                            />
+                                            Tag="{Binding RimDoors}"
+                                            >
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="HiddenRimDoors" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                     <Button Content="Hide All" Margin="5,0,0,0"
-                                            DataContext="{Binding RimDoors}"
+                                            Tag="{Binding RimDoors}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.HideAllOfRimData}"
-                                            />
+                                            >
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="VisibleRimDoors" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                 </StackPanel>
 
                                 <ListView
@@ -1020,17 +1038,38 @@
                                     </CheckBox>
                                 </StackPanel>
 
-                                <StackPanel HorizontalAlignment="Right">
+                                <StackPanel HorizontalAlignment="Right"
+                                            IsEnabled="{Binding RimDoors.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
                                     <Button Content="Show All" Margin="0"
-                                            DataContext="{Binding RimTriggers}"
+                                            Tag="{Binding RimTriggers}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.ShowAllOfRimData}"
-                                            />
+                                            >
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="HiddenRimTriggers" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                     <Button Content="Hide All" Margin="5,0,0,0"
-                                            DataContext="{Binding RimTriggers}"
+                                            Tag="{Binding RimTriggers}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.HideAllOfRimData}"
-                                            />
+                                            >
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="VisibleRimTriggers" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                 </StackPanel>
 
                                 <ListView
@@ -1089,17 +1128,38 @@
                                     </CheckBox>
                                 </StackPanel>
 
-                                <StackPanel HorizontalAlignment="Right">
+                                <StackPanel HorizontalAlignment="Right"
+                                            IsEnabled="{Binding RimDoors.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
                                     <Button Content="Show All" Margin="0"
-                                            DataContext="{Binding RimEncounters}"
+                                            Tag="{Binding RimEncounters}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.ShowAllOfRimData}"
-                                            />
+                                            >
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="HiddenRimEncounters" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                     <Button Content="Hide All" Margin="5,0,0,0"
-                                            DataContext="{Binding RimEncounters}"
+                                            Tag="{Binding RimEncounters}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.HideAllOfRimData}"
-                                            />
+                                            >
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="VisibleRimEncounters" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                 </StackPanel>
 
                                 <ListView
@@ -1207,16 +1267,42 @@
                                    HorizontalAlignment="Right" VerticalAlignment="Center" />
 
                         <StackPanel Grid.Column="2" HorizontalAlignment="Center"
-                                    Orientation="Horizontal" VerticalAlignment="Center" >
+                                    Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </StackPanel.IsEnabled>
                             <StackPanel.Resources>
                                 <Style TargetType="Button">
                                     <Setter Property="Margin" Value="2,0" />
                                     <Setter Property="Width" Value="60" />
                                 </Style>
                             </StackPanel.Resources>
-                            <Button Content="KotOR 1" Command="{StaticResource Commands.LoadK1}" />
-                            <Button Content="KotOR 2" Command="{StaticResource Commands.LoadK2}" />
-                            <Button Content="Custom" Command="{StaticResource Commands.LoadCustom}" />
+                            <Button Content="KotOR 1" Command="{StaticResource Commands.LoadK1}">
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="Or">
+                                        <Binding Path="SelectedGame" Converter="{StaticResource StringEqualsConverter}" ConverterParameter="Kotor 2" />
+                                        <Binding Path="SelectedGame" Converter="{StaticResource StringEqualsConverter}" ConverterParameter="N/A" />
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                            </Button>
+                            <Button Content="KotOR 2" Command="{StaticResource Commands.LoadK2}">
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="Or">
+                                        <Binding Path="SelectedGame" Converter="{StaticResource StringEqualsConverter}" ConverterParameter="Kotor 1" />
+                                        <Binding Path="SelectedGame" Converter="{StaticResource StringEqualsConverter}" ConverterParameter="N/A" />
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                            </Button>
+                            <Button Content="Custom" Command="{StaticResource Commands.LoadCustom}">
+                                <Button.IsEnabled>
+                                    <Binding Path="SelectedGame" Converter="{StaticResource StringEqualsConverter}" ConverterParameter="N/A" />
+                                </Button.IsEnabled>
+                            </Button>
                         </StackPanel>
                     </Grid>
 
@@ -1238,7 +1324,17 @@
                         <TextBlock Text="{Binding SelectedGame}" Grid.Column="2" Margin="0,0,10,0" />
 
                         <Button Content="Swap Game" Grid.Column="3" Width="75"
-                                Command="{StaticResource Commands.SwapGame}" />
+                                Command="{StaticResource Commands.SwapGame}">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                        </Button>
                     </Grid>
                 </StackPanel>
 
@@ -1335,10 +1431,18 @@
                     </ListView>
 
                     <Button Grid.Row="2" Margin="0,5" Content="Remove All"
-                            Command="{StaticResource Commands.RemoveAll}" />
-                    <Button Grid.Row="3" Margin="0,0,0,5" Content="Clear Cache"
-                            Command="{StaticResource Commands.ClearCache}"
-                            Visibility="Collapsed"/>
+                            Command="{StaticResource Commands.RemoveAll}">
+                        <Button.IsEnabled>
+                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                            </MultiBinding>
+                        </Button.IsEnabled>
+                    </Button>
                 </Grid>
 
                 <!-- Resize the active and inactive lists. -->
@@ -1431,6 +1535,7 @@
                         Margin="2,0"
                         ToolTip="Show walkable faces. (Ctrl+W)"
                         IsChecked="{Binding ShowWalkableFaces, Mode=TwoWay}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowWalkable}"
                         >
                         <Image Source="../Resources/WalkIcon.png" />
@@ -1439,6 +1544,7 @@
                         Margin="2,0"
                         ToolTip="Show non-walkable faces. (Ctrl+Shift+W)"
                         IsChecked="{Binding ShowNonWalkableFaces, Mode=TwoWay}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowNonWalkable}"
                         >
                         <Image Source="../Resources/NonWalkIcon.png" />
@@ -1448,6 +1554,7 @@
                         Margin="2,0"
                         ToolTip="Show default spawn points. (Ctrl+D)"
                         IsChecked="{Binding ShowDefaultSpawnPoints, Mode=TwoWay}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
                         >
                         <Image Source="../Resources/DefaultSpawnPointIcon.png" />
@@ -1456,6 +1563,7 @@
                         Margin="2,0"
                         ToolTip="Show gather party points. (Ctrl+G)"
                         IsChecked="{Binding ShowTransAbortPoints, Mode=TwoWay}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowTransAbort}"
                         >
                         <Image Source="../Resources/GatherPartyIcon.png" />
@@ -1464,8 +1572,13 @@
                         Margin="2,0"
                         ToolTip="Show gather party regions. (Ctrl+Shift+G)"
                         IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
-                        Command="{StaticResource Commands.ShowTransAbortRegion}"
-                        >
+                        Command="{StaticResource Commands.ShowTransAbortRegion}">
+                        <ToggleButton.IsEnabled>
+                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                <Binding Path="OnRims.Count" Converter="{StaticResource IntLessEqualConverter}" ConverterParameter="1" />
+                            </MultiBinding>
+                        </ToggleButton.IsEnabled>
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </ToggleButton>
                     <Separator />
@@ -1473,6 +1586,7 @@
                         Margin="2,0"
                         ToolTip="Show displaced loading zone (DLZ) lines. (Ctrl+Z)"
                         IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowDlzLines}"
                         >
                         <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
@@ -1485,6 +1599,13 @@
                         IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowLivePosition}"
                         >
+                        <!--DataContext="{Binding LivePositionWorker}"-->
+                        <!--<ToggleButton.IsEnabled>
+                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="Or">
+                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                <Binding Path="CancellationPending" Converter="{StaticResource InverseBooleanConverter}" />
+                            </MultiBinding>
+                        </ToggleButton.IsEnabled>-->
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="View follows live position."
