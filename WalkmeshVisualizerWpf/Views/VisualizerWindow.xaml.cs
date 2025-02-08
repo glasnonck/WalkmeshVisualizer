@@ -99,6 +99,9 @@ namespace WalkmeshVisualizerWpf.Views
             HotswapToLiveGame = settings.HotswapToLiveGame;
             ViewFollowsLivePosition = settings.ViewFollowsLivePosition;
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
+
+            if (ShowTransAbortRegions) content.Background = Brushes.Black;
+            if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
         }
 
         #endregion // END REGION Constructors
@@ -596,6 +599,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showEncountersOnAddRim, value);
         }
         private bool _showEncountersOnAddRim = true;
+
+        public Brush CoordinateTextBrush
+        {
+            get => _coordinateTextBrush;
+            set => SetField(ref _coordinateTextBrush, value);
+        }
+        private Brush _coordinateTextBrush = Brushes.Black;
 
         #endregion // END REGION DataBinding Members
 
@@ -3219,12 +3229,14 @@ namespace WalkmeshVisualizerWpf.Views
             if (ShowTransAbortRegions)
             {
                 content.Background = Brushes.Black;
+                CoordinateTextBrush = Brushes.White;
                 if (rimmodel == null) return;
                 UpdateRimFillColor(null, GrayScaleBrush, rimmodel);
             }
             else
             {
                 content.Background = Brushes.White;
+                CoordinateTextBrush = Brushes.Black;
                 if (rimmodel == null) return;
                 UpdateRimFillColor(null, RimToBrushUsed[rimmodel.FileName], rimmodel);
             }

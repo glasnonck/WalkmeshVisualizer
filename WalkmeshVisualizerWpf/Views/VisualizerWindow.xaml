@@ -1712,6 +1712,7 @@
 
                                 <Style TargetType="TextBlock">
                                     <Setter Property="FontSize" Value="4" />
+                                    <Setter Property="Foreground" Value="{Binding CoordinateTextBrush}" />
                                 </Style>
                             </Canvas.Resources>
 
