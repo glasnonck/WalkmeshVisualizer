@@ -238,5 +238,17 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["LivePositionUpdateDelay"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowRimDataUnderMouse {
+            get {
+                return ((bool)(this["ShowRimDataUnderMouse"]));
+            }
+            set {
+                this["ShowRimDataUnderMouse"] = value;
+            }
+        }
     }
 }

@@ -13,6 +13,7 @@
     MinHeight="600" Height="800"
     MinWidth="800" Width="1200"
     Loaded="MainWindow_Loaded"
+    Closing="MainWindow_Closing"
     Closed="MainWindow_Closed"
     Icon="../Resources/Icon.png"
     d:DataContext="{d:DesignInstance views:VisualizerWindow, IsDesignTimeCreatable=False}"
@@ -133,6 +134,8 @@
         <RoutedUICommand x:Key="Commands.ShowAllOfRimData" />
         <RoutedUICommand x:Key="Commands.HideAllOfRimData" />
 
+        <RoutedUICommand x:Key="Commands.RunMouseHoverWorker" />
+
         <!--
         Converters.
         -->
@@ -145,9 +148,11 @@
         <help:AnyVisibleRdiConverter x:Key="AnyVisibleRdiConverter" />
         <help:AnyHiddenRdiConverter x:Key="AnyHiddenRdiConverter" />
         <help:StringEqualsConverter x:Key="StringEqualsConverter" />
+        <help:StringNotEqualsConverter x:Key="StringNotEqualsConverter" />
         <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
         <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
         <help:BoolMultiConverter x:Key="BoolMultiConverter" />
+        <help:BoolToVisibilityMultiConverter x:Key="BoolToVisibilityMultiConverter" />
         <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
         <help:OrInverseBoolToVisibilityMultiConverter x:Key="OrInverseBoolToVisibilityMultiConverter" />
         <help:MatchRectFillMultiConverter x:Key="MatchRectFillMultiConverter" />
@@ -282,6 +287,10 @@
             Command="{StaticResource Commands.HideAllOfRimData}"
             Executed="HideAllOfRimData_Executed"
             />
+        <CommandBinding
+            Command="{StaticResource Commands.RunMouseHoverWorker}"
+            Executed="RunMouseHoverWorker_Executed"
+            />
     </Window.CommandBindings>
 
     <DockPanel>
@@ -385,6 +394,16 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
+                <MenuItem
+                    Header="_Identify RIM data under mouse."
+                    Command="{StaticResource Commands.RunMouseHoverWorker}"
+                    IsCheckable="True"
+                    IsChecked="{Binding ShowDlzLines, Mode=OneWay}"
+                    >
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/MouseHoverIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem
                     Header="Show Displaced Loading _Zone (DLZ) Lines"
                     Command="{StaticResource Commands.ShowDlzLines}"
@@ -1583,6 +1602,15 @@
                     </ToggleButton>
                     <Separator />
                     <ToggleButton
+                        x:Name="MouseHoverToggleButton"
+                        Margin="2,0"
+                        ToolTip="Identify RIM data under mouse."
+                        IsChecked="{Binding ShowRimDataUnderMouse, Mode=OneWay}"
+                        Command="{StaticResource Commands.RunMouseHoverWorker}"
+                        >
+                        <Image Source="../Resources/MouseHoverIcon.png" />
+                    </ToggleButton>
+                    <ToggleButton
                         Margin="2,0"
                         ToolTip="Show displaced loading zone (DLZ) lines. (Ctrl+Z)"
                         IsChecked="{Binding ShowDlzLines, Mode=TwoWay}"
@@ -1599,13 +1627,6 @@
                         IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowLivePosition}"
                         >
-                        <!--DataContext="{Binding LivePositionWorker}"-->
-                        <!--<ToggleButton.IsEnabled>
-                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="Or">
-                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                <Binding Path="CancellationPending" Converter="{StaticResource InverseBooleanConverter}" />
-                            </MultiBinding>
-                        </ToggleButton.IsEnabled>-->
                         <Image Source="../Resources/LivePositionIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="View follows live position."
@@ -1831,6 +1852,29 @@
                     </Grid>
                 </ZoomAndPan:ZoomAndPanControl>
             </ScrollViewer>
+
+            <Grid Grid.Column="0" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Margin="10" Padding="10" Background="LightGray"
+                        BorderThickness="1" BorderBrush="Black"
+                        Visibility="{Binding ShowRimDataUnderMouse, Converter={StaticResource BoolToVisibilityConverter}}"
+                        CornerRadius="4" Opacity=".85">
+                    <!--<Border.Visibility>
+                        <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
+                            <Binding Path="ShowRimDataUnderMouse" />
+                            <Binding Path="RimDataUnderMouse" Converter="{StaticResource StringNotEqualsConverter}" ConverterParameter="" />
+                        </MultiBinding>
+                    </Border.Visibility>-->
+                    <TextBlock Text="{Binding RimDataUnderMouse}" />
+                </Border>
+            </Grid>
 
         </Grid>
     </DockPanel>

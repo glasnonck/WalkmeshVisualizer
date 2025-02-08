@@ -56,6 +56,16 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
     }
 
+    public class StringNotEqualsConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value.ToString().ToLower() != parameter.ToString().ToLower();
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
+
     public class StringEqualsConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -91,6 +101,38 @@ namespace WalkmeshVisualizerWpf.Helpers
             // Note: One way by design
             throw new NotImplementedException();
         }
+    }
+
+    public class BoolToVisibilityMultiConverter : IMultiValueConverter
+    {
+        enum Operator { Unknown = 0, And = 1, Or = 2, }
+
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            foreach (var value in values) if (!bool.TryParse(value.ToString(), out _)) return Visibility.Collapsed;
+
+            var op = (Operator)Enum.Parse(typeof(Operator), parameter.ToString());
+            if (op == Operator.And)
+            {
+                var combined = true;
+                foreach (var value in values) combined &= (bool)value;
+                return combined ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (op == Operator.Or)
+            {
+                var combined = false;
+                foreach (var value in values) combined |= (bool)value;
+                return combined ? Visibility.Visible : Visibility.Collapsed;
+            }
+            return Visibility.Collapsed;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 
     public class BoolMultiConverter : IMultiValueConverter

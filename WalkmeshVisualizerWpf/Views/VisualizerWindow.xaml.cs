@@ -39,6 +39,15 @@ namespace WalkmeshVisualizerWpf.Views
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
             CurrentRimDataInfoBrush = BrushCycle.First();
 
+            BrushToName.Add(BrushCycle[0], "Blue");
+            BrushToName.Add(BrushCycle[1], "Green");
+            BrushToName.Add(BrushCycle[2], "Red");
+            BrushToName.Add(BrushCycle[3], "Cyan");
+            BrushToName.Add(BrushCycle[4], "Magenta");
+            BrushToName.Add(BrushCycle[5], "Yellow");
+            BrushToName.Add(Brushes.Black, "Black");
+            BrushToName.Add(Brushes.White, "White");
+
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
 
@@ -72,6 +81,12 @@ namespace WalkmeshVisualizerWpf.Views
             LivePositionWorker.RunWorkerCompleted += LivePositionWorker_RunWorkerCompleted;
             LivePositionWorker.DoWork += LivePositionWorker_DoWork;
 
+            // Set up MouseHoverWorker
+            MouseHoverWorker.WorkerReportsProgress = false;
+            MouseHoverWorker.WorkerSupportsCancellation = true;
+            MouseHoverWorker.RunWorkerCompleted += MouseHoverWorker_RunWorkerCompleted;
+            MouseHoverWorker.DoWork += MouseHoverWorker_DoWork;
+
             DataContext = this;
         }
 
@@ -92,16 +107,17 @@ namespace WalkmeshVisualizerWpf.Views
             ShowDoorsOnAddRim = settings.ShowDoorsOnAddRim;
             ShowTriggersOnAddRim = settings.ShowTriggersOnAddRim;
             ShowEncountersOnAddRim = settings.ShowEncountersOnAddRim;
-            ShowLivePosition = settings.ShowLivePosition;
             ShowLivePositionCoordinates = settings.ShowLivePositionCoordinates;
             HidePreviousLiveModule = settings.HidePreviousLiveModule;
             ShowCurrentLiveModule = settings.ShowCurrentLiveModule;
             HotswapToLiveGame = settings.HotswapToLiveGame;
             ViewFollowsLivePosition = settings.ViewFollowsLivePosition;
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
+            ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
 
             if (ShowTransAbortRegions) content.Background = Brushes.Black;
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
+            if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
         }
 
         #endregion // END REGION Constructors
@@ -198,6 +214,8 @@ namespace WalkmeshVisualizerWpf.Views
             { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
         };
 
+        private Dictionary<Brush, string> BrushToName { get; set; } = new Dictionary<Brush, string>();
+
         private Brush CurrentRimDataInfoBrush { get; set; }
 
         private List<Brush> BrushCycle { get; set; }
@@ -217,6 +235,7 @@ namespace WalkmeshVisualizerWpf.Views
         public BackgroundWorker UpdateLayerVisibilityWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker RemovePolyWorker { get; set; } = new BackgroundWorker();
         public BackgroundWorker LivePositionWorker { get; set; } = new BackgroundWorker();
+        public BackgroundWorker MouseHoverWorker { get; set; } = new BackgroundWorker();
 
         public bool K1Loaded { get; set; }
         public bool K2Loaded { get; set; }
@@ -232,6 +251,7 @@ namespace WalkmeshVisualizerWpf.Views
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
         private const string K2_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR2";
+        private const string MOUSE_OVER_DEFAULT_STRING = "Mouse is above these items:";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
@@ -606,6 +626,34 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _coordinateTextBrush, value);
         }
         private Brush _coordinateTextBrush = Brushes.Black;
+
+        public bool ShowRimDataUnderMouse
+        {
+            get => _showRimDataUnderMouse;
+            set => SetField(ref _showRimDataUnderMouse, value);
+        }
+        private bool _showRimDataUnderMouse = false;
+
+        public Point CurrentMousePosition
+        {
+            get => _currentMousePosition;
+            set => SetField(ref _currentMousePosition, value);
+        }
+        private Point _currentMousePosition = new Point();
+
+        public string RimDataUnderMouse
+        {
+            get => _rimDataUnderMouse;
+            set => SetField(ref _rimDataUnderMouse, value);
+        }
+        private string _rimDataUnderMouse = MOUSE_OVER_DEFAULT_STRING;
+
+        public int MouseHoverUpdateDelay
+        {
+            get => _mouseHoverUpdateDelay;
+            set => SetField(ref _mouseHoverUpdateDelay, value);
+        }
+        private int _mouseHoverUpdateDelay = 50;
 
         #endregion // END REGION DataBinding Members
 
@@ -2770,6 +2818,23 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region Menu Related Command Methods
 
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            var waitTime = 0;
+            if (LivePositionWorker.IsBusy)
+            {
+                LivePositionWorker.CancelAsync();
+                waitTime = LivePositionUpdateDelay * 2;
+            }
+            if (MouseHoverWorker.IsBusy)
+            {
+                MouseHoverWorker.CancelAsync();
+                waitTime = Math.Max(waitTime, MouseHoverUpdateDelay * 2);
+            }
+
+            if (waitTime > 0) Thread.Sleep(waitTime);
+        }
+
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             var settings = Properties.Settings.Default;
@@ -2784,13 +2849,13 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowDoorsOnAddRim = ShowDoorsOnAddRim;
             settings.ShowTriggersOnAddRim = ShowTriggersOnAddRim;
             settings.ShowEncountersOnAddRim = ShowEncountersOnAddRim;
-            settings.ShowLivePosition = ShowLivePosition;
             settings.ShowLivePositionCoordinates = ShowLivePositionCoordinates;
             settings.HidePreviousLiveModule = HidePreviousLiveModule;
             settings.ShowCurrentLiveModule = ShowCurrentLiveModule;
             settings.HotswapToLiveGame = HotswapToLiveGame;
             settings.ViewFollowsLivePosition = ViewFollowsLivePosition;
             settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
+            settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
             settings.Save();
         }
 
@@ -3163,8 +3228,68 @@ namespace WalkmeshVisualizerWpf.Views
         private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ShowLivePosition = false;
-            ShowLivePosition = false;
+            //ShowLivePosition = false;
             LivePositionToggleButton.IsEnabled = true;
+        }
+
+        #endregion
+
+        #region Mouse Hover Methods
+
+        private void RunMouseHoverWorker_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            ShowRimDataUnderMouse = true;
+
+            if (MouseHoverWorker.IsBusy)
+            {
+                MouseHoverToggleButton.IsEnabled = false;
+                MouseHoverWorker.CancelAsync();
+            }
+            else
+            {
+                MouseHoverWorker.RunWorkerAsync();
+            }
+        }
+
+        private void MouseHoverWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            var mousePosition = new Point();
+            IEnumerable<RimDataInfo> visibleRimData = new List<RimDataInfo>();
+            var bw = sender as BackgroundWorker;
+            var message = string.Empty;
+
+            while (true)
+            {
+                if (bw.CancellationPending) break;
+
+                content.Dispatcher.Invoke(() =>
+                {
+                    mousePosition = Mouse.GetPosition(content);
+                    mousePosition.X -= LeftOffset;
+                    mousePosition.Y = theGrid.Height - mousePosition.Y - BottomOffset;
+                    visibleRimData = RimDoors
+                        .Concat(RimTriggers)
+                        .Concat(RimEncounters)
+                        .Where(r => r.MeshVisible);
+                    message = string.Join(Environment.NewLine, visibleRimData
+                        .Where(r => r.IsTouching(mousePosition))
+                        .Select(r => $"{r.RimDataType,-12}\t{BrushToName[r.MeshColor],-7}\t      {r.ResRef}")
+                        .ToArray());
+                });
+
+                RimDataUnderMouse = $"Mouse is above these items:{Environment.NewLine}{message}".TrimEnd();
+                Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
+                sw.Restart();
+            }
+        }
+
+        private void MouseHoverWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            ShowRimDataUnderMouse = false;
+            RimDataUnderMouse = MOUSE_OVER_DEFAULT_STRING;
+            MouseHoverToggleButton.IsEnabled = true;
         }
 
         #endregion

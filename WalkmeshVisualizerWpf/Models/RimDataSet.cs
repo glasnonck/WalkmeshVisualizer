@@ -61,9 +61,9 @@ namespace WalkmeshVisualizerWpf.Models
                     RimData.Add(module);
                 }
 
-                // Create doors file for K2...
                 foreach (var door in module.Doors)
                 {
+                    door.RimDataType = RimDataType.Door;
                     door.Module = module.Module;
                     for (int i = 0; i < door.CornersX.Count; i++)
                         door.Geometry.Add(new Tuple<float, float>(door.CornersX[i], door.CornersY[i]));
@@ -218,9 +218,18 @@ namespace WalkmeshVisualizerWpf.Models
         }
     }
 
+    public enum RimDataType
+    {
+        Unknown = 0,
+        Door,
+        Trigger,
+        Encounter,
+    }
+
     [Serializable]
     public class RimDataInfo : INotifyPropertyChanged, IComparable<RimDataInfo>
     {
+        public RimDataType RimDataType { get; set; }
         public string Module { get; set; }
         public string ResRef { get; set; }
         public List<float> CornersX { get; set; } = new List<float>();
@@ -245,6 +254,7 @@ namespace WalkmeshVisualizerWpf.Models
 
         public RimDataInfo(RimDataSet.Trigger trigger, string module = "")
         {
+            RimDataType = RimDataType.Trigger;
             Module = module;
             ResRef = trigger.TemplateResRef;
             Geometry = trigger.Corners;
@@ -252,6 +262,7 @@ namespace WalkmeshVisualizerWpf.Models
 
         public RimDataInfo(RimDataSet.Encounter encounter, string module = "")
         {
+            RimDataType = RimDataType.Encounter;
             Module = module;
             ResRef = encounter.TemplateResRef;
             Geometry = encounter.Corners;
@@ -337,22 +348,35 @@ namespace WalkmeshVisualizerWpf.Models
             }
         }
 
-        public bool IsTouching(Point p)
+        public bool IsTouching(Point testPoint)
         {
-            const double NEAR_POINT_DISTANCE = 1.0;
-            var output = false;
-
             // True if near a spawn point.
+            const double NEAR_POINT_DISTANCE = 3.0;
             foreach (var sp in SpawnPoints)
             {
-                if ((new Point(sp.Item1, sp.Item2) - p).Length >= NEAR_POINT_DISTANCE)
+                if ((new Point(sp.Item1, sp.Item2) - testPoint).Length <= NEAR_POINT_DISTANCE)
                     return true;
             }
 
-            // True if inside geometry.
-            // TODO: write inside check
+            // Determine if point is inside geometry.
+            var result = false;
+            int j = Geometry.Count - 1;
+            for (int i = 0; i < Geometry.Count; i++)
+            {
+                if (Geometry[i].Item2 < testPoint.Y && Geometry[j].Item2 >= testPoint.Y ||
+                    Geometry[j].Item2 < testPoint.Y && Geometry[i].Item2 >= testPoint.Y)
+                {
+                    if (Geometry[i].Item1 + (testPoint.Y - Geometry[i].Item2) /
+                        (Geometry[j].Item2 - Geometry[i].Item2) *
+                        (Geometry[j].Item1 - Geometry[i].Item1) < testPoint.X)
+                    {
+                        result = !result;
+                    }
+                }
+                j = i;
+            }
 
-            return output;
+            return result;
         }
 
     }
