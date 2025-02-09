@@ -590,6 +590,24 @@
             </Expander.Resources>
 
             <TabControl>
+                <!--TabStripPlacement="Left"-->
+                <!--<TabControl.Resources>
+                    <Style TargetType="{x:Type TabItem}">
+                        <Setter Property="HeaderTemplate">
+                            <Setter.Value>
+                                <DataTemplate>
+                                    <ContentPresenter Content="{TemplateBinding Content}">
+                                        <ContentPresenter.LayoutTransform>
+                                            <RotateTransform Angle="270" />
+                                        </ContentPresenter.LayoutTransform>
+                                    </ContentPresenter>
+                                </DataTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Padding" Value="2,8" />
+                    </Style>
+                </TabControl.Resources>-->
+                
                 <TabItem Header="Coords">
                     <Border 
                         BorderBrush="Black"
@@ -969,9 +987,9 @@
                                 <StackPanel HorizontalAlignment="Right"
                                             IsEnabled="{Binding RimDoors.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
                                     <Button Content="Show All" Margin="0"
+                                            Tag="{Binding RimDoors}"
                                             Style="{StaticResource btnRimDataShowHide}"
                                             Command="{StaticResource Commands.ShowAllOfRimData}"
-                                            Tag="{Binding RimDoors}"
                                             >
                                         <Button.IsEnabled>
                                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1058,7 +1076,7 @@
                                 </StackPanel>
 
                                 <StackPanel HorizontalAlignment="Right"
-                                            IsEnabled="{Binding RimDoors.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
+                                            IsEnabled="{Binding RimTriggers.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
                                     <Button Content="Show All" Margin="0"
                                             Tag="{Binding RimTriggers}"
                                             Style="{StaticResource btnRimDataShowHide}"
@@ -1148,7 +1166,7 @@
                                 </StackPanel>
 
                                 <StackPanel HorizontalAlignment="Right"
-                                            IsEnabled="{Binding RimDoors.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
+                                            IsEnabled="{Binding RimEncounters.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
                                     <Button Content="Show All" Margin="0"
                                             Tag="{Binding RimEncounters}"
                                             Style="{StaticResource btnRimDataShowHide}"

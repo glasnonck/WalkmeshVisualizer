@@ -80,12 +80,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CSWSOBJECT_TAG;
 
         public uint[] AREA_NAME;
-
-        public uint AREA_NAME_BASE;
-        public uint AREA_NAME_OFF1;
-        public uint AREA_NAME_OFF2;
-        public uint AREA_NAME_OFF3;
-        public uint AREA_NAME_OFF4;
+        public uint[] LOAD_DIRECTION;
 
         public KotorAddresses(int version = 1)
         {
@@ -109,6 +104,7 @@ namespace WalkmeshVisualizerWpf.Helpers
                 LEADER_Y_POS = 0x0083392c;
                 LEADER_Z_POS = 0x00833930;
                 CAMERA_ANGLE = new uint[] { 0x00833bb4, 0x20, 0x184, 0x58c };
+                LOAD_DIRECTION = new uint[] { 0x007a39fc, 0x4, 0x4, 0x278, 0xc8 };
             }
             else if (version == 2)
             {
@@ -130,6 +126,7 @@ namespace WalkmeshVisualizerWpf.Helpers
                 LEADER_Y_POS = 0x00a13460;
                 LEADER_Z_POS = 0x00a13464;
                 CAMERA_ANGLE = new uint[] { };
+                LOAD_DIRECTION = new uint[] { 0x00a11c04, 0x4, 0x4, 0x278, 0xd0 };
             }
             else
             {
@@ -156,6 +153,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             LEADER_X_POS = 0x00a7fe84;
             LEADER_Y_POS = 0x00a7fe88;
             LEADER_Z_POS = 0x00a7fe8c;
+            LOAD_DIRECTION = new uint[] { 0x00a1b4a4, 0x4, 0x4, 0x278, 0xd0 };
         }
 
         public static uint GetGOAIndexFromServerID(uint id)
@@ -357,6 +355,16 @@ namespace WalkmeshVisualizerWpf.Helpers
             return areaGameObjectPointer;
         }
 
+        public bool SetLoadDirection()
+        {
+            //if (version == 2) { pr.hasFailed = true; return 0; }
+            pr.GetFinalPointerAddress(ka.LOAD_DIRECTION, out uint address);
+            if (pr.hasFailed) return false;
+            pr.WriteUint(address, 0);
+            if (pr.hasFailed) return false;
+            return true;
+        }
+
         public bool TestRead()
         {
             var readSuccess = pr.ReadInt(ka.ADDRESS_BASE, out int testRead);
@@ -369,11 +377,39 @@ namespace WalkmeshVisualizerWpf.Helpers
     {
         const int PROCESS_WM_READ = 0x0010;
 
+        [Flags]
+        public enum ProcessAccessFlags : uint
+        {
+            All = 0x001F0FFF,
+            Terminate = 0x00000001,
+            CreateThread = 0x00000002,
+            VMOperation = 0x00000008,
+            VMRead = 0x00000010,
+            VMWrite = 0x00000020,
+            DupHandle = 0x00000040,
+            SetInformation = 0x00000200,
+            QueryInformation = 0x00000400,
+            Synchronize = 0x00100000
+        }
+
+        #region Write Signatures
         [DllImport("kernel32.dll")]
-        public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+        static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out int lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll")]
+        public static extern Int32 CloseHandle(IntPtr hProcess);
+        #endregion
+
+        #region Read Signatures
+        //[DllImport("kernel32.dll")]
+        //public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
         [DllImport("kernel32.dll")]
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
+        #endregion
 
         public Process p;
         public IntPtr h;
@@ -383,7 +419,8 @@ namespace WalkmeshVisualizerWpf.Helpers
         {
             p = Process.GetProcessesByName(processName).FirstOrDefault();
             if (p == null) throw new NullReferenceException($"Process {processName} does not exist.");
-            h = OpenProcess(PROCESS_WM_READ, false, p.Id);
+            h = OpenProcess(ProcessAccessFlags.All, false, p.Id);
+            //h = OpenProcess(PROCESS_WM_READ, false, p.Id);
         }
 
         public int GetModuleSize() => p.MainModule.ModuleMemorySize;
@@ -431,6 +468,16 @@ namespace WalkmeshVisualizerWpf.Helpers
                 output = BitConverter.ToUInt32(buffer, 0);
                 return true;
             }
+
+            hasFailed = true;
+            return false;
+        }
+
+        public bool WriteUint(uint address, uint input)
+        {
+            var buffer = new byte[] { (byte)input };
+            if (WriteProcessMemory(h, new IntPtr(address), buffer, (uint)buffer.Length, out int wtf))
+                return true;
 
             hasFailed = true;
             return false;

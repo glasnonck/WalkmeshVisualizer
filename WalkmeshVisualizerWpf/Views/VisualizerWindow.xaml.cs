@@ -3033,6 +3033,12 @@ namespace WalkmeshVisualizerWpf.Views
                                 km = null;
                                 continue;
                             }
+                            else if(!km.SetLoadDirection())
+                            {
+                                km = null;
+                                Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
+                                sw.Restart();
+                            }
                         }
                     }
                     if (km != null)
@@ -3045,6 +3051,7 @@ namespace WalkmeshVisualizerWpf.Views
                             {
                                 // Get current module
                                 km.pr.ReadAreaName(version, km.ka.AREA_NAME, out nextModuleName);
+                                if (nextModuleName == null) { km = null; continue; }
                                 var null_index = nextModuleName.IndexOf('\0');
                                 if (null_index >= 0) nextModuleName = nextModuleName.Substring(0, null_index);
                             }
@@ -3495,5 +3502,10 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion
+
+        private void TabControl_Selected(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
