@@ -14,6 +14,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using KotOR_IO;
 using KotOR_IO.GffFile;
@@ -635,12 +636,19 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _liveGatherPartyRangePoint = new Point();
 
-        public Point LastGatherPartyRangePosition
+        //public Point LastGatherPartyRangePosition
+        //{
+        //    get => _lastGatherPartyRangePosition;
+        //    set => SetField(ref _lastGatherPartyRangePosition, value);
+        //}
+        //private Point _lastGatherPartyRangePosition = new Point();
+
+        public Point3D LastGatherPartyRangePosition
         {
             get => _lastGatherPartyRangePosition;
             set => SetField(ref _lastGatherPartyRangePosition, value);
         }
-        private Point _lastGatherPartyRangePosition = new Point();
+        private Point3D _lastGatherPartyRangePosition = new Point3D();
 
         public Point LastGatherPartyRangePoint
         {
@@ -3183,41 +3191,49 @@ namespace WalkmeshVisualizerWpf.Views
 
                             // Get current position and bearing
                             km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
-                            var partyPositions = km.GetPartyPositions();
+                            //var partyPositions = km.GetPartyPositions();
+                            var partyPositions3D = km.GetPartyPositions3D();
                             var partyBearings = km.GetPartyBearings();
                             var partyInRange = true;
 
                             // Handle party leader
-                            LivePositionPoint = partyPositions[0];
+                            //LivePositionPoint = partyPositions[0];
+                            LivePositionPoint = new Point(partyPositions3D[0].X, partyPositions3D[0].Y);
                             LiveLeaderBearing = partyBearings[0];
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
                             if (!LockGatherPartyRange)
                             {
                                 LiveGatherPartyRangePoint = LivePositionEllipsePoint;
-                                LastGatherPartyRangePosition = LivePositionPoint;
+                                //LastGatherPartyRangePosition = LivePositionPoint;
+                                LastGatherPartyRangePosition = partyPositions3D[0];
                                 LastGatherPartyRangePoint = LivePositionEllipsePoint;
                             }
                             else
                             {
-                                var leaderDistSq = (LastGatherPartyRangePosition - partyPositions[0]).LengthSquared;
+                                //var leaderDist = (LastGatherPartyRangePosition - partyPositions[0]).Length;
+                                var leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[0]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
                             }
 
                             // Handle party member 1
                             if (partyCount > 1)
                             {
-                                var leaderDistSq = (partyPositions[0] - partyPositions[1]).LengthSquared;
+                                //var leaderDist = (partyPositions[0] - partyPositions[1]).Length;
+                                var leaderDistSq = (partyPositions3D[0] - partyPositions3D[1]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
-                                LivePositionEllipsePointPC1 = new Point(partyPositions[1].X + LeftOffset - 0.5, partyPositions[1].Y + BottomOffset - 0.5);
+                                //LivePositionEllipsePointPC1 = new Point(partyPositions[1].X + LeftOffset - 0.5, partyPositions[1].Y + BottomOffset - 0.5);
+                                LivePositionEllipsePointPC1 = new Point(partyPositions3D[1].X + LeftOffset - 0.5, partyPositions3D[1].Y + BottomOffset - 0.5);
                                 LiveBearingPC1 = partyBearings[1];
                             }
 
                             // Handle party member 2
                             if (partyCount > 2)
                             {
-                                var leaderDistSq = (partyPositions[0] - partyPositions[2]).LengthSquared;
+                                //var leaderDist = (partyPositions[0] - partyPositions[2]).Length;
+                                var leaderDistSq = (partyPositions3D[0] - partyPositions3D[2]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
-                                LivePositionEllipsePointPC2 = new Point(partyPositions[2].X + LeftOffset - 0.5, partyPositions[2].Y + BottomOffset - 0.5);
+                                //LivePositionEllipsePointPC2 = new Point(partyPositions[2].X + LeftOffset - 0.5, partyPositions[2].Y + BottomOffset - 0.5);
+                                LivePositionEllipsePointPC2 = new Point(partyPositions3D[2].X + LeftOffset - 0.5, partyPositions3D[2].Y + BottomOffset - 0.5);
                                 LiveBearingPC2 = partyBearings[2];
                             }
 

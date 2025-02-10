@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Media3D;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
@@ -317,6 +318,31 @@ namespace WalkmeshVisualizerWpf.Helpers
             pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_X_POS, out x);
             pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_Y_POS, out y);
             output.Add(new Point(x, y));
+
+            return output;
+        }
+
+        public List<Point3D> GetPartyPositions3D()
+        {
+            var output = new List<Point3D>();
+
+            // PC0
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_Z_POS, out float z);
+            output.Add(new Point3D(x, y, z));
+
+            // PC1
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_X_POS, out x);
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_Y_POS, out y);
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_Z_POS, out z);
+            output.Add(new Point3D(x, y, z));
+
+            // PC2
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_X_POS, out x);
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_Y_POS, out y);
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_Z_POS, out z);
+            output.Add(new Point3D(x, y, z));
 
             return output;
         }

@@ -1835,7 +1835,9 @@
                                   Canvas.Left="{Binding LastGatherPartyRangePoint.X}"
                                   Canvas.Bottom="{Binding LastGatherPartyRangePoint.Y}"
                                   Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <Ellipse Fill="{Binding LiveGatherPartyRangeStrokeBrush}" Width="1" Height="1">
+                                <Ellipse Fill="{Binding LiveGatherPartyRangeStrokeBrush}"
+                                         Stroke="Goldenrod" StrokeThickness=".1"
+                                         Width="1" Height="1">
                                     <Ellipse.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
                                             <Binding Path="ShowGatherPartyRange" />
