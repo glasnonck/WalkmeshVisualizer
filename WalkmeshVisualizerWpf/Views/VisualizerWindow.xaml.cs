@@ -114,6 +114,7 @@ namespace WalkmeshVisualizerWpf.Views
             ViewFollowsLivePosition = settings.ViewFollowsLivePosition;
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
+            ShowGatherPartyRange = settings.ShowGatherPartyRange;
 
             if (ShowTransAbortRegions) content.Background = Brushes.Black;
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
@@ -2873,6 +2874,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ViewFollowsLivePosition = ViewFollowsLivePosition;
             settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
+            settings.ShowGatherPartyRange = ShowGatherPartyRange;
             settings.Save();
         }
 
@@ -3103,7 +3105,7 @@ namespace WalkmeshVisualizerWpf.Views
                             }
 
                             // Get current position
-                            LiveLeaderBearing = km.GetPlayerBearing();
+                            LiveLeaderBearing = km.GetLeaderBearing();
                             LivePositionPoint = km.GetLeaderPosition();
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
 

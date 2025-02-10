@@ -58,6 +58,9 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CSWSOBJECT_X_POS;
         public uint OFFSET_CSWSOBJECT_Y_POS;
         public uint OFFSET_CSWSOBJECT_Z_POS;
+        public uint OFFSET_CSWSOBJECT_X_DIR;
+        public uint OFFSET_CSWSOBJECT_Y_DIR;
+        public uint OFFSET_CSWSOBJECT_Z_DIR;
         public uint LEADER_BEARING;
         public uint LEADER_X_POS;
         public uint LEADER_Y_POS;
@@ -95,6 +98,9 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_X_POS = 0x90;
                 OFFSET_CSWSOBJECT_Y_POS = 0x94;
                 OFFSET_CSWSOBJECT_Z_POS = 0x98;
+                OFFSET_CSWSOBJECT_X_DIR = 0x9c;
+                OFFSET_CSWSOBJECT_Y_DIR = 0xa0;
+                OFFSET_CSWSOBJECT_Z_DIR = 0xa4;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x284;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x288;
 
@@ -117,6 +123,9 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_X_POS = 0x94;
                 OFFSET_CSWSOBJECT_Y_POS = 0x98;
                 OFFSET_CSWSOBJECT_Z_POS = 0x9c;
+                OFFSET_CSWSOBJECT_X_DIR = 0xa0;
+                OFFSET_CSWSOBJECT_Y_DIR = 0xa4;
+                OFFSET_CSWSOBJECT_Z_DIR = 0xa8;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x2c4;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x2c8;
 
@@ -261,6 +270,16 @@ namespace WalkmeshVisualizerWpf.Helpers
             //pr.ReadFloat(ka.LEADER_X_POS, out float x);
             //pr.ReadFloat(ka.LEADER_Y_POS, out float y);
             return new Point(x, y);
+        }
+
+        public float GetLeaderBearing()
+        {
+            var pgo = GetPlayerGameObject();
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_DIR, out float x);
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_DIR, out float y);
+            if (x == 0) return y >= 0 ?  0f : 180f;
+            if (y == 0) return x >= 0 ? 90f : -90f;
+            return (float)(180 / Math.PI * Math.Atan2(y, x)) - 90f;
         }
 
         public float GetPlayerBearing()
