@@ -558,12 +558,40 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _livePositionEllipsePoint = new Point();
 
+        public Point LivePositionEllipsePointPC1
+        {
+            get => _livePositionEllipsePointPC1;
+            set => SetField(ref _livePositionEllipsePointPC1, value);
+        }
+        private Point _livePositionEllipsePointPC1 = new Point();
+
+        public Point LivePositionEllipsePointPC2
+        {
+            get => _livePositionEllipsePointPC2;
+            set => SetField(ref _livePositionEllipsePointPC2, value);
+        }
+        private Point _livePositionEllipsePointPC2 = new Point();
+
         public float LiveLeaderBearing
         {
             get => _liveLeaderBearing;
             set => SetField(ref _liveLeaderBearing, value);
         }
         private float _liveLeaderBearing = 0f;
+
+        public float LiveBearingPC1
+        {
+            get => _liveBearingPC1;
+            set => SetField(ref _liveBearingPC1, value);
+        }
+        private float _liveBearingPC1 = 0f;
+
+        public float LiveBearingPC2
+        {
+            get => _liveBearingPC2;
+            set => SetField(ref _liveBearingPC2, value);
+        }
+        private float _liveBearingPC2 = 0f;
 
         public bool HidePreviousLiveModule
         {
@@ -973,6 +1001,12 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 content.Children.Remove(liveGatherPartyRange);
                 _ = content.Children.Add(liveGatherPartyRange);
+
+                content.Children.Remove(livePositionArrowPC2);
+                _ = content.Children.Add(livePositionArrowPC2);
+
+                content.Children.Remove(livePositionArrowPC1);
+                _ = content.Children.Add(livePositionArrowPC1);
 
                 content.Children.Remove(livePositionArrow);
                 _ = content.Children.Add(livePositionArrow);
@@ -3104,10 +3138,29 @@ namespace WalkmeshVisualizerWpf.Views
                                 km.RefreshAddresses();
                             }
 
-                            // Get current position
-                            LiveLeaderBearing = km.GetLeaderBearing();
-                            LivePositionPoint = km.GetLeaderPosition();
+                            // Get current position and bearing
+                            km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
+                            var partyPositions = km.GetPartyPositions();
+                            var partyBearings = km.GetPartyBearings();
+
+                            // Handle party leader
+                            LivePositionPoint = partyPositions[0];
+                            LiveLeaderBearing = partyBearings[0];
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
+
+                            // Handle party member 1
+                            if (partyCount > 1)
+                            {
+                                LivePositionEllipsePointPC1 = new Point(partyPositions[1].X + LeftOffset - 0.5, partyPositions[1].Y + BottomOffset - 0.5);
+                                LiveBearingPC1 = partyBearings[1];
+                            }
+
+                            // Handle party member 2
+                            if (partyCount > 2)
+                            {
+                                LivePositionEllipsePointPC2 = new Point(partyPositions[2].X + LeftOffset - 0.5, partyPositions[2].Y + BottomOffset - 0.5);
+                                LiveBearingPC2 = partyBearings[2];
+                            }
 
                             // Follow live position
                             if (ViewFollowsLivePosition)
