@@ -1659,6 +1659,10 @@
                                   IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
                         <Image Source="../Resources/HidePreviousModuleIcon.png" />
                     </ToggleButton>
+                    <ToggleButton Margin="2,0" ToolTip="Show gather party range."
+                                  IsChecked="{Binding ShowGatherPartyRange, Mode=TwoWay}">
+                        <Image Source="../Resources/GatherPartyRangeIcon.png" />
+                    </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show live coordinates on canvas."
                                   IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -1822,6 +1826,19 @@
                                         </TransformGroup>
                                     </Polygon.RenderTransform>
                                 </Polygon>
+                            </Grid>
+                            <Grid x:Name="liveGatherPartyRange" Margin="0"
+                                  Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                  Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
+                                  Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Ellipse Stroke="{Binding LiveGatherPartyRangeBrush}"
+                                         StrokeThickness=".1"
+                                         Width="60" Height="60"
+                                         Visibility="{Binding ShowGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Ellipse.RenderTransform>
+                                        <TranslateTransform X="-29.5" Y="29.5" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
                             </Grid>
 
                             <!--Octagon for correct player shape-->

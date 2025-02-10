@@ -599,6 +599,20 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private int _livePositionUpdateDelay = 50;
 
+        public bool ShowGatherPartyRange
+        {
+            get => _showGatherPartyRange;
+            set => SetField(ref _showGatherPartyRange, value);
+        }
+        private bool _showGatherPartyRange = false;
+
+        public Brush LiveGatherPartyRangeBrush
+        {
+            get => _liveGatherPartyRangeBrush;
+            set => SetField(ref _liveGatherPartyRangeBrush, value);
+        }
+        private Brush _liveGatherPartyRangeBrush = Brushes.Green;
+
         public bool ShowDoorsOnAddRim
         {
             get => _showDoorsOnAddRim;
@@ -956,6 +970,9 @@ namespace WalkmeshVisualizerWpf.Views
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                content.Children.Remove(liveGatherPartyRange);
+                _ = content.Children.Add(liveGatherPartyRange);
+
                 content.Children.Remove(livePositionArrow);
                 _ = content.Children.Add(livePositionArrow);
 
