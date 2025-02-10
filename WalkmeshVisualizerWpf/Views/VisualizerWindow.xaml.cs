@@ -114,6 +114,7 @@ namespace WalkmeshVisualizerWpf.Views
             ViewFollowsLivePosition = settings.ViewFollowsLivePosition;
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
+            ShowGatherPartyRange = settings.ShowGatherPartyRange;
 
             if (ShowTransAbortRegions) content.Background = Brushes.Black;
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
@@ -557,12 +558,40 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _livePositionEllipsePoint = new Point();
 
+        public Point LivePositionEllipsePointPC1
+        {
+            get => _livePositionEllipsePointPC1;
+            set => SetField(ref _livePositionEllipsePointPC1, value);
+        }
+        private Point _livePositionEllipsePointPC1 = new Point();
+
+        public Point LivePositionEllipsePointPC2
+        {
+            get => _livePositionEllipsePointPC2;
+            set => SetField(ref _livePositionEllipsePointPC2, value);
+        }
+        private Point _livePositionEllipsePointPC2 = new Point();
+
         public float LiveLeaderBearing
         {
             get => _liveLeaderBearing;
             set => SetField(ref _liveLeaderBearing, value);
         }
         private float _liveLeaderBearing = 0f;
+
+        public float LiveBearingPC1
+        {
+            get => _liveBearingPC1;
+            set => SetField(ref _liveBearingPC1, value);
+        }
+        private float _liveBearingPC1 = 0f;
+
+        public float LiveBearingPC2
+        {
+            get => _liveBearingPC2;
+            set => SetField(ref _liveBearingPC2, value);
+        }
+        private float _liveBearingPC2 = 0f;
 
         public bool HidePreviousLiveModule
         {
@@ -598,6 +627,60 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _livePositionUpdateDelay, value);
         }
         private int _livePositionUpdateDelay = 50;
+
+        public Point LiveGatherPartyRangePoint
+        {
+            get => _liveGatherPartyRangePoint;
+            set => SetField(ref _liveGatherPartyRangePoint, value);
+        }
+        private Point _liveGatherPartyRangePoint = new Point();
+
+        public Point LastGatherPartyRangePosition
+        {
+            get => _lastGatherPartyRangePosition;
+            set => SetField(ref _lastGatherPartyRangePosition, value);
+        }
+        private Point _lastGatherPartyRangePosition = new Point();
+
+        public Point LastGatherPartyRangePoint
+        {
+            get => _lastGatherPartyRangePoint;
+            set => SetField(ref _lastGatherPartyRangePoint, value);
+        }
+        private Point _lastGatherPartyRangePoint = new Point();
+
+        public bool ShowGatherPartyRange
+        {
+            get => _showGatherPartyRange;
+            set => SetField(ref _showGatherPartyRange, value);
+        }
+        private bool _showGatherPartyRange = false;
+
+        public bool LockGatherPartyRange
+        {
+            get => _lockGatherPartyRange;
+            set => SetField(ref _lockGatherPartyRange, value);
+        }
+        private bool _lockGatherPartyRange = false;
+
+        public Brush LiveGatherPartyRangeFillBrush
+        {
+            get => _liveGatherPartyRangeFillBrush;
+            set => SetField(ref _liveGatherPartyRangeFillBrush, value);
+        }
+        private Brush _liveGatherPartyRangeFillBrush = Brushes.Green;
+
+        public Brush LiveGatherPartyRangeStrokeBrush
+        {
+            get => _liveGatherPartyRangeStrokeBrush;
+            set => SetField(ref _liveGatherPartyRangeStrokeBrush, value);
+        }
+        private Brush _liveGatherPartyRangeStrokeBrush = Brushes.Green;
+
+        private SolidColorBrush gprStrokeGreen = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF });
+        private SolidColorBrush gprStrokeRed   = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0xFF });
+        private SolidColorBrush gprFillGreen   = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0x22 });
+        private SolidColorBrush gprFillRed     = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0x22 });
 
         public bool ShowDoorsOnAddRim
         {
@@ -956,6 +1039,18 @@ namespace WalkmeshVisualizerWpf.Views
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                content.Children.Remove(liveGatherPartyRange);
+                _ = content.Children.Add(liveGatherPartyRange);
+
+                content.Children.Remove(lastGatherPartyRangePosition);
+                _ = content.Children.Add(lastGatherPartyRangePosition);
+
+                content.Children.Remove(livePositionArrowPC2);
+                _ = content.Children.Add(livePositionArrowPC2);
+
+                content.Children.Remove(livePositionArrowPC1);
+                _ = content.Children.Add(livePositionArrowPC1);
+
                 content.Children.Remove(livePositionArrow);
                 _ = content.Children.Add(livePositionArrow);
 
@@ -2856,6 +2951,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ViewFollowsLivePosition = ViewFollowsLivePosition;
             settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
+            settings.ShowGatherPartyRange = ShowGatherPartyRange;
             settings.Save();
         }
 
@@ -3085,10 +3181,48 @@ namespace WalkmeshVisualizerWpf.Views
                                 km.RefreshAddresses();
                             }
 
-                            // Get current position
-                            LiveLeaderBearing = km.GetPlayerBearing();
-                            LivePositionPoint = km.GetLeaderPosition();
+                            // Get current position and bearing
+                            km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
+                            var partyPositions = km.GetPartyPositions();
+                            var partyBearings = km.GetPartyBearings();
+                            var partyInRange = true;
+
+                            // Handle party leader
+                            LivePositionPoint = partyPositions[0];
+                            LiveLeaderBearing = partyBearings[0];
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
+                            if (!LockGatherPartyRange)
+                            {
+                                LiveGatherPartyRangePoint = LivePositionEllipsePoint;
+                                LastGatherPartyRangePosition = LivePositionPoint;
+                                LastGatherPartyRangePoint = LivePositionEllipsePoint;
+                            }
+                            else
+                            {
+                                var leaderDistSq = (LastGatherPartyRangePosition - partyPositions[0]).LengthSquared;
+                                partyInRange = partyInRange && leaderDistSq <= 900.0;
+                            }
+
+                            // Handle party member 1
+                            if (partyCount > 1)
+                            {
+                                var leaderDistSq = (partyPositions[0] - partyPositions[1]).LengthSquared;
+                                partyInRange = partyInRange && leaderDistSq <= 900.0;
+                                LivePositionEllipsePointPC1 = new Point(partyPositions[1].X + LeftOffset - 0.5, partyPositions[1].Y + BottomOffset - 0.5);
+                                LiveBearingPC1 = partyBearings[1];
+                            }
+
+                            // Handle party member 2
+                            if (partyCount > 2)
+                            {
+                                var leaderDistSq = (partyPositions[0] - partyPositions[2]).LengthSquared;
+                                partyInRange = partyInRange && leaderDistSq <= 900.0;
+                                LivePositionEllipsePointPC2 = new Point(partyPositions[2].X + LeftOffset - 0.5, partyPositions[2].Y + BottomOffset - 0.5);
+                                LiveBearingPC2 = partyBearings[2];
+                            }
+
+                            LiveGatherPartyRangeStrokeBrush = partyInRange ? gprStrokeGreen : gprStrokeRed;
+                            LiveGatherPartyRangeFillBrush   = partyInRange ? gprFillGreen   : gprFillRed;
 
                             // Follow live position
                             if (ViewFollowsLivePosition)

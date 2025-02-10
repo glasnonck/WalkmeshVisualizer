@@ -58,6 +58,9 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CSWSOBJECT_X_POS;
         public uint OFFSET_CSWSOBJECT_Y_POS;
         public uint OFFSET_CSWSOBJECT_Z_POS;
+        public uint OFFSET_CSWSOBJECT_X_DIR;
+        public uint OFFSET_CSWSOBJECT_Y_DIR;
+        public uint OFFSET_CSWSOBJECT_Z_DIR;
         public uint LEADER_BEARING;
         public uint LEADER_X_POS;
         public uint LEADER_Y_POS;
@@ -71,6 +74,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CLIENT;
         public uint OFFSET_SERVER;
         public uint OFFSET_INTERNAL;
+        public uint OFFSET_CSWPARTY;
         public uint OFFSET_SERVER_GAME_OBJ_ARR;
         public uint OFFSET_CLIENT_PLAYER_ID;
         public uint OFFSET_AREA_GAME_OBJECT_ARRAY;
@@ -78,6 +82,9 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_GAME_OBJECT_TYPE;
         public uint OFFSET_CEXOSTRING_LENGTH;
         public uint OFFSET_CSWSOBJECT_TAG;
+
+        public uint OFFSET_CSWPARTY_PARTY_DATA;
+        public uint SIZE_CSWPARTY_PARTY_DATA;
 
         public uint[] AREA_NAME;
         public uint[] LOAD_DIRECTION;
@@ -95,6 +102,9 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_X_POS = 0x90;
                 OFFSET_CSWSOBJECT_Y_POS = 0x94;
                 OFFSET_CSWSOBJECT_Z_POS = 0x98;
+                OFFSET_CSWSOBJECT_X_DIR = 0x9c;
+                OFFSET_CSWSOBJECT_Y_DIR = 0xa0;
+                OFFSET_CSWSOBJECT_Z_DIR = 0xa4;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x284;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x288;
 
@@ -117,6 +127,9 @@ namespace WalkmeshVisualizerWpf.Helpers
                 OFFSET_CSWSOBJECT_X_POS = 0x94;
                 OFFSET_CSWSOBJECT_Y_POS = 0x98;
                 OFFSET_CSWSOBJECT_Z_POS = 0x9c;
+                OFFSET_CSWSOBJECT_X_DIR = 0xa0;
+                OFFSET_CSWSOBJECT_Y_DIR = 0xa4;
+                OFFSET_CSWSOBJECT_Z_DIR = 0xa8;
                 OFFSET_CSWSTRIGGER_GEOMETRY_COUNT = 0x2c4;
                 OFFSET_CSWSTRIGGER_GEOMETRY = 0x2c8;
 
@@ -137,6 +150,9 @@ namespace WalkmeshVisualizerWpf.Helpers
             OFFSET_CLIENT = 0x4;
             OFFSET_SERVER = 0x8;
             OFFSET_INTERNAL = 0x4;
+            OFFSET_CSWPARTY = 0x270;
+            OFFSET_CSWPARTY_PARTY_DATA = 0x24;
+            SIZE_CSWPARTY_PARTY_DATA = 0x88;
             OFFSET_SERVER_GAME_OBJ_ARR = 0x1005c;
             OFFSET_CLIENT_PLAYER_ID = 0x20;
             OFFSET_AREA_GAME_OBJECT_ARRAY = 0x74;
@@ -258,15 +274,86 @@ namespace WalkmeshVisualizerWpf.Helpers
             var pgo = GetPlayerGameObject();
             pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
             pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
-            //pr.ReadFloat(ka.LEADER_X_POS, out float x);
-            //pr.ReadFloat(ka.LEADER_Y_POS, out float y);
             return new Point(x, y);
         }
 
-        public float GetPlayerBearing()
+        public float GetLeaderBearing()
         {
-            pr.ReadFloat(ka.LEADER_BEARING, out float b);
-            return b;
+            var pgo = GetPlayerGameObject();
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_X_DIR, out float x);
+            pr.ReadFloat(pgo + ka.OFFSET_CSWSOBJECT_Y_DIR, out float y);
+            if (y == 0) return x <= 0 ? 90f : -90f;
+            if (x == 0) return y >= 0 ?  0f : 180f;
+            return (float)(180 / Math.PI * Math.Atan2(y, x)) - 90f;
+        }
+
+        public uint GetPartyAddress()
+        {
+            pr.ReadUint(client_internal + ka.OFFSET_CSWPARTY, out uint party);
+            return party;
+        }
+
+        public uint GetPartyGameObject(uint index)
+        {
+            pr.ReadUint(GetPartyAddress() + ka.OFFSET_CSWPARTY_PARTY_DATA + index * ka.SIZE_CSWPARTY_PARTY_DATA, out uint pc_client_id);
+            return GetGameObjectByClientID(pc_client_id);
+        }
+
+        public List<Point> GetPartyPositions()
+        {
+            var output = new List<Point>();
+
+            // PC0
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_X_POS, out float x);
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_Y_POS, out float y);
+            output.Add(new Point(x, y));
+
+            // PC1
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_X_POS, out x);
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_Y_POS, out y);
+            output.Add(new Point(x, y));
+
+            // PC2
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_X_POS, out x);
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_Y_POS, out y);
+            output.Add(new Point(x, y));
+
+            return output;
+        }
+
+        public List<float> GetPartyBearings()
+        {
+            var output = new List<float>();
+            float degrees = 0f;
+
+            // PC0
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_X_DIR, out float x);
+            pr.ReadFloat(GetPartyGameObject(0) + ka.OFFSET_CSWSOBJECT_Y_DIR, out float y);
+            if (y == 0) degrees = x <= 0 ? 90f : -90f;
+            if (x == 0) degrees = y >= 0 ?  0f : 180f;
+            if (x != 0 && y != 0)
+                degrees = (float)(180 / Math.PI * Math.Atan2(y, x)) - 90f;
+            output.Add(degrees);
+
+            // PC1
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_X_DIR, out x);
+            pr.ReadFloat(GetPartyGameObject(1) + ka.OFFSET_CSWSOBJECT_Y_DIR, out y);
+            if (y == 0) degrees = x <= 0 ? 90f : -90f;
+            if (x == 0) degrees = y >= 0 ?  0f : 180f;
+            if (x != 0 && y != 0)
+                degrees = (float)(180 / Math.PI * Math.Atan2(y, x)) - 90f;
+            output.Add(degrees);
+
+            // PC2
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_X_DIR, out x);
+            pr.ReadFloat(GetPartyGameObject(2) + ka.OFFSET_CSWSOBJECT_Y_DIR, out y);
+            if (y == 0) degrees = x <= 0 ? 90f : -90f;
+            if (x == 0) degrees = y >= 0 ?  0f : 180f;
+            if (x != 0 && y != 0)
+                degrees = (float)(180 / Math.PI * Math.Atan2(y, x)) - 90f;
+            output.Add(degrees);
+
+            return output;
         }
 
         public float GetCameraAngle()
