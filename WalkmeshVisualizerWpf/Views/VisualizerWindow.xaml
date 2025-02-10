@@ -1659,6 +1659,14 @@
                                   IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
                         <Image Source="../Resources/HidePreviousModuleIcon.png" />
                     </ToggleButton>
+                    <ToggleButton Margin="2,0" ToolTip="Show gather party range."
+                                  IsChecked="{Binding ShowGatherPartyRange, Mode=TwoWay}">
+                        <Image Source="../Resources/GatherPartyRangeIcon.png" />
+                    </ToggleButton>
+                    <ToggleButton Margin="2,0" ToolTip="Lock gather party range in place."
+                                  IsChecked="{Binding LockGatherPartyRange, Mode=TwoWay}">
+                        <Image Source="../Resources/GatherPartyRangeLockIcon.png" />
+                    </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show live coordinates on canvas."
                                   IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -1823,6 +1831,34 @@
                                     </Polygon.RenderTransform>
                                 </Polygon>
                             </Grid>
+                            <Grid Name="lastGatherPartyRangePosition" Margin="0"
+                                  Canvas.Left="{Binding LastGatherPartyRangePoint.X}"
+                                  Canvas.Bottom="{Binding LastGatherPartyRangePoint.Y}"
+                                  Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Ellipse Fill="{Binding LiveGatherPartyRangeStrokeBrush}"
+                                         Stroke="Goldenrod" StrokeThickness=".1"
+                                         Width="1" Height="1">
+                                    <Ellipse.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="ShowGatherPartyRange" />
+                                            <Binding Path="LockGatherPartyRange" />
+                                        </MultiBinding>
+                                    </Ellipse.Visibility>
+                                </Ellipse>
+                            </Grid>
+                            <Grid x:Name="liveGatherPartyRange" Margin="0"
+                                  Canvas.Left="{Binding LiveGatherPartyRangePoint.X}"
+                                  Canvas.Bottom="{Binding LiveGatherPartyRangePoint.Y}"
+                                  Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Ellipse Stroke="{Binding LiveGatherPartyRangeStrokeBrush}"
+                                         Fill="{Binding LiveGatherPartyRangeFillBrush}"
+                                         StrokeThickness=".1" Width="60" Height="60"
+                                         Visibility="{Binding ShowGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Ellipse.RenderTransform>
+                                        <TranslateTransform X="-29.5" Y="29.5" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Grid>
 
                             <!--Octagon for correct player shape-->
                             <!--<Polygon Points="-2.4142,-1  -1,-2.4142  1,-2.4142  2.4142,-1  2.4142,1  1,2.4142  -1,2.4142  -2.4142,1"
@@ -1835,6 +1871,44 @@
                                     </TransformGroup>
                                 </Polygon.RenderTransform>
                             </Polygon>-->
+
+                            <Grid x:Name="livePositionArrowPC1" Margin="0"
+                                  Canvas.Left="{Binding LivePositionEllipsePointPC1.X}"
+                                  Canvas.Bottom="{Binding LivePositionEllipsePointPC1.Y}"
+                                  Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Ellipse Stroke="Black" Fill="#FA7300"
+                                         Style="{StaticResource CoordPoint}" />
+                                <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
+                                         Stroke="Black" Fill="#4E6BDF"
+                                         StrokeLineJoin="Round" StrokeThickness=".1">
+                                    <Polygon.RenderTransform>
+                                        <TransformGroup>
+                                            <RotateTransform Angle="{Binding LiveBearingPC1}" />
+                                            <TranslateTransform X=".5" Y="-.5" />
+                                            <ScaleTransform ScaleY="-1"/>
+                                        </TransformGroup>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+                            </Grid>
+                            
+                            <Grid x:Name="livePositionArrowPC2" Margin="0"
+                                  Canvas.Left="{Binding LivePositionEllipsePointPC2.X}"
+                                  Canvas.Bottom="{Binding LivePositionEllipsePointPC2.Y}"
+                                  Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Ellipse Stroke="Black" Fill="#FA7300"
+                                         Style="{StaticResource CoordPoint}" />
+                                <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
+                                         Stroke="Black" Fill="#4E6BDF"
+                                         StrokeLineJoin="Round" StrokeThickness=".1">
+                                    <Polygon.RenderTransform>
+                                        <TransformGroup>
+                                            <RotateTransform Angle="{Binding LiveBearingPC2}" />
+                                            <TranslateTransform X=".5" Y="-.5" />
+                                            <ScaleTransform ScaleY="-1"/>
+                                        </TransformGroup>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+                            </Grid>
 
                             <Border x:Name="livePositionCoords"
                                     Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
