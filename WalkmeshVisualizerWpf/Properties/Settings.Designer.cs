@@ -286,5 +286,41 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowRimDataPanel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("304")]
+        public double PrevLeftPanelSize {
+            get {
+                return ((double)(this["PrevLeftPanelSize"]));
+            }
+            set {
+                this["PrevLeftPanelSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("304")]
+        public double PrevRightPanelSize {
+            get {
+                return ((double)(this["PrevRightPanelSize"]));
+            }
+            set {
+                this["PrevRightPanelSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowModulePanel {
+            get {
+                return ((bool)(this["ShowModulePanel"]));
+            }
+            set {
+                this["ShowModulePanel"] = value;
+            }
+        }
     }
 }

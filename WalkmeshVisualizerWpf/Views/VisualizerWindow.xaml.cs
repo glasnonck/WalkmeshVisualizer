@@ -118,10 +118,16 @@ namespace WalkmeshVisualizerWpf.Views
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
             ShowCoordinatePanel = settings.ShowCoordinatePanel;
             ShowRimDataPanel = settings.ShowRimDataPanel;
+            ShowModulePanel = settings.ShowModulePanel;
+            prevLeftPanelSize = settings.PrevLeftPanelSize;
+            prevRightPanelSize = settings.PrevRightPanelSize;
 
             if (ShowTransAbortRegions) content.Background = Brushes.Black;
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
+
+            if (ShowCoordinatePanel || ShowRimDataPanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
+            //if (ShowModulePanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
         }
 
         #endregion // END REGION Constructors
@@ -212,13 +218,13 @@ namespace WalkmeshVisualizerWpf.Views
 
         private Dictionary<Brush, string> BrushThemeRainbow { get; set; } = new Dictionary<Brush, string>
         {
-            { new SolidColorBrush(new Color { R = 0xE8, G = 0x14, B = 0x16, A = 0xFF }), "Red" },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0xA5, B = 0x00, A = 0xFF }), "Orange" },
-            { new SolidColorBrush(new Color { R = 0xFA, G = 0xEB, B = 0x36, A = 0xFF }), "Yellow" },
-            { new SolidColorBrush(new Color { R = 0x79, G = 0xC3, B = 0x14, A = 0xFF }), "Green" },
-            { new SolidColorBrush(new Color { R = 0x48, G = 0x7D, B = 0xE7, A = 0xFF }), "Blue" },
-            { new SolidColorBrush(new Color { R = 0x4B, G = 0x36, B = 0x9D, A = 0xFF }), "Indigo" },
-            { new SolidColorBrush(new Color { R = 0x70, G = 0x36, B = 0x9D, A = 0xFF }), "Violet" },
+            { new SolidColorBrush(new Color { R = 0xff, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0xe2, G = 0x98, B = 0x18, A = 0xFF }), "Orange" },
+            { new SolidColorBrush(new Color { R = 0xff, G = 0xd7, B = 0x00, A = 0xFF }), "Yellow" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xff, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x4b, G = 0x00, B = 0x82, A = 0xFF }), "Indigo" },
+            { new SolidColorBrush(new Color { R = 0xee, G = 0x82, B = 0xee, A = 0xFF }), "Violet" },
         };
 
         private Dictionary<Brush, string> BrushThemeMuted { get; set; } = new Dictionary<Brush, string>
@@ -284,6 +290,9 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region DataBinding Members
 
+        private double prevLeftPanelSize = 304.0;
+        private double prevRightPanelSize = 304.0;
+
         public string Game { get; private set; }
 
         public string WindowTitle
@@ -308,6 +317,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showRimDataPanel, value);
         }
         private bool _showRimDataPanel = true;
+
+        public bool ShowModulePanel
+        {
+            get => _showModulePanel;
+            set => SetField(ref _showModulePanel, value);
+        }
+        private bool _showModulePanel = true;
 
         private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OnRims
@@ -3007,6 +3023,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowGatherPartyRange = ShowGatherPartyRange;
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
+            //settings.PrevRightPanelSize = ShowModulePanel ? prevRightPanelSize : columnRightPanel.ActualWidth;
             settings.Save();
         }
 
@@ -3142,6 +3160,21 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
             => ShowCoordinatePanel = false;
+
+        private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (ShowRimDataPanel || ShowCoordinatePanel)
+            {
+                columnLeftPanel.MinWidth = 215;
+                columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
+            }
+            else
+            {
+                columnLeftPanel.MinWidth = 0;
+                prevLeftPanelSize = columnLeftPanel.ActualWidth;
+                columnLeftPanel.Width = new GridLength(1, GridUnitType.Auto);
+            }
+        }
 
         #endregion
 

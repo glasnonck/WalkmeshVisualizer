@@ -68,5 +68,14 @@
     <Setting Name="ShowRimDataPanel" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="PrevLeftPanelSize" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">304</Value>
+    </Setting>
+    <Setting Name="PrevRightPanelSize" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">304</Value>
+    </Setting>
+    <Setting Name="ShowModulePanel" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
