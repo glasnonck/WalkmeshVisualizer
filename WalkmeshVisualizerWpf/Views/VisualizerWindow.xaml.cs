@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
+using System.Xml;
 using KotOR_IO;
 using KotOR_IO.GffFile;
 using KotOR_IO.Helpers;
@@ -37,15 +38,14 @@ namespace WalkmeshVisualizerWpf.Views
         {
             InitializeComponent();
             XmlGameData.Initialize();
+
+            // Grab current brush theme.
+            BrushToName = BrushThemeMuted;
+            foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
+
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
             CurrentRimDataInfoBrush = BrushCycle.First();
 
-            BrushToName.Add(BrushCycle[0], "Blue");
-            BrushToName.Add(BrushCycle[1], "Green");
-            BrushToName.Add(BrushCycle[2], "Red");
-            BrushToName.Add(BrushCycle[3], "Cyan");
-            BrushToName.Add(BrushCycle[4], "Magenta");
-            BrushToName.Add(BrushCycle[5], "Yellow");
             BrushToName.Add(Brushes.Black, "Black");
             BrushToName.Add(Brushes.White, "White");
 
@@ -116,6 +116,8 @@ namespace WalkmeshVisualizerWpf.Views
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
+            ShowCoordinatePanel = settings.ShowCoordinatePanel;
+            ShowRimDataPanel = settings.ShowRimDataPanel;
 
             if (ShowTransAbortRegions) content.Background = Brushes.Black;
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
@@ -206,14 +208,37 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Lookup of the brushes used to draw and how many meshes are currently using them.
         /// </summary>
-        private Dictionary<Brush, int> PolyBrushCount { get; set; } = new Dictionary<Brush, int>
+        private Dictionary<Brush, int> PolyBrushCount { get; set; } = new Dictionary<Brush, int>();
+
+        private Dictionary<Brush, string> BrushThemeRainbow { get; set; } = new Dictionary<Brush, string>
         {
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0xE8, G = 0x14, B = 0x16, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0xA5, B = 0x00, A = 0xFF }), "Orange" },
+            { new SolidColorBrush(new Color { R = 0xFA, G = 0xEB, B = 0x36, A = 0xFF }), "Yellow" },
+            { new SolidColorBrush(new Color { R = 0x79, G = 0xC3, B = 0x14, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0x48, G = 0x7D, B = 0xE7, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x4B, G = 0x36, B = 0x9D, A = 0xFF }), "Indigo" },
+            { new SolidColorBrush(new Color { R = 0x70, G = 0x36, B = 0x9D, A = 0xFF }), "Violet" },
+        };
+
+        private Dictionary<Brush, string> BrushThemeMuted { get; set; } = new Dictionary<Brush, string>
+        {
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x33, G = 0xCC, B = 0x33, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0xDD, G = 0x11, B = 0x11, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0x40, G = 0xE0, B = 0xD0, A = 0xFF }), "Turquoise" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x69, B = 0xB4, A = 0xFF }), "Hot Pink" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0xD7, B = 0x00, A = 0xFF }), "Gold" },
+        };
+
+        private Dictionary<Brush, string> BrushThemeOriginal { get; set; } = new Dictionary<Brush, string>
+        {
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), "Cyan" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), "Magenta" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), "Yellow" },
         };
 
         private Dictionary<Brush, string> BrushToName { get; set; } = new Dictionary<Brush, string>();
@@ -248,7 +273,6 @@ namespace WalkmeshVisualizerWpf.Views
         public const string LOADING = "Loading";
         public const string K1_NAME = "KotOR 1";
         public const string K2_NAME = "KotOR 2";
-        //private const string TRANS_ABORT_RESREF = "k_trans_abort";
         private const string K1_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
@@ -270,6 +294,20 @@ namespace WalkmeshVisualizerWpf.Views
                 return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
             }
         }
+
+        public bool ShowCoordinatePanel
+        {
+            get => _showCoordinatePanel;
+            set => SetField(ref _showCoordinatePanel, value);
+        }
+        private bool _showCoordinatePanel = false;
+
+        public bool ShowRimDataPanel
+        {
+            get => _showRimDataPanel;
+            set => SetField(ref _showRimDataPanel, value);
+        }
+        private bool _showRimDataPanel = true;
 
         private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OnRims
@@ -579,6 +617,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _liveLeaderBearing, value);
         }
         private float _liveLeaderBearing = 0f;
+
+        public uint LivePartyCount
+        {
+            get => _livePartyCount;
+            set => SetField(ref _livePartyCount, value);
+        }
+        private uint _livePartyCount = 0;
 
         public float LiveBearingPC1
         {
@@ -2960,6 +3005,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
             settings.ShowGatherPartyRange = ShowGatherPartyRange;
+            settings.ShowCoordinatePanel = ShowCoordinatePanel;
+            settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.Save();
         }
 
@@ -3088,6 +3135,16 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion
 
+        #region Left Panel Methods
+
+        private void CoordinatePanelButton_Click(object sender, RoutedEventArgs e)
+            => ShowRimDataPanel = false;
+
+        private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
+            => ShowCoordinatePanel = false;
+
+        #endregion
+
         #region Live Position Methods
 
         private void ShowLivePosition_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3191,6 +3248,7 @@ namespace WalkmeshVisualizerWpf.Views
 
                             // Get current position and bearing
                             km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
+                            LivePartyCount = partyCount;
                             //var partyPositions = km.GetPartyPositions();
                             var partyPositions3D = km.GetPartyPositions3D();
                             var partyBearings = km.GetPartyBearings();
@@ -3623,7 +3681,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var rdis = ((e.Source as Button)
                 .Tag as ObservableCollection<RimDataInfo>)
-                .Where(rdi => !rdi.MeshVisible);
+                .Where(rdi => !rdi.MeshVisible)
+                .ToList();
             foreach (var rdi in rdis) HandleRimDataInfo(rdi);
         }
 
@@ -3639,7 +3698,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var rdis = ((e.Source as Button)
                 .Tag as ObservableCollection<RimDataInfo>)
-                .Where(rdi => rdi.MeshVisible);
+                .Where(rdi => rdi.MeshVisible)
+                .ToList();
             foreach (var rdi in rdis) HandleRimDataInfo(rdi);
         }
 
@@ -3652,10 +3712,5 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion
-
-        private void TabControl_Selected(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

@@ -262,5 +262,29 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowGatherPartyRange"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowCoordinatePanel {
+            get {
+                return ((bool)(this["ShowCoordinatePanel"]));
+            }
+            set {
+                this["ShowCoordinatePanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRimDataPanel {
+            get {
+                return ((bool)(this["ShowRimDataPanel"]));
+            }
+            set {
+                this["ShowRimDataPanel"] = value;
+            }
+        }
     }
 }

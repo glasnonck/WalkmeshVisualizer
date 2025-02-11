@@ -103,6 +103,20 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
     }
 
+    public class UintGreaterEqualConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (uint)value >= uint.Parse(parameter.ToString());
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Note: One way by design
+            throw new NotImplementedException();
+        }
+    }
+
     public class BoolToVisibilityMultiConverter : IMultiValueConverter
     {
         enum Operator { Unknown = 0, And = 1, Or = 2, }
