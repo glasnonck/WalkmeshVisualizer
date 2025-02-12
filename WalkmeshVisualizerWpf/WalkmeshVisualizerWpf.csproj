@@ -148,6 +148,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\GatherPartyRangeLeftClickIcon.png" />
     <Resource Include="Resources\GatherPartyRangeLockIcon.png" />
     <Resource Include="Resources\GatherPartyRangeIcon.png" />
     <Resource Include="Resources\MouseHoverIcon.png" />

@@ -262,5 +262,77 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowGatherPartyRange"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowCoordinatePanel {
+            get {
+                return ((bool)(this["ShowCoordinatePanel"]));
+            }
+            set {
+                this["ShowCoordinatePanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRimDataPanel {
+            get {
+                return ((bool)(this["ShowRimDataPanel"]));
+            }
+            set {
+                this["ShowRimDataPanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("304")]
+        public double PrevLeftPanelSize {
+            get {
+                return ((double)(this["PrevLeftPanelSize"]));
+            }
+            set {
+                this["PrevLeftPanelSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("315")]
+        public double PrevRightPanelSize {
+            get {
+                return ((double)(this["PrevRightPanelSize"]));
+            }
+            set {
+                this["PrevRightPanelSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowWalkmeshPanel {
+            get {
+                return ((bool)(this["ShowWalkmeshPanel"]));
+            }
+            set {
+                this["ShowWalkmeshPanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowLeftClickGatherPartyRange {
+            get {
+                return ((bool)(this["ShowLeftClickGatherPartyRange"]));
+            }
+            set {
+                this["ShowLeftClickGatherPartyRange"] = value;
+            }
+        }
     }
 }

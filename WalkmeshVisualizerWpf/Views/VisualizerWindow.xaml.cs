@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -37,15 +38,14 @@ namespace WalkmeshVisualizerWpf.Views
         {
             InitializeComponent();
             XmlGameData.Initialize();
+
+            // Grab current brush theme.
+            BrushToName = BrushThemeMuted;
+            foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
+
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
             CurrentRimDataInfoBrush = BrushCycle.First();
 
-            BrushToName.Add(BrushCycle[0], "Blue");
-            BrushToName.Add(BrushCycle[1], "Green");
-            BrushToName.Add(BrushCycle[2], "Red");
-            BrushToName.Add(BrushCycle[3], "Cyan");
-            BrushToName.Add(BrushCycle[4], "Magenta");
-            BrushToName.Add(BrushCycle[5], "Yellow");
             BrushToName.Add(Brushes.Black, "Black");
             BrushToName.Add(Brushes.White, "White");
 
@@ -116,10 +116,25 @@ namespace WalkmeshVisualizerWpf.Views
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
+            ShowLeftClickGatherPartyRange = settings.ShowLeftClickGatherPartyRange;
+            ShowCoordinatePanel = settings.ShowCoordinatePanel;
+            ShowRimDataPanel = settings.ShowRimDataPanel;
+            ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
+            prevLeftPanelSize = settings.PrevLeftPanelSize;
+            prevRightPanelSize = settings.PrevRightPanelSize;
 
             if (ShowTransAbortRegions) content.Background = Brushes.Black;
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
+
+            if (ShowCoordinatePanel || ShowRimDataPanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
+            if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+
+            SetRimDataTypePanelVisibility(ShowRimDataDoors, "Door");
+            SetRimDataTypePanelVisibility(ShowRimDataTriggers, "Trigger");
+            SetRimDataTypePanelVisibility(ShowRimDataTraps, "Trap");
+            SetRimDataTypePanelVisibility(ShowRimDataZones, "Zone");
+            SetRimDataTypePanelVisibility(ShowRimDataEncounters, "Encounter");
         }
 
         #endregion // END REGION Constructors
@@ -206,14 +221,37 @@ namespace WalkmeshVisualizerWpf.Views
         /// <summary>
         /// Lookup of the brushes used to draw and how many meshes are currently using them.
         /// </summary>
-        private Dictionary<Brush, int> PolyBrushCount { get; set; } = new Dictionary<Brush, int>
+        private Dictionary<Brush, int> PolyBrushCount { get; set; } = new Dictionary<Brush, int>();
+
+        private Dictionary<Brush, string> BrushThemeRainbow { get; set; } = new Dictionary<Brush, string>
         {
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), 0 },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), 0 },
+            { new SolidColorBrush(new Color { R = 0xff, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0xe2, G = 0x98, B = 0x18, A = 0xFF }), "Orange" },
+            { new SolidColorBrush(new Color { R = 0xff, G = 0xd7, B = 0x00, A = 0xFF }), "Yellow" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xff, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x4b, G = 0x00, B = 0x82, A = 0xFF }), "Indigo" },
+            { new SolidColorBrush(new Color { R = 0xee, G = 0x82, B = 0xee, A = 0xFF }), "Violet" },
+        };
+
+        private Dictionary<Brush, string> BrushThemeMuted { get; set; } = new Dictionary<Brush, string>
+        {
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x33, G = 0xCC, B = 0x33, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0xDD, G = 0x11, B = 0x11, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0x40, G = 0xE0, B = 0xD0, A = 0xFF }), "Turquoise" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x69, B = 0xB4, A = 0xFF }), "Hot Pink" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0xD7, B = 0x00, A = 0xFF }), "Gold" },
+        };
+
+        private Dictionary<Brush, string> BrushThemeOriginal { get; set; } = new Dictionary<Brush, string>
+        {
+            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), "Green" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
+            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), "Cyan" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), "Magenta" },
+            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), "Yellow" },
         };
 
         private Dictionary<Brush, string> BrushToName { get; set; } = new Dictionary<Brush, string>();
@@ -248,7 +286,6 @@ namespace WalkmeshVisualizerWpf.Views
         public const string LOADING = "Loading";
         public const string K1_NAME = "KotOR 1";
         public const string K2_NAME = "KotOR 2";
-        //private const string TRANS_ABORT_RESREF = "k_trans_abort";
         private const string K1_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\swkotor";
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
@@ -260,6 +297,9 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region DataBinding Members
 
+        private double prevLeftPanelSize = 304.0;
+        private double prevRightPanelSize = 315.0;
+
         public string Game { get; private set; }
 
         public string WindowTitle
@@ -270,6 +310,62 @@ namespace WalkmeshVisualizerWpf.Views
                 return $"KotOR Walkmesh Visualizer (v{v.Major}.{v.Minor}.{v.Build})";
             }
         }
+
+        public bool ShowCoordinatePanel
+        {
+            get => _showCoordinatePanel;
+            set => SetField(ref _showCoordinatePanel, value);
+        }
+        private bool _showCoordinatePanel = false;
+
+        public bool ShowRimDataPanel
+        {
+            get => _showRimDataPanel;
+            set => SetField(ref _showRimDataPanel, value);
+        }
+        private bool _showRimDataPanel = true;
+
+        public bool ShowRimDataDoors
+        {
+            get => _showRimDataDoors;
+            set => SetField(ref _showRimDataDoors, value);
+        }
+        private bool _showRimDataDoors = true;
+
+        public bool ShowRimDataTriggers
+        {
+            get => _showRimDataTriggers;
+            set => SetField(ref _showRimDataTriggers, value);
+        }
+        private bool _showRimDataTriggers = true;
+
+        public bool ShowRimDataTraps
+        {
+            get => _showRimDataTraps;
+            set => SetField(ref _showRimDataTraps, value);
+        }
+        private bool _showRimDataTraps = false;
+
+        public bool ShowRimDataZones
+        {
+            get => _showRimDataZones;
+            set => SetField(ref _showRimDataZones, value);
+        }
+        private bool _showRimDataZones = false;
+
+        public bool ShowRimDataEncounters
+        {
+            get => _showRimDataEncounters;
+            set => SetField(ref _showRimDataEncounters, value);
+        }
+        private bool _showRimDataEncounters = false;
+
+        public bool ShowWalkmeshPanel
+        {
+            get => _showWalkmeshPanel;
+            set => SetField(ref _showWalkmeshPanel, value);
+        }
+        private bool _showWalkmeshPanel = true;
 
         private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OnRims
@@ -327,6 +423,48 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _hiddenRimTriggers;
             set => SetField(ref _hiddenRimTriggers, value);
+        }
+
+        private ObservableCollection<RimDataInfo> _rimTraps = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimTraps
+        {
+            get => _rimTraps;
+            set => SetField(ref _rimTraps, value);
+        }
+
+        private int _visibleRimTraps = 0;
+        public int VisibleRimTraps
+        {
+            get => _visibleRimTraps;
+            set => SetField(ref _visibleRimTraps, value);
+        }
+
+        private int _hiddenRimTraps = 0;
+        public int HiddenRimTraps
+        {
+            get => _hiddenRimTraps;
+            set => SetField(ref _hiddenRimTraps, value);
+        }
+
+        private ObservableCollection<RimDataInfo> _rimZones = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimZones
+        {
+            get => _rimZones;
+            set => SetField(ref _rimZones, value);
+        }
+
+        private int _visibleRimZones = 0;
+        public int VisibleRimZones
+        {
+            get => _visibleRimZones;
+            set => SetField(ref _visibleRimZones, value);
+        }
+
+        private int _hiddenRimZones = 0;
+        public int HiddenRimZones
+        {
+            get => _hiddenRimZones;
+            set => SetField(ref _hiddenRimZones, value);
         }
 
         private ObservableCollection<RimDataInfo> _rimEncounters = new ObservableCollection<RimDataInfo>();
@@ -580,6 +718,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private float _liveLeaderBearing = 0f;
 
+        public uint LivePartyCount
+        {
+            get => _livePartyCount;
+            set => SetField(ref _livePartyCount, value);
+        }
+        private uint _livePartyCount = 0;
+
         public float LiveBearingPC1
         {
             get => _liveBearingPC1;
@@ -664,6 +809,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showGatherPartyRange = false;
 
+        public bool ShowLeftClickGatherPartyRange
+        {
+            get => _showLeftClickGatherPartyRange;
+            set => SetField(ref _showLeftClickGatherPartyRange, value);
+        }
+        private bool _showLeftClickGatherPartyRange = false;
+
         public bool LockGatherPartyRange
         {
             get => _lockGatherPartyRange;
@@ -685,6 +837,20 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Brush _liveGatherPartyRangeStrokeBrush = Brushes.Green;
 
+        public Brush LeftClickGatherPartyRangeFillBrush
+        {
+            get => _leftClickGatherPartyRangeFillBrush;
+            set => SetField(ref _leftClickGatherPartyRangeFillBrush, value);
+        }
+        private Brush _leftClickGatherPartyRangeFillBrush = Brushes.Green;
+
+        public Brush LeftClickGatherPartyRangeStrokeBrush
+        {
+            get => _leftClickGatherPartyRangeStrokeBrush;
+            set => SetField(ref _leftClickGatherPartyRangeStrokeBrush, value);
+        }
+        private Brush _leftClickGatherPartyRangeStrokeBrush = Brushes.Green;
+
         private SolidColorBrush gprStrokeGreen = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF });
         private SolidColorBrush gprStrokeRed   = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0xFF });
         private SolidColorBrush gprFillGreen   = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0x22 });
@@ -703,6 +869,20 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showTriggersOnAddRim, value);
         }
         private bool _showTriggersOnAddRim = true;
+
+        public bool ShowTrapsOnAddRim
+        {
+            get => _showTrapsOnAddRim;
+            set => SetField(ref _showTrapsOnAddRim, value);
+        }
+        private bool _showTrapsOnAddRim = false;
+
+        public bool ShowZonesOnAddRim
+        {
+            get => _showZonesOnAddRim;
+            set => SetField(ref _showZonesOnAddRim, value);
+        }
+        private bool _showZonesOnAddRim = false;
 
         public bool ShowEncountersOnAddRim
         {
@@ -917,6 +1097,7 @@ namespace WalkmeshVisualizerWpf.Views
                 }
             }
 
+            CalculatePointDistance();
             UpdatePointMatchRows();
         }
 
@@ -1019,10 +1200,31 @@ namespace WalkmeshVisualizerWpf.Views
             BringRightPointToTop();
         }
 
+        private void CalculatePointDistance()
+        {
+            if (!LeftClickPointVisible) return;
+            var distanceSq = (LeftClickPoint - RightClickPoint).LengthSquared;
+
+            // If right click point is not visible OR if in range...
+            if (!RightClickPointVisible || distanceSq <= 900.0)
+            {
+                LeftClickGatherPartyRangeFillBrush = gprFillGreen;
+                LeftClickGatherPartyRangeStrokeBrush = gprStrokeGreen;
+            }
+            else
+            {
+                LeftClickGatherPartyRangeFillBrush = gprFillRed;
+                LeftClickGatherPartyRangeStrokeBrush = gprStrokeRed;
+            }
+        }
+
         private void BringLeftPointToTop()
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                content.Children.Remove(leftClickGatherPartyRange);
+                _ = content.Children.Add(leftClickGatherPartyRange);
+
                 content.Children.Remove(leftClickEllipse);
                 _ = content.Children.Add(leftClickEllipse);
 
@@ -1750,6 +1952,10 @@ namespace WalkmeshVisualizerWpf.Views
             HiddenRimDoors = RimDoors.Count(d => !d.MeshVisible);
             VisibleRimTriggers = RimTriggers.Count(d => d.MeshVisible);
             HiddenRimTriggers = RimTriggers.Count(d => !d.MeshVisible);
+            VisibleRimTraps = RimTraps.Count(d => d.MeshVisible);
+            HiddenRimTraps = RimTraps.Count(d => !d.MeshVisible);
+            VisibleRimZones = RimZones.Count(d => d.MeshVisible);
+            HiddenRimZones = RimZones.Count(d => !d.MeshVisible);
             VisibleRimEncounters = RimEncounters.Count(d => d.MeshVisible);
             HiddenRimEncounters = RimEncounters.Count(d => !d.MeshVisible);
         }
@@ -1913,6 +2119,14 @@ namespace WalkmeshVisualizerWpf.Views
                 rdiSort.Sort();
                 RimTriggers = new ObservableCollection<RimDataInfo>(rdiSort);
 
+                rdiSort = RimTraps.Concat(rdiModule.Traps).ToList();
+                rdiSort.Sort();
+                RimTraps = new ObservableCollection<RimDataInfo>(rdiSort);
+
+                rdiSort = RimZones.Concat(rdiModule.Zones).ToList();
+                rdiSort.Sort();
+                RimZones = new ObservableCollection<RimDataInfo>(rdiSort);
+
                 rdiSort = RimEncounters.Concat(rdiModule.Encounters).ToList();
                 rdiSort.Sort();
                 RimEncounters = new ObservableCollection<RimDataInfo>(rdiSort);
@@ -1958,6 +2172,8 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 if (ShowDoorsOnAddRim) ShowAllRimDataInfo(RimDoors);
                 if (ShowTriggersOnAddRim) ShowAllRimDataInfo(RimTriggers);
+                if (ShowTrapsOnAddRim) ShowAllRimDataInfo(RimTraps);
+                if (ShowZonesOnAddRim) ShowAllRimDataInfo(RimZones);
                 if (ShowEncountersOnAddRim) ShowAllRimDataInfo(RimEncounters);
             });
 
@@ -1965,6 +2181,10 @@ namespace WalkmeshVisualizerWpf.Views
             HiddenRimDoors = RimDoors.Count(d => !d.MeshVisible);
             VisibleRimTriggers = RimTriggers.Count(d => d.MeshVisible);
             HiddenRimTriggers = RimTriggers.Count(d => !d.MeshVisible);
+            VisibleRimTraps = RimTraps.Count(d => d.MeshVisible);
+            HiddenRimTraps = RimTraps.Count(d => !d.MeshVisible);
+            VisibleRimZones = RimZones.Count(d => d.MeshVisible);
+            HiddenRimZones = RimZones.Count(d => !d.MeshVisible);
             VisibleRimEncounters = RimEncounters.Count(d => d.MeshVisible);
             HiddenRimEncounters = RimEncounters.Count(d => !d.MeshVisible);
 
@@ -2529,6 +2749,10 @@ namespace WalkmeshVisualizerWpf.Views
                     RimDoors.Remove(door);
                 foreach (var trigger in rimModule.Triggers)
                     RimTriggers.Remove(trigger);
+                foreach (var trap in rimModule.Traps)
+                    RimTraps.Remove(trap);
+                foreach (var zone in rimModule.Zones)
+                    RimZones.Remove(zone);
                 foreach (var encounter in rimModule.Encounters)
                     RimEncounters.Remove(encounter);
 
@@ -2639,6 +2863,10 @@ namespace WalkmeshVisualizerWpf.Views
                     RimDoors.Remove(door);
                 foreach (var trigger in rimModule.Triggers)
                     RimTriggers.Remove(trigger);
+                foreach (var trap in rimModule.Traps)
+                    RimTraps.Remove(trap);
+                foreach (var zone in rimModule.Zones)
+                    RimZones.Remove(zone);
                 foreach (var encounter in rimModule.Encounters)
                     RimEncounters.Remove(encounter);
             }
@@ -2854,6 +3082,7 @@ namespace WalkmeshVisualizerWpf.Views
                 var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
                 HandleLeftDoubleClick(new Point(x, y));
                 LastLeftClickModuleCoords = LeftClickModuleCoords;
+                CalculatePointDistance();
             }
         }
 
@@ -2874,6 +3103,7 @@ namespace WalkmeshVisualizerWpf.Views
                 var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
                 HandleRightDoubleClick(new Point(x, y));
                 LastRightClickModuleCoords = RightClickModuleCoords;
+                CalculatePointDistance();
             }
         }
 
@@ -2960,6 +3190,12 @@ namespace WalkmeshVisualizerWpf.Views
             settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
             settings.ShowGatherPartyRange = ShowGatherPartyRange;
+            settings.ShowLeftClickGatherPartyRange = ShowLeftClickGatherPartyRange;
+            settings.ShowCoordinatePanel = ShowCoordinatePanel;
+            settings.ShowRimDataPanel = ShowRimDataPanel;
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
+            settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
+            settings.PrevRightPanelSize = ShowWalkmeshPanel ?  columnRightPanel.ActualWidth : prevRightPanelSize;
             settings.Save();
         }
 
@@ -3088,6 +3324,91 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion
 
+        #region Left Panel Methods
+
+        private void CoordinatePanelButton_Click(object sender, RoutedEventArgs e)
+            => ShowRimDataPanel = false;    // Hide other panels in the Left Panel
+
+        private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
+            => ShowCoordinatePanel = false; // Hide other panels in the Left Panel
+
+        private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (ShowRimDataPanel || ShowCoordinatePanel)
+            {
+                columnLeftPanel.MinWidth = 215;
+                columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
+            }
+            else
+            {
+                columnLeftPanel.MinWidth = 0;
+                prevLeftPanelSize = columnLeftPanel.ActualWidth;
+                columnLeftPanel.Width = new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+        private void SetRimDataTypePanelVisibility(bool isVisible, string type)
+        {
+            if (type == "Door")
+            {
+                ShowRimDataDoors = isVisible;
+                lvRimDoor.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimDoor.Height = isVisible ? new GridLength(4, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Trigger")
+            {
+                ShowRimDataTriggers = isVisible;
+                lvRimTrigger.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimTrigger.Height = isVisible ? new GridLength(5, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Trap")
+            {
+                ShowRimDataTraps = isVisible;
+                lvRimTrap.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimTrap.Height = isVisible ? new GridLength(3, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Zone")
+            {
+                ShowRimDataZones = isVisible;
+                lvRimZone.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimZone.Height = isVisible ? new GridLength(3, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Encounter")
+            {
+                ShowRimDataEncounters = isVisible;
+                lvRimEncounter.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimEncounter.Height = isVisible ? new GridLength(3, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+        private void RimDataShowHideButton_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as ToggleButton;
+            if (!btn.IsChecked.HasValue) return;
+            SetRimDataTypePanelVisibility(btn.IsChecked.Value, btn.Tag.ToString());
+        }
+
+        #endregion // END REGION Left Panel Methods
+
+        #region Right Panel Methods
+
+        private void gsRightPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (ShowWalkmeshPanel)
+            {
+                columnRightPanel.MinWidth = 215;
+                columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            }
+            else
+            {
+                columnRightPanel.MinWidth = 0;
+                prevRightPanelSize = columnRightPanel.ActualWidth;
+                columnRightPanel.Width = new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+        #endregion
+
         #region Live Position Methods
 
         private void ShowLivePosition_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -3191,6 +3512,7 @@ namespace WalkmeshVisualizerWpf.Views
 
                             // Get current position and bearing
                             km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
+                            LivePartyCount = partyCount;
                             //var partyPositions = km.GetPartyPositions();
                             var partyPositions3D = km.GetPartyPositions3D();
                             var partyBearings = km.GetPartyBearings();
@@ -3428,6 +3750,8 @@ namespace WalkmeshVisualizerWpf.Views
                     mousePosition.Y = theGrid.Height - mousePosition.Y - BottomOffset;
                     visibleRimData = RimDoors
                         .Concat(RimTriggers)
+                        .Concat(RimTraps)
+                        .Concat(RimZones)
                         .Concat(RimEncounters)
                         .Where(r => r.MeshVisible);
                     message = string.Join(Environment.NewLine, visibleRimData
@@ -3612,6 +3936,8 @@ namespace WalkmeshVisualizerWpf.Views
             if (e.OriginalSource is VisualizerWindow) ShowDlzLines = !ShowDlzLines;
             var visibleRimDataInfo = RimDoors.Where(i => i.MeshVisible)
                 .Concat(RimTriggers.Where(i => i.MeshVisible))
+                .Concat(RimTraps.Where(i => i.MeshVisible))
+                .Concat(RimZones.Where(i => i.MeshVisible))
                 .Concat(RimEncounters.Where(i => i.MeshVisible));
             if (ShowDlzLines)
                 foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
@@ -3623,7 +3949,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var rdis = ((e.Source as Button)
                 .Tag as ObservableCollection<RimDataInfo>)
-                .Where(rdi => !rdi.MeshVisible);
+                .Where(rdi => !rdi.MeshVisible)
+                .ToList();
             foreach (var rdi in rdis) HandleRimDataInfo(rdi);
         }
 
@@ -3639,7 +3966,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var rdis = ((e.Source as Button)
                 .Tag as ObservableCollection<RimDataInfo>)
-                .Where(rdi => rdi.MeshVisible);
+                .Where(rdi => rdi.MeshVisible)
+                .ToList();
             foreach (var rdi in rdis) HandleRimDataInfo(rdi);
         }
 
@@ -3652,10 +3980,5 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion
-
-        private void TabControl_Selected(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }
