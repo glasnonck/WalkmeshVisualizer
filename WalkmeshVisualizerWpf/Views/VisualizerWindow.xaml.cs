@@ -116,6 +116,7 @@ namespace WalkmeshVisualizerWpf.Views
             LivePositionUpdateDelay = settings.LivePositionUpdateDelay;
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
+            ShowLeftClickGatherPartyRange = settings.ShowLeftClickGatherPartyRange;
             ShowCoordinatePanel = settings.ShowCoordinatePanel;
             ShowRimDataPanel = settings.ShowRimDataPanel;
             ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
@@ -808,6 +809,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showGatherPartyRange = false;
 
+        public bool ShowLeftClickGatherPartyRange
+        {
+            get => _showLeftClickGatherPartyRange;
+            set => SetField(ref _showLeftClickGatherPartyRange, value);
+        }
+        private bool _showLeftClickGatherPartyRange = false;
+
         public bool LockGatherPartyRange
         {
             get => _lockGatherPartyRange;
@@ -828,6 +836,20 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _liveGatherPartyRangeStrokeBrush, value);
         }
         private Brush _liveGatherPartyRangeStrokeBrush = Brushes.Green;
+
+        public Brush LeftClickGatherPartyRangeFillBrush
+        {
+            get => _leftClickGatherPartyRangeFillBrush;
+            set => SetField(ref _leftClickGatherPartyRangeFillBrush, value);
+        }
+        private Brush _leftClickGatherPartyRangeFillBrush = Brushes.Green;
+
+        public Brush LeftClickGatherPartyRangeStrokeBrush
+        {
+            get => _leftClickGatherPartyRangeStrokeBrush;
+            set => SetField(ref _leftClickGatherPartyRangeStrokeBrush, value);
+        }
+        private Brush _leftClickGatherPartyRangeStrokeBrush = Brushes.Green;
 
         private SolidColorBrush gprStrokeGreen = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF });
         private SolidColorBrush gprStrokeRed   = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0xFF });
@@ -1075,6 +1097,7 @@ namespace WalkmeshVisualizerWpf.Views
                 }
             }
 
+            CalculatePointDistance();
             UpdatePointMatchRows();
         }
 
@@ -1177,10 +1200,31 @@ namespace WalkmeshVisualizerWpf.Views
             BringRightPointToTop();
         }
 
+        private void CalculatePointDistance()
+        {
+            if (!LeftClickPointVisible) return;
+            var distanceSq = (LeftClickPoint - RightClickPoint).LengthSquared;
+
+            // If right click point is not visible OR if in range...
+            if (!RightClickPointVisible || distanceSq <= 900.0)
+            {
+                LeftClickGatherPartyRangeFillBrush = gprFillGreen;
+                LeftClickGatherPartyRangeStrokeBrush = gprStrokeGreen;
+            }
+            else
+            {
+                LeftClickGatherPartyRangeFillBrush = gprFillRed;
+                LeftClickGatherPartyRangeStrokeBrush = gprStrokeRed;
+            }
+        }
+
         private void BringLeftPointToTop()
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
+                content.Children.Remove(leftClickGatherPartyRange);
+                _ = content.Children.Add(leftClickGatherPartyRange);
+
                 content.Children.Remove(leftClickEllipse);
                 _ = content.Children.Add(leftClickEllipse);
 
@@ -3038,6 +3082,7 @@ namespace WalkmeshVisualizerWpf.Views
                 var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
                 HandleLeftDoubleClick(new Point(x, y));
                 LastLeftClickModuleCoords = LeftClickModuleCoords;
+                CalculatePointDistance();
             }
         }
 
@@ -3058,6 +3103,7 @@ namespace WalkmeshVisualizerWpf.Views
                 var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
                 HandleRightDoubleClick(new Point(x, y));
                 LastRightClickModuleCoords = RightClickModuleCoords;
+                CalculatePointDistance();
             }
         }
 
@@ -3144,6 +3190,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.LivePositionUpdateDelay = LivePositionUpdateDelay;
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
             settings.ShowGatherPartyRange = ShowGatherPartyRange;
+            settings.ShowLeftClickGatherPartyRange = ShowLeftClickGatherPartyRange;
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;

@@ -322,5 +322,17 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowWalkmeshPanel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowLeftClickGatherPartyRange {
+            get {
+                return ((bool)(this["ShowLeftClickGatherPartyRange"]));
+            }
+            set {
+                this["ShowLeftClickGatherPartyRange"] = value;
+            }
+        }
     }
 }
