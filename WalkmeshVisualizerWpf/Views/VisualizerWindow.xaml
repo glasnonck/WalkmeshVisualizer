@@ -486,7 +486,7 @@
             Stack panel containing the select game options and, once selected, displaying the
             currently selected game.
             -->
-            <StackPanel Orientation="Vertical" Grid.Column="1" VerticalAlignment="Center" Width="320" Background="#F0F0F0">
+            <StackPanel Orientation="Vertical" Grid.Column="1" VerticalAlignment="Center" Width="280" Background="#F0F0F0">
                 <Grid Margin="3,2" x:Name="pnlSelectGame" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -668,228 +668,16 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />      <!-- Canvas -->
-                <ColumnDefinition Width="Auto" />   <!-- GridSplitter -->
-                <ColumnDefinition Width="Auto" x:Name="columnRightPanel" />   <!-- Options Panel -->
-                <ColumnDefinition Width="Auto" />   <!-- Right Panel Toggle Buttons -->
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-
-            <!--
-            Grid splitter allows the options panel to be resized.
-            -->
-            <GridSplitter
-                Grid.Column="1"
-                Grid.RowSpan="2"
-                Width="3"
-                Background="Gray"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                Margin="5,0,0,0"
-                />
-
-            <!--
-            Grid placed to the right of the canvas containing the visualizer options. Modules can be added
-            or removed from the canvas display.
-            -->
-            <Grid x:Name="optionsGrid" Grid.Column="2" Grid.RowSpan="2" Margin="5,0,0,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="4*" />
-                    <RowDefinition Height="5" />
-                    <RowDefinition Height="5*" />
-                </Grid.RowDefinitions>
-
-                <Grid.Resources>
-                    <Style TargetType="ListViewItem" x:Key="OnItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                        <EventSetter Event="MouseDoubleClick" Handler="LvOn_DoubleClick" />
-                    </Style>
-                    <Style TargetType="ListViewItem" x:Key="OffItemStyle" BasedOn="{StaticResource BaseItemStyle}">
-                        <EventSetter Event="MouseDoubleClick" Handler="LvOff_DoubleClick" />
-                    </Style>
-                </Grid.Resources>
-
-                <!-- List of active modules. -->
-                <Grid x:Name="OnGrid" Grid.Row="2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        Text="Active Walkmeshes"
-                        Margin="0,5"
-                        HorizontalAlignment="Center"
-                        TextDecorations="Underline"
-                        />
-                    <ListView
-                        x:Name="lvOn"
-                        Grid.Row="1"
-                        ItemContainerStyle="{StaticResource OnItemStyle}"
-                        ItemsSource="{Binding OnRims}"
-                        ScrollViewer.VerticalScrollBarVisibility="Visible"
-                        ScrollViewer.CanContentScroll="False"
-                        >
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Width="18">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Color" Content="" />
-                                    </GridViewColumn.Header>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="-4">
-                                                <Button
-                                                    Margin="0" Padding="0"
-                                                    Background="Transparent"
-                                                    BorderBrush="Transparent"
-                                                    BorderThickness="0"
-                                                    Click="RimColorButton_Click">
-                                                    <Button.Template>
-                                                        <ControlTemplate TargetType="Button">
-                                                            <Border
-                                                                Background="{TemplateBinding Background}"
-                                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                                BorderThickness="{TemplateBinding BorderThickness}">
-                                                                <ContentPresenter
-                                                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                                            </Border>
-                                                        </ControlTemplate>
-                                                    </Button.Template>
-                                                    <Rectangle
-                                                        Margin="0"
-                                                        Height="14" Width="14"
-                                                        Fill="{Binding MeshColor}"
-                                                        StrokeThickness="1">
-                                                        <Rectangle.Style>
-                                                            <Style TargetType="Rectangle">
-                                                                <Style.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter Property="Stroke" Value="Red" />
-                                                                    </Trigger>
-                                                                    <Trigger Property="IsMouseOver" Value="False">
-                                                                        <Setter Property="Stroke" Value="Black" />
-                                                                    </Trigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Rectangle.Style>
-                                                    </Rectangle>
-                                                </Button>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Rim" Content="Rim" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Planet" Content="Planet" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Common" Content="Common Name" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-
-                    <Button Grid.Row="2" Margin="0,5" Content="Remove All"
-                            Command="{StaticResource Commands.RemoveAll}">
-                        <Button.IsEnabled>
-                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
-                                <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
-                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                            </MultiBinding>
-                        </Button.IsEnabled>
-                    </Button>
-                </Grid>
-
-                <!-- Resize the active and inactive lists. -->
-                <GridSplitter Grid.Row="3" Height="3" Background="Gray"
-                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-
-                <!-- List of inactive modules. -->
-                <Grid x:Name="OffGrid" Grid.Row="4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        Text="Inactive Walkmeshes"
-                        Margin="0,5"
-                        HorizontalAlignment="Center"
-                        TextDecorations="Underline"
-                        />
-                    <ListView
-                        x:Name="lvOff"
-                        Grid.Row="1"
-                        ItemContainerStyle="{StaticResource OffItemStyle}"
-                        ItemsSource="{Binding OffRims}"
-                        ScrollViewer.VerticalScrollBarVisibility="Visible"
-                        ScrollViewer.CanContentScroll="False"
-                        >
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Width="18">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Color" Content="" />
-                                    </GridViewColumn.Header>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="-4">
-                                                <Rectangle
-                                                    Margin="0"
-                                                    Height="14" Width="14"
-                                                    Fill="{Binding MeshColor}"
-                                                    Stroke="Black"
-                                                    StrokeThickness="1"
-                                                    />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Rim" Content="Rim" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Planet" Content="Planet" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Tag="Common" Content="Common Name" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-
-                </Grid>
-            </Grid>
-
+            
             <!--
             ToolBar with shortcut buttons for canvas display options.
             -->
-            <ToolBarTray Background="White" >
+            <ToolBarTray Background="White">
                 <ToolBarTray.Resources>
                     <Style TargetType="Image">
                         <Setter Property="Height" Value="20" />
@@ -1027,14 +815,17 @@
             </ToolBarTray>
 
             <!--
-            LEFT PANEL
+            LEFT PANEL | CANVAS | RIGHT PANEL
             -->
             <Grid Grid.Column="0" Grid.Row="1" Margin="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />   <!-- Left Panel Toggle Buttons -->
+                    <ColumnDefinition Width="Auto" />   <!-- Left Panel Buttons -->
                     <ColumnDefinition Width="Auto" x:Name="columnLeftPanel" />  <!-- Left Panel -->
                     <ColumnDefinition Width="Auto" />   <!-- GridSplitter -->
                     <ColumnDefinition Width="*" />      <!-- Canvas -->
+                    <ColumnDefinition Width="Auto" />   <!-- GridSplitter -->
+                    <ColumnDefinition Width="Auto" x:Name="columnRightPanel" /> <!-- Right Panel -->
+                    <ColumnDefinition Width="Auto" />   <!-- Right Panel Buttons -->
                 </Grid.ColumnDefinitions>
                 <Grid.Resources>
                     <Style TargetType="ListViewItem" x:Key="MatchItemStyle" BasedOn="{StaticResource BaseItemStyle}">
@@ -1042,7 +833,9 @@
                     </Style>
                 </Grid.Resources>
                 
-                <!-- Left Panel Buttons Column -->
+                <!--
+                Left Panel Buttons Column
+                -->
                 <StackPanel Grid.Column="0" Orientation="Vertical">
                     <StackPanel.Resources>
                         <Style TargetType="ToggleButton">
@@ -1416,7 +1209,7 @@
                         </Grid.Resources>
 
                         <!-- RIM Doors -->
-                        <Grid x:Name="rimDoorGrid" Grid.Row="1">
+                        <Grid x:Name="rimDoorGrid" Grid.Row="1" Margin="0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -1428,10 +1221,10 @@
                                           IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}"
                                           VerticalContentAlignment="Center">
                                     <TextBlock>
-                                    <Span>RIM Doors (</Span>
-                                    <TextBlock Text="{Binding RimDoors.Count}" />
-                                    <Span>)</Span>
-                                </TextBlock>
+                                        <Span>RIM Doors (</Span>
+                                        <TextBlock Text="{Binding RimDoors.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Span>)</Span>
+                                    </TextBlock>
                                 </CheckBox>
                             </StackPanel>
 
@@ -1512,10 +1305,10 @@
                                           IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}"
                                           VerticalContentAlignment="Center">
                                     <TextBlock>
-                                    <Span>RIM Triggers (</Span>
-                                    <TextBlock Text="{Binding RimTriggers.Count}" />
-                                    <Span>)</Span>
-                                </TextBlock>
+                                        <Span>RIM Triggers (</Span>
+                                        <TextBlock Text="{Binding RimTriggers.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Span>)</Span>
+                                    </TextBlock>
                                 </CheckBox>
                             </StackPanel>
 
@@ -1595,10 +1388,10 @@
                                           IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}"
                                           VerticalContentAlignment="Center">
                                     <TextBlock>
-                                    <Span>RIM Encounters (</Span>
-                                    <TextBlock Text="{Binding RimEncounters.Count}" />
-                                    <Span>)</Span>
-                                </TextBlock>
+                                        <Span>RIM Encounters (</Span>
+                                        <TextBlock Text="{Binding RimEncounters.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Span>)</Span>
+                                    </TextBlock>
                                 </CheckBox>
                             </StackPanel>
 
@@ -1669,12 +1462,12 @@
                 <!--
                 Left Panel Grid Splitter
                 -->
-                <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Grid.RowSpan="4" Width="3"
-                              HorizontalAlignment="Stretch" Background="#FF707070"
-                              VerticalAlignment="Stretch" Margin="4,0,0,0" IsVisibleChanged="gsLeftPanel_IsVisibleChanged">
+                <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Width="3" Background="#FF707070"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                              IsVisibleChanged="gsLeftPanel_IsVisibleChanged">
                     <GridSplitter.Visibility>
                         <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or"
-                                      FallbackValue="Visible" TargetNullValue="Collapsed">
+                                      FallbackValue="Collapsed" TargetNullValue="Collapsed">
                             <Binding Path="ShowCoordinatePanel" />
                             <Binding Path="ShowRimDataPanel" />
                         </MultiBinding>
@@ -1682,10 +1475,7 @@
                 </GridSplitter>
 
                 <!--
-                Wrap the ZoomAndPanControl in a ScrollViewer.
-                When the scaled content that is displayed in ZoomAndPanControl is larger than the viewport
-                onto the content.
-                ScrollViewer's scrollbars can be used to manipulate the offset of the viewport.    
+                Walkmesh Canvas    
                 -->
                 <ScrollViewer
                     x:Name="scroller"
@@ -1951,7 +1741,9 @@
                     </ZoomAndPan:ZoomAndPanControl>
                 </ScrollViewer>
 
-                <!-- Mouse Hover Information Grid -->
+                <!--
+                Mouse Hover Information Grid
+                -->
                 <Grid Grid.Column="3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -1968,8 +1760,258 @@
                         <TextBlock Text="{Binding RimDataUnderMouse}" />
                     </Border>
                 </Grid>
+                
+                <!--
+                Right Panel Grid Splitter
+                -->
+                <GridSplitter x:Name="gsRightPanel" Grid.Column="4" Width="3" Background="#FF707070"
+                              Margin="4,0,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                              IsVisibleChanged="gsRightPanel_IsVisibleChanged">
+                    <GridSplitter.Visibility>
+                        <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or"
+                                      FallbackValue="Collapsed" TargetNullValue="Collapsed">
+                            <Binding Path="ShowWalkmeshPanel" />
+                        </MultiBinding>
+                    </GridSplitter.Visibility>
+                </GridSplitter>
+
+                <!--
+                Right Panel: Walkmesh Panel
+                -->
+                <Grid x:Name="optionsGrid" Grid.Column="5" Margin="5,0"
+                      Visibility="{Binding ShowWalkmeshPanel,
+                            Converter={StaticResource BoolToVisibilityConverter},
+                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="5*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.Resources>
+                        <Style TargetType="ListViewItem" x:Key="OnItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                            <EventSetter Event="MouseDoubleClick" Handler="LvOn_DoubleClick" />
+                        </Style>
+                        <Style TargetType="ListViewItem" x:Key="OffItemStyle" BasedOn="{StaticResource BaseItemStyle}">
+                            <EventSetter Event="MouseDoubleClick" Handler="LvOff_DoubleClick" />
+                        </Style>
+                    </Grid.Resources>
+
+                    <!-- List of active modules. -->
+                    <Grid x:Name="OnGrid" Grid.Row="2" Margin="0,0,0,5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Margin="10,0,0,5">
+                            <TextBlock FontSize="14">
+                                <Span>Active Walkmeshes (</Span>
+                                <TextBlock Text="{Binding OnRims.Count, FallbackValue=0, TargetNullValue=0}" />
+                                <Span>)</Span>
+                            </TextBlock>
+                        </StackPanel>
+                        
+                        <Button Content="Remove All" Width="80" Height="20"
+                                HorizontalAlignment="Right" Margin="0,-2,0,0"
+                                Command="{StaticResource Commands.RemoveAll}">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                        </Button>
+                        
+                        <ListView x:Name="lvOn" Grid.Row="1" ItemsSource="{Binding OnRims}"
+                                  ItemContainerStyle="{StaticResource OnItemStyle}"
+                                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                  ScrollViewer.CanContentScroll="False">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Color" Content="" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Button Margin="0" Padding="0" BorderThickness="0"
+                                                            Background="Transparent" BorderBrush="Transparent"
+                                                            Click="RimColorButton_Click">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border
+                                                                    Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                                    <ContentPresenter
+                                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Rectangle Margin="0" Height="14" Width="14"
+                                                                   Fill="{Binding MeshColor}" StrokeThickness="1">
+                                                            <Rectangle.Style>
+                                                                <Style TargetType="Rectangle">
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter Property="Stroke" Value="Red" />
+                                                                        </Trigger>
+                                                                        <Trigger Property="IsMouseOver" Value="False">
+                                                                            <Setter Property="Stroke" Value="Black" />
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Rectangle.Style>
+                                                        </Rectangle>
+                                                    </Button>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+                        <!--<Button Grid.Row="2" Margin="0,5" Content="Remove All"
+                                Command="{StaticResource Commands.RemoveAll}">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                        </Button>-->
+                    </Grid>
+
+                    <!-- Resize the active and inactive lists. -->
+                    <GridSplitter Grid.Row="3" Height="3" Background="Gray"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                    <!-- List of inactive modules. -->
+                    <Grid x:Name="OffGrid" Grid.Row="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Margin="10,5,0,5">
+                            <TextBlock FontSize="14">
+                                <Span>Inactive Walkmeshes (</Span>
+                                <TextBlock Text="{Binding OffRims.Count, FallbackValue=0, TargetNullValue=0}" />
+                                <Span>)</Span>
+                            </TextBlock>
+                        </StackPanel>
+                        
+                        <ListView x:Name="lvOff" Grid.Row="1" ItemsSource="{Binding OffRims}"
+                                  ItemContainerStyle="{StaticResource OffItemStyle}"
+                                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                  ScrollViewer.CanContentScroll="False">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="18">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Color" Content="" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="-4">
+                                                    <Rectangle Margin="0" Height="14" Width="14"
+                                                        Fill="{Binding MeshColor}" Stroke="Black"
+                                                        StrokeThickness="1" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </Grid>
+
+                <!--
+                Right Panel Buttons Column
+                -->
+                <StackPanel Grid.Column="6" Orientation="Vertical">
+                    <StackPanel.Resources>
+                        <Style TargetType="ToggleButton">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderBrush" Value="#FF707070" />
+                            <Setter Property="BorderThickness" Value="0,4,0,0" />
+                            <Setter Property="Margin" Value="0,0,0,4" />
+                            <Setter Property="Width" Value="80" />
+                            <Setter Property="LayoutTransform">
+                                <Setter.Value>
+                                    <RotateTransform Angle="90" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                    <Setter Property="Background" Value="Lavender" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter Property="BorderBrush" Value="Indigo" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Resources>
+                    <ToggleButton Content="Walkmeshes" IsChecked="{Binding ShowWalkmeshPanel}" />
+                </StackPanel>
             </Grid>
-            
         </Grid>
     </DockPanel>
 </Window>

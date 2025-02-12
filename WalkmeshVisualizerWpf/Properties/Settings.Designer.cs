@@ -301,7 +301,7 @@ namespace WalkmeshVisualizerWpf.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("304")]
+        [global::System.Configuration.DefaultSettingValueAttribute("315")]
         public double PrevRightPanelSize {
             get {
                 return ((double)(this["PrevRightPanelSize"]));
@@ -314,12 +314,12 @@ namespace WalkmeshVisualizerWpf.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ShowModulePanel {
+        public bool ShowWalkmeshPanel {
             get {
-                return ((bool)(this["ShowModulePanel"]));
+                return ((bool)(this["ShowWalkmeshPanel"]));
             }
             set {
-                this["ShowModulePanel"] = value;
+                this["ShowWalkmeshPanel"] = value;
             }
         }
     }

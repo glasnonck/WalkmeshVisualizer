@@ -118,7 +118,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
             ShowCoordinatePanel = settings.ShowCoordinatePanel;
             ShowRimDataPanel = settings.ShowRimDataPanel;
-            ShowModulePanel = settings.ShowModulePanel;
+            ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
 
@@ -127,7 +127,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
 
             if (ShowCoordinatePanel || ShowRimDataPanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
-            //if (ShowModulePanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
         }
 
         #endregion // END REGION Constructors
@@ -291,7 +291,7 @@ namespace WalkmeshVisualizerWpf.Views
         #region DataBinding Members
 
         private double prevLeftPanelSize = 304.0;
-        private double prevRightPanelSize = 304.0;
+        private double prevRightPanelSize = 315.0;
 
         public string Game { get; private set; }
 
@@ -318,12 +318,12 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showRimDataPanel = true;
 
-        public bool ShowModulePanel
+        public bool ShowWalkmeshPanel
         {
-            get => _showModulePanel;
-            set => SetField(ref _showModulePanel, value);
+            get => _showWalkmeshPanel;
+            set => SetField(ref _showWalkmeshPanel, value);
         }
-        private bool _showModulePanel = true;
+        private bool _showWalkmeshPanel = true;
 
         private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OnRims
@@ -3024,7 +3024,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
-            //settings.PrevRightPanelSize = ShowModulePanel ? prevRightPanelSize : columnRightPanel.ActualWidth;
+            settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
+            settings.PrevRightPanelSize = ShowWalkmeshPanel ?  columnRightPanel.ActualWidth : prevRightPanelSize;
             settings.Save();
         }
 
@@ -3156,10 +3157,10 @@ namespace WalkmeshVisualizerWpf.Views
         #region Left Panel Methods
 
         private void CoordinatePanelButton_Click(object sender, RoutedEventArgs e)
-            => ShowRimDataPanel = false;
+            => ShowRimDataPanel = false;    // Hide other panels in the Left Panel
 
         private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
-            => ShowCoordinatePanel = false;
+            => ShowCoordinatePanel = false; // Hide other panels in the Left Panel
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -3173,6 +3174,25 @@ namespace WalkmeshVisualizerWpf.Views
                 columnLeftPanel.MinWidth = 0;
                 prevLeftPanelSize = columnLeftPanel.ActualWidth;
                 columnLeftPanel.Width = new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+        #endregion
+
+        #region Right Panel Methods
+
+        private void gsRightPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (ShowWalkmeshPanel)
+            {
+                columnRightPanel.MinWidth = 215;
+                columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            }
+            else
+            {
+                columnRightPanel.MinWidth = 0;
+                prevRightPanelSize = columnRightPanel.ActualWidth;
+                columnRightPanel.Width = new GridLength(1, GridUnitType.Auto);
             }
         }
 
