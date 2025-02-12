@@ -21,7 +21,6 @@
     x:Name="thisWindow"
     >
     <Window.Resources>
-
         <!-- UI commands. -->
         <RoutedUICommand x:Key="Commands.ZoomOut">
             <RoutedUICommand.InputGestures>
@@ -294,10 +293,13 @@
     </Window.CommandBindings>
 
     <DockPanel>
-        <Grid DockPanel.Dock="Top">
+        <Grid DockPanel.Dock="Top" Background="#F0F0F0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />   <!-- Menu Items -->
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />   <!-- Progress Bar -->
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="280" />    <!-- Selected Game -->
             </Grid.ColumnDefinitions>
             
             <!--
@@ -481,12 +483,16 @@
                     <MenuItem Header="_View Help" Command="{StaticResource Commands.ViewHelp}" />
                 </MenuItem>
             </Menu>
+
+            <ProgressBar x:Name="pbLoading" Width="280" Grid.Column="2"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                Value="{Binding CurrentProgress}" />
             
             <!--
             Stack panel containing the select game options and, once selected, displaying the
             currently selected game.
             -->
-            <StackPanel Orientation="Vertical" Grid.Column="1" VerticalAlignment="Center" Width="280" Background="#F0F0F0">
+            <StackPanel Orientation="Vertical" Grid.Column="4" VerticalAlignment="Center" Width="280" HorizontalAlignment="Right">
                 <Grid Margin="3,2" x:Name="pnlSelectGame" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -537,7 +543,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Margin="3,2" x:Name="pnlSelectedGame" VerticalAlignment="Center">
+                <Grid Margin="3,2" x:Name="pnlSelectedGame" VerticalAlignment="Center" d:Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -568,106 +574,15 @@
                     </Button>
                 </Grid>
             </StackPanel>
-
-
-            <!--
-            Selected Game
-            -->
         </Grid>
 
-        <!-- 
-        Grid placed below the zoom and pan control that contains the zoom slider, zoom label and
-        some button.
-        -->
-        <Grid Margin="5" DockPanel.Dock="Bottom">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <ProgressBar
-                x:Name="pbLoading"
-                Width="200"
-                Margin="5,0"
-                Grid.Column="1"
-                Value="{Binding CurrentProgress}"
-                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
-                />
-            
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="2">
-                <StackPanel.Resources>
-                    <Style TargetType="Button">
-                        <Setter Property="Margin" Value="0" />
-                        <Setter Property="Height" Value="20" />
-                        <Setter Property="Width" Value="20" />
-                        <Setter Property="Padding" Value="0,0,0,2" />
-                    </Style>
-                </StackPanel.Resources>
-
-                <!-- The content zoom selector. -->
-                <ComboBox
-                    IsEditable="True"
-                    Width="70"
-                    Text="{Binding
-                        ElementName=zoomAndPanControl,
-                        Path=ContentScale,
-                        Converter={StaticResource scaleTextToPercentConverter},
-                        Mode=TwoWay}"
-                    HorizontalContentAlignment="Right"
-                    Margin="10,0"
-                    Padding="0,2"
-                    >
-                    <ComboBox.Resources>
-                        <DataTemplate x:Key="PercentageTemplate">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding}" />
-                                <TextBlock Text=" %" />
-                            </StackPanel>
-                        </DataTemplate>
-                        <Style TargetType="ComboBoxItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Right" />
-                            <Setter Property="Padding" Value="0,0" />
-                            <Setter Property="Margin" Value="0,0,5,0" />
-                            <Setter Property="ContentTemplate" Value="{StaticResource PercentageTemplate}" />
-                        </Style>
-                    </ComboBox.Resources>
-                    
-                    <ComboBoxItem>10</ComboBoxItem>
-                    <ComboBoxItem>100</ComboBoxItem>
-                    <ComboBoxItem>300</ComboBoxItem>
-                    <ComboBoxItem>1,000</ComboBoxItem>
-                    <ComboBoxItem>1,500</ComboBoxItem>
-                    <ComboBoxItem>2,000</ComboBoxItem>
-                </ComboBox>
-
-                <!-- Button to zoom out. -->
-                <Button Content="-" Margin="0"
-                        FontWeight="SemiBold" Foreground="Black"
-                        Command="{StaticResource Commands.ZoomOut}" />
-
-                <!-- Slider to change the current zoom level. -->
-                <Slider Minimum="10" Maximum="1500"
-                        SmallChange="10" LargeChange="20" 
-                        TickFrequency="100" TickPlacement="TopLeft"
-                        Width="150"
-                        Value="{Binding ElementName=zoomAndPanControl, Path=ContentScale,
-                                        Converter={StaticResource scaleToPercentConverter}}"
-                        />
-
-                <!-- Button to zoom in. -->
-                <Button Content="+" Margin="0,0,15,0"
-                        FontWeight="SemiBold" Foreground="Black"
-                        Command="{StaticResource Commands.ZoomIn}" />
-            </StackPanel>
-        </Grid>
-        
         <!--
         Grid containing the canvas and the options panel.
         -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />      <!-- Canvas -->
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -815,9 +730,80 @@
             </ToolBarTray>
 
             <!--
+            Zoom Controls
+            -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="Height" Value="20" />
+                        <Setter Property="Width" Value="20" />
+                        <Setter Property="Padding" Value="0,0,0,2" />
+                    </Style>
+                </StackPanel.Resources>
+
+                <!-- The content zoom selector. -->
+                <ComboBox
+                    IsEditable="True"
+                    Width="70" Height="22"
+                    Text="{Binding
+                        ElementName=zoomAndPanControl,
+                        Path=ContentScale,
+                        Converter={StaticResource scaleTextToPercentConverter},
+                        Mode=TwoWay}"
+                    HorizontalContentAlignment="Right"
+                    Margin="10,0"
+                    Padding="0,2"
+                    >
+                    <ComboBox.Resources>
+                        <DataTemplate x:Key="PercentageTemplate">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding}" />
+                                <TextBlock Text=" %" />
+                            </StackPanel>
+                        </DataTemplate>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Right" />
+                            <Setter Property="Padding" Value="0,0" />
+                            <Setter Property="Margin" Value="0,0,5,0" />
+                            <Setter Property="ContentTemplate" Value="{StaticResource PercentageTemplate}" />
+                        </Style>
+                    </ComboBox.Resources>
+
+                    <ComboBoxItem>10</ComboBoxItem>
+                    <ComboBoxItem>100</ComboBoxItem>
+                    <ComboBoxItem>300</ComboBoxItem>
+                    <ComboBoxItem>1,000</ComboBoxItem>
+                    <ComboBoxItem>1,500</ComboBoxItem>
+                    <ComboBoxItem>2,000</ComboBoxItem>
+                    <ComboBoxItem>3,000</ComboBoxItem>
+                    <ComboBoxItem>4,000</ComboBoxItem>
+                    <ComboBoxItem>5,000</ComboBoxItem>
+                </ComboBox>
+
+                <!-- Button to zoom out. -->
+                <Button Content="-" Margin="0"
+                        FontWeight="SemiBold" Foreground="Black"
+                        Command="{StaticResource Commands.ZoomOut}" />
+
+                <!-- Slider to change the current zoom level. -->
+                <Slider Minimum="10" Maximum="5000" Width="200"
+                        SmallChange="10" LargeChange="20" 
+                        TickFrequency="100" TickPlacement="TopLeft"
+                        Value="{Binding ElementName=zoomAndPanControl, Path=ContentScale,
+                                        Converter={StaticResource scaleToPercentConverter}}"
+                        />
+
+                <!-- Button to zoom in. -->
+                <Button Content="+" Margin="0,0,15,0"
+                        FontWeight="SemiBold" Foreground="Black"
+                        Command="{StaticResource Commands.ZoomIn}" />
+            </StackPanel>
+
+            <!--
             LEFT PANEL | CANVAS | RIGHT PANEL
             -->
-            <Grid Grid.Column="0" Grid.Row="1" Margin="0">
+            <Grid Grid.ColumnSpan="2" Grid.Row="1" Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />   <!-- Left Panel Buttons -->
                     <ColumnDefinition Width="Auto" x:Name="columnLeftPanel" />  <!-- Left Panel -->
@@ -1112,7 +1098,7 @@
                 <Grid x:Name="rimDataPanel" Grid.Column="1"
                       Visibility="{Binding ShowRimDataPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="215" />
                     </Grid.ColumnDefinitions>
@@ -1781,7 +1767,7 @@
                 <Grid x:Name="optionsGrid" Grid.Column="5" Margin="5,0"
                       Visibility="{Binding ShowWalkmeshPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
