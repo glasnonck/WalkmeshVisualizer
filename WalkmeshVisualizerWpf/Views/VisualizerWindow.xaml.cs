@@ -10,13 +10,13 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
-using System.Xml;
 using KotOR_IO;
 using KotOR_IO.GffFile;
 using KotOR_IO.Helpers;
@@ -128,6 +128,12 @@ namespace WalkmeshVisualizerWpf.Views
 
             if (ShowCoordinatePanel || ShowRimDataPanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
             if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+
+            SetRimDataTypePanelVisibility(ShowRimDataDoors, "Door");
+            SetRimDataTypePanelVisibility(ShowRimDataTriggers, "Trigger");
+            SetRimDataTypePanelVisibility(ShowRimDataTraps, "Trap");
+            SetRimDataTypePanelVisibility(ShowRimDataZones, "Zone");
+            SetRimDataTypePanelVisibility(ShowRimDataEncounters, "Encounter");
         }
 
         #endregion // END REGION Constructors
@@ -318,6 +324,41 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showRimDataPanel = true;
 
+        public bool ShowRimDataDoors
+        {
+            get => _showRimDataDoors;
+            set => SetField(ref _showRimDataDoors, value);
+        }
+        private bool _showRimDataDoors = true;
+
+        public bool ShowRimDataTriggers
+        {
+            get => _showRimDataTriggers;
+            set => SetField(ref _showRimDataTriggers, value);
+        }
+        private bool _showRimDataTriggers = true;
+
+        public bool ShowRimDataTraps
+        {
+            get => _showRimDataTraps;
+            set => SetField(ref _showRimDataTraps, value);
+        }
+        private bool _showRimDataTraps = false;
+
+        public bool ShowRimDataZones
+        {
+            get => _showRimDataZones;
+            set => SetField(ref _showRimDataZones, value);
+        }
+        private bool _showRimDataZones = false;
+
+        public bool ShowRimDataEncounters
+        {
+            get => _showRimDataEncounters;
+            set => SetField(ref _showRimDataEncounters, value);
+        }
+        private bool _showRimDataEncounters = false;
+
         public bool ShowWalkmeshPanel
         {
             get => _showWalkmeshPanel;
@@ -381,6 +422,48 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _hiddenRimTriggers;
             set => SetField(ref _hiddenRimTriggers, value);
+        }
+
+        private ObservableCollection<RimDataInfo> _rimTraps = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimTraps
+        {
+            get => _rimTraps;
+            set => SetField(ref _rimTraps, value);
+        }
+
+        private int _visibleRimTraps = 0;
+        public int VisibleRimTraps
+        {
+            get => _visibleRimTraps;
+            set => SetField(ref _visibleRimTraps, value);
+        }
+
+        private int _hiddenRimTraps = 0;
+        public int HiddenRimTraps
+        {
+            get => _hiddenRimTraps;
+            set => SetField(ref _hiddenRimTraps, value);
+        }
+
+        private ObservableCollection<RimDataInfo> _rimZones = new ObservableCollection<RimDataInfo>();
+        public ObservableCollection<RimDataInfo> RimZones
+        {
+            get => _rimZones;
+            set => SetField(ref _rimZones, value);
+        }
+
+        private int _visibleRimZones = 0;
+        public int VisibleRimZones
+        {
+            get => _visibleRimZones;
+            set => SetField(ref _visibleRimZones, value);
+        }
+
+        private int _hiddenRimZones = 0;
+        public int HiddenRimZones
+        {
+            get => _hiddenRimZones;
+            set => SetField(ref _hiddenRimZones, value);
         }
 
         private ObservableCollection<RimDataInfo> _rimEncounters = new ObservableCollection<RimDataInfo>();
@@ -764,6 +847,20 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showTriggersOnAddRim, value);
         }
         private bool _showTriggersOnAddRim = true;
+
+        public bool ShowTrapsOnAddRim
+        {
+            get => _showTrapsOnAddRim;
+            set => SetField(ref _showTrapsOnAddRim, value);
+        }
+        private bool _showTrapsOnAddRim = false;
+
+        public bool ShowZonesOnAddRim
+        {
+            get => _showZonesOnAddRim;
+            set => SetField(ref _showZonesOnAddRim, value);
+        }
+        private bool _showZonesOnAddRim = false;
 
         public bool ShowEncountersOnAddRim
         {
@@ -1811,6 +1908,10 @@ namespace WalkmeshVisualizerWpf.Views
             HiddenRimDoors = RimDoors.Count(d => !d.MeshVisible);
             VisibleRimTriggers = RimTriggers.Count(d => d.MeshVisible);
             HiddenRimTriggers = RimTriggers.Count(d => !d.MeshVisible);
+            VisibleRimTraps = RimTraps.Count(d => d.MeshVisible);
+            HiddenRimTraps = RimTraps.Count(d => !d.MeshVisible);
+            VisibleRimZones = RimZones.Count(d => d.MeshVisible);
+            HiddenRimZones = RimZones.Count(d => !d.MeshVisible);
             VisibleRimEncounters = RimEncounters.Count(d => d.MeshVisible);
             HiddenRimEncounters = RimEncounters.Count(d => !d.MeshVisible);
         }
@@ -1974,6 +2075,14 @@ namespace WalkmeshVisualizerWpf.Views
                 rdiSort.Sort();
                 RimTriggers = new ObservableCollection<RimDataInfo>(rdiSort);
 
+                rdiSort = RimTraps.Concat(rdiModule.Traps).ToList();
+                rdiSort.Sort();
+                RimTraps = new ObservableCollection<RimDataInfo>(rdiSort);
+
+                rdiSort = RimZones.Concat(rdiModule.Zones).ToList();
+                rdiSort.Sort();
+                RimZones = new ObservableCollection<RimDataInfo>(rdiSort);
+
                 rdiSort = RimEncounters.Concat(rdiModule.Encounters).ToList();
                 rdiSort.Sort();
                 RimEncounters = new ObservableCollection<RimDataInfo>(rdiSort);
@@ -2019,6 +2128,8 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 if (ShowDoorsOnAddRim) ShowAllRimDataInfo(RimDoors);
                 if (ShowTriggersOnAddRim) ShowAllRimDataInfo(RimTriggers);
+                if (ShowTrapsOnAddRim) ShowAllRimDataInfo(RimTraps);
+                if (ShowZonesOnAddRim) ShowAllRimDataInfo(RimZones);
                 if (ShowEncountersOnAddRim) ShowAllRimDataInfo(RimEncounters);
             });
 
@@ -2026,6 +2137,10 @@ namespace WalkmeshVisualizerWpf.Views
             HiddenRimDoors = RimDoors.Count(d => !d.MeshVisible);
             VisibleRimTriggers = RimTriggers.Count(d => d.MeshVisible);
             HiddenRimTriggers = RimTriggers.Count(d => !d.MeshVisible);
+            VisibleRimTraps = RimTraps.Count(d => d.MeshVisible);
+            HiddenRimTraps = RimTraps.Count(d => !d.MeshVisible);
+            VisibleRimZones = RimZones.Count(d => d.MeshVisible);
+            HiddenRimZones = RimZones.Count(d => !d.MeshVisible);
             VisibleRimEncounters = RimEncounters.Count(d => d.MeshVisible);
             HiddenRimEncounters = RimEncounters.Count(d => !d.MeshVisible);
 
@@ -2590,6 +2705,10 @@ namespace WalkmeshVisualizerWpf.Views
                     RimDoors.Remove(door);
                 foreach (var trigger in rimModule.Triggers)
                     RimTriggers.Remove(trigger);
+                foreach (var trap in rimModule.Traps)
+                    RimTraps.Remove(trap);
+                foreach (var zone in rimModule.Zones)
+                    RimZones.Remove(zone);
                 foreach (var encounter in rimModule.Encounters)
                     RimEncounters.Remove(encounter);
 
@@ -2700,6 +2819,10 @@ namespace WalkmeshVisualizerWpf.Views
                     RimDoors.Remove(door);
                 foreach (var trigger in rimModule.Triggers)
                     RimTriggers.Remove(trigger);
+                foreach (var trap in rimModule.Traps)
+                    RimTraps.Remove(trap);
+                foreach (var zone in rimModule.Zones)
+                    RimZones.Remove(zone);
                 foreach (var encounter in rimModule.Encounters)
                     RimEncounters.Remove(encounter);
             }
@@ -3177,7 +3300,48 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        #endregion
+        private void SetRimDataTypePanelVisibility(bool isVisible, string type)
+        {
+            if (type == "Door")
+            {
+                ShowRimDataDoors = isVisible;
+                lvRimDoor.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimDoor.Height = isVisible ? new GridLength(4, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Trigger")
+            {
+                ShowRimDataTriggers = isVisible;
+                lvRimTrigger.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimTrigger.Height = isVisible ? new GridLength(5, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Trap")
+            {
+                ShowRimDataTraps = isVisible;
+                lvRimTrap.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimTrap.Height = isVisible ? new GridLength(3, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Zone")
+            {
+                ShowRimDataZones = isVisible;
+                lvRimZone.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimZone.Height = isVisible ? new GridLength(3, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            if (type == "Encounter")
+            {
+                ShowRimDataEncounters = isVisible;
+                lvRimEncounter.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+                rowRimEncounter.Height = isVisible ? new GridLength(3, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+        private void RimDataShowHideButton_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as ToggleButton;
+            if (!btn.IsChecked.HasValue) return;
+            SetRimDataTypePanelVisibility(btn.IsChecked.Value, btn.Tag.ToString());
+        }
+
+        #endregion // END REGION Left Panel Methods
 
         #region Right Panel Methods
 
@@ -3539,6 +3703,8 @@ namespace WalkmeshVisualizerWpf.Views
                     mousePosition.Y = theGrid.Height - mousePosition.Y - BottomOffset;
                     visibleRimData = RimDoors
                         .Concat(RimTriggers)
+                        .Concat(RimTraps)
+                        .Concat(RimZones)
                         .Concat(RimEncounters)
                         .Where(r => r.MeshVisible);
                     message = string.Join(Environment.NewLine, visibleRimData
@@ -3723,6 +3889,8 @@ namespace WalkmeshVisualizerWpf.Views
             if (e.OriginalSource is VisualizerWindow) ShowDlzLines = !ShowDlzLines;
             var visibleRimDataInfo = RimDoors.Where(i => i.MeshVisible)
                 .Concat(RimTriggers.Where(i => i.MeshVisible))
+                .Concat(RimTraps.Where(i => i.MeshVisible))
+                .Concat(RimZones.Where(i => i.MeshVisible))
                 .Concat(RimEncounters.Where(i => i.MeshVisible));
             if (ShowDlzLines)
                 foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;

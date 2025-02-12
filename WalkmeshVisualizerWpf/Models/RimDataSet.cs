@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -19,6 +20,11 @@ namespace WalkmeshVisualizerWpf.Models
     {
         private ObservableCollection<RimData> _rimData = new ObservableCollection<RimData>();
         public string Version = "v1.0";
+
+        public readonly Regex regexAll = new Regex(@"(^g_t_\w+\d+$)|(^g_zonecata(\d\d\d)$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)$");
+        public readonly Regex regexTrap = new Regex(@"^g_t_\w+\d+$");
+        //public readonly Regex regexTrap = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)");
+        public readonly Regex regexZone = new Regex(@"(^g_zonecata(\d\d\d)$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)");
 
         /// <summary>
         /// Collection of ModuleDLZ objects.
@@ -52,6 +58,8 @@ namespace WalkmeshVisualizerWpf.Models
 
                 var rimDoors = ParseRimDoors(rim);
                 var rimTriggers = ParseRimTriggers(rim);
+                var rimTraps = ParseRimTraps(rim);
+                var rimZones = ParseRimZones(rim);
                 var rimEncounters = ParseRimEncounters(rim, srim);
 
                 RimData module = RimData.FirstOrDefault(m => m.Module == moduleName.ToLower());
@@ -69,17 +77,31 @@ namespace WalkmeshVisualizerWpf.Models
                         door.Geometry.Add(new Tuple<float, float>(door.CornersX[i], door.CornersY[i]));
                 }
                 module.Triggers = rimTriggers.Select(t => new RimDataInfo(t, module.Module)).ToList();
+                module.Traps = rimTraps.Select(t => new RimDataInfo(t, module.Module, RimDataType.Trap)).ToList();
+                module.Zones = rimZones.Select(t => new RimDataInfo(t, module.Module, RimDataType.Zone)).ToList();
                 module.Encounters = rimEncounters.Select(e => new RimDataInfo(e, module.Module)).ToList();
             }
         }
 
         public RimDataSet() { }
 
-        private List<Door> ParseRimDoors(RIM rim)
+        #region Sub-Classes
+
+        public struct Geometry
         {
-            var doors = new List<Door>();
-            foreach (var d in rim.GitFile.Doors.Structs) doors.Add(new Door(d));
-            return doors;
+            public List<Tuple<float, float>> Corners;
+            public Geometry(GFF.LIST g, string prefix = "")
+            {
+                Corners = new List<Tuple<float, float>>();
+                foreach (var s in g.Structs)
+                {
+                    Corners.Add(new Tuple<float, float>
+                    (
+                        item1: (s.Fields.First(f => f.Label == prefix + "X") as GFF.FLOAT).Value,
+                        item2: (s.Fields.First(f => f.Label == prefix + "Y") as GFF.FLOAT).Value
+                    ));
+                }
+            }
         }
 
         public class Door
@@ -96,13 +118,6 @@ namespace WalkmeshVisualizerWpf.Models
                 X = (s.Fields.First(f => f.Label == "X") as GFF.FLOAT).Value;
                 Y = (s.Fields.First(f => f.Label == "Y") as GFF.FLOAT).Value;
             }
-        }
-
-        private List<Trigger> ParseRimTriggers(RIM rim)
-        {
-            var triggers = new List<Trigger>();
-            foreach (var t in rim.GitFile.Triggers.Structs) triggers.Add(new Trigger(t));
-            return triggers;
         }
 
         public class Trigger
@@ -132,30 +147,6 @@ namespace WalkmeshVisualizerWpf.Models
             }
         }
 
-        public struct Geometry
-        {
-            public List<Tuple<float, float>> Corners;
-            public Geometry(GFF.LIST g, string prefix = "")
-            {
-                Corners = new List<Tuple<float, float>>();
-                foreach (var s in g.Structs)
-                {
-                    Corners.Add(new Tuple<float, float>
-                    (
-                        item1: (s.Fields.First(f => f.Label == prefix + "X") as GFF.FLOAT).Value,
-                        item2: (s.Fields.First(f => f.Label == prefix + "Y") as GFF.FLOAT).Value
-                    ));
-                }
-            }
-        }
-
-        private List<Encounter> ParseRimEncounters(RIM rim, RIM srim)
-        {
-            var encounters = new List<Encounter>();
-            foreach (var e in rim.GitFile.Encounters.Structs) encounters.Add(new Encounter(e));
-            return encounters;
-        }
-
         public class Encounter
         {
             public List<Tuple<float, float>> Corners = new List<Tuple<float, float>>();
@@ -181,6 +172,46 @@ namespace WalkmeshVisualizerWpf.Models
                 foreach (var p in spawns.Corners)
                     SpawnPoints.Add(new Tuple<float, float>(p.Item1, p.Item2));
             }
+        }
+
+        #endregion
+
+        private List<Door> ParseRimDoors(RIM rim)
+        {
+            var doors = new List<Door>();
+            foreach (var d in rim.GitFile.Doors.Structs) doors.Add(new Door(d));
+            return doors;
+        }
+
+        private List<Trigger> ParseRimTriggers(RIM rim)
+        {
+            var triggers = new List<Trigger>();
+            foreach (var t in rim.GitFile.Triggers.Structs.Where(s => !regexAll.IsMatch((s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference)))
+                triggers.Add(new Trigger(t));
+            return triggers;
+        }
+
+        private List<Trigger> ParseRimTraps(RIM rim)
+        {
+            var traps = new List<Trigger>();
+            foreach (var t in rim.GitFile.Triggers.Structs.Where(s => regexTrap.IsMatch((s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference)))
+                traps.Add(new Trigger(t));
+            return traps;
+        }
+
+        private List<Trigger> ParseRimZones(RIM rim)
+        {
+            var zones = new List<Trigger>();
+            foreach (var t in rim.GitFile.Triggers.Structs.Where(s => regexZone.IsMatch((s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference)))
+                zones.Add(new Trigger(t));
+            return zones;
+        }
+
+        private List<Encounter> ParseRimEncounters(RIM rim, RIM srim)
+        {
+            var encounters = new List<Encounter>();
+            foreach (var e in rim.GitFile.Encounters.Structs) encounters.Add(new Encounter(e));
+            return encounters;
         }
 
         #region INotifyPropertyChanged Implementation
@@ -210,11 +241,13 @@ namespace WalkmeshVisualizerWpf.Models
         public string Name { get; set; }
         public List<RimDataInfo> Doors { get; set; } = new List<RimDataInfo>();
         public List<RimDataInfo> Triggers { get; set; } = new List<RimDataInfo>();
+        public List<RimDataInfo> Traps { get; set; } = new List<RimDataInfo>();
+        public List<RimDataInfo> Zones { get; set; } = new List<RimDataInfo>();
         public List<RimDataInfo> Encounters { get; set; } = new List<RimDataInfo>();
 
         public override string ToString()
         {
-            return $"{Module}, {Doors.Count} door(s), {Triggers.Count} trigger(s), {Encounters.Count} encounter(s)";
+            return $"{Module}, {Doors.Count} door(s), {Triggers.Count + Traps.Count + Zones.Count} trigger(s), {Encounters.Count} encounter(s)";
         }
     }
 
@@ -224,6 +257,8 @@ namespace WalkmeshVisualizerWpf.Models
         Door,
         Trigger,
         Encounter,
+        Trap,
+        Zone,
     }
 
     [Serializable]
@@ -252,9 +287,9 @@ namespace WalkmeshVisualizerWpf.Models
 
         public RimDataInfo() { }
 
-        public RimDataInfo(RimDataSet.Trigger trigger, string module = "")
+        public RimDataInfo(RimDataSet.Trigger trigger, string module = "", RimDataType type = RimDataType.Trigger)
         {
-            RimDataType = RimDataType.Trigger;
+            RimDataType = type;
             Module = module;
             ResRef = trigger.TemplateResRef;
             Geometry = trigger.Corners;

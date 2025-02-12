@@ -817,52 +817,52 @@
                     <Style TargetType="ListViewItem" x:Key="MatchItemStyle" BasedOn="{StaticResource BaseItemStyle}">
                         <EventSetter Event="MouseDoubleClick" Handler="MatchItem_DoubleClick" />
                     </Style>
+                    <Style TargetType="ToggleButton" x:Key="panelToggleButton">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="#FF707070" />
+                        <Setter Property="BorderThickness" Value="0,0,0,4" />
+                        <Setter Property="Margin" Value="0,0,0,4" />
+                        <Setter Property="Height" Value="22" />
+                        <Setter Property="Width" Value="80" />
+                        <Setter Property="LayoutTransform">
+                            <Setter.Value>
+                                <RotateTransform Angle="90" />
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                <Setter Property="Background" Value="Lavender" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="BorderBrush" Value="Indigo" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
                 </Grid.Resources>
                 
                 <!--
                 Left Panel Buttons Column
                 -->
                 <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <StackPanel.Resources>
-                        <Style TargetType="ToggleButton">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderBrush" Value="#FF707070" />
-                            <Setter Property="BorderThickness" Value="0,0,0,4" />
-                            <Setter Property="Margin" Value="0,0,0,4" />
-                            <Setter Property="Width" Value="80" />
-                            <Setter Property="LayoutTransform">
-                                <Setter.Value>
-                                    <RotateTransform Angle="90" />
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="BorderBrush" Value="MediumSlateBlue" />
-                                    <Setter Property="Background" Value="Lavender" />
-                                </Trigger>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter Property="BorderBrush" Value="Indigo" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Resources>
-                        
                     <ToggleButton Content="Coordinates"
                                   IsChecked="{Binding ShowCoordinatePanel}"
                                   Click="CoordinatePanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
                                   />
                     <ToggleButton Content="RIM Data"
                                   IsChecked="{Binding ShowRimDataPanel}"
                                   Click="RimDataPanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
                                   />
                 </StackPanel>
 
@@ -1100,14 +1100,60 @@
                             Converter={StaticResource BoolToVisibilityConverter},
                             FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="215" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     
-                    <Grid Margin="4,0,0,0">
+                    <StackPanel Orientation="Vertical" Margin="2,0,0,0">
+                        <ToggleButton IsChecked="{Binding ShowRimDataDoors}"
+                                      Style="{StaticResource panelToggleButton}"
+                                      Click="RimDataShowHideButton_Click"
+                                      Tag="Door">
+                            <TextBlock><Run>Doors:</Run> <TextBlock Margin="0,1,0,0"
+                                Text="{Binding RimDoors.Count, FallbackValue=0}" />
+                            </TextBlock>
+                        </ToggleButton>
+                        <ToggleButton IsChecked="{Binding ShowRimDataTriggers}"
+                                      Style="{StaticResource panelToggleButton}"
+                                      Click="RimDataShowHideButton_Click"
+                                      Tag="Trigger">
+                            <TextBlock><Run>Triggers:</Run> <TextBlock Margin="0,1,0,0"
+                                Text="{Binding RimTriggers.Count, FallbackValue=0}" />
+                            </TextBlock>
+                        </ToggleButton>
+                        <ToggleButton IsChecked="{Binding ShowRimDataTraps}"
+                                      Style="{StaticResource panelToggleButton}"
+                                      Click="RimDataShowHideButton_Click"
+                                      Tag="Trap" Width="70">
+                            <TextBlock><Run>Traps:</Run> <TextBlock Margin="0,1,0,0"
+                                Text="{Binding RimTraps.Count, FallbackValue=0}" />
+                            </TextBlock>
+                        </ToggleButton>
+                        <ToggleButton IsChecked="{Binding ShowRimDataZones}"
+                                      Style="{StaticResource panelToggleButton}"
+                                      Click="RimDataShowHideButton_Click"
+                                      Tag="Zone" Width="70">
+                            <TextBlock><Run>Zones:</Run> <TextBlock Margin="0,1,0,0"
+                                Text="{Binding RimZones.Count, FallbackValue=0}" />
+                            </TextBlock>
+                        </ToggleButton>
+                        <ToggleButton IsChecked="{Binding ShowRimDataEncounters}"
+                                      Style="{StaticResource panelToggleButton}"
+                                      Click="RimDataShowHideButton_Click"
+                                      Tag="Encounter" Width="90">
+                            <TextBlock><Run>Encounters:</Run> <TextBlock Margin="0,1,0,0"
+                                Text="{Binding RimEncounters.Count, FallbackValue=0}" />
+                            </TextBlock>
+                        </ToggleButton>
+                    </StackPanel>
+                    
+                    <Grid Margin="4,0,0,0" Grid.Column="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="4*" x:Name="rowRimDoor" />
                             <RowDefinition Height="5*" x:Name="rowRimTrigger" />
+                            <RowDefinition Height="3*" x:Name="rowRimTrap" />
+                            <RowDefinition Height="3*" x:Name="rowRimZone" />
                             <RowDefinition Height="3*" x:Name="rowRimEncounter" />
                         </Grid.RowDefinitions>
                         <Grid.Resources>
@@ -1116,7 +1162,7 @@
                                 <EventSetter Event="KeyDown" Handler="lvRimDataInfo_KeyDown" />
                             </Style>
                             <Style TargetType="Grid">
-                                <Setter Property="Margin" Value="0,4,0,0" />
+                                <!--<Setter Property="Margin" Value="0,4,0,0" />-->
                             </Style>
                             <Style TargetType="StackPanel">
                                 <Setter Property="Orientation" Value="Horizontal" />
@@ -1129,7 +1175,6 @@
                                 <Setter Property="Margin" Value="0,0,5,0" />
                             </Style>
                             <Style TargetType="ListView">
-                                <Setter Property="Margin" Value="0,5,0,0" />
                                 <Setter Property="ScrollViewer.CanContentScroll" Value="False" />
                                 <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
                                 <Setter Property="FontSize" Value="12" />
@@ -1195,21 +1240,20 @@
                         </Grid.Resources>
 
                         <!-- RIM Doors -->
-                        <Grid x:Name="rimDoorGrid" Grid.Row="1" Margin="0">
+                        <Grid x:Name="rimDoorGrid" Grid.Row="1">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="5" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel>
+                            <StackPanel Margin="0,0,0,2">
                                 <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
                                           IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}"
                                           VerticalContentAlignment="Center">
                                     <TextBlock>
-                                        <Span>RIM Doors (</Span>
-                                        <TextBlock Text="{Binding RimDoors.Count, FallbackValue=0, TargetNullValue=0}" />
-                                        <Span>)</Span>
+                                        <Run>Doors (</Run>
+                                        <TextBlock Margin="-3,0" Text="{Binding RimDoors.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Run>)</Run>
                                     </TextBlock>
                                 </CheckBox>
                             </StackPanel>
@@ -1279,21 +1323,20 @@
                         </Grid>
 
                         <!-- RIM Triggers -->
-                        <Grid x:Name="rimTriggerGrid" Grid.Row="2">
+                        <Grid x:Name="rimTriggerGrid" Grid.Row="2" Margin="0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="5" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel>
+                            <StackPanel Margin="0,5,0,2">
                                 <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
                                           IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}"
                                           VerticalContentAlignment="Center">
                                     <TextBlock>
-                                        <Span>RIM Triggers (</Span>
-                                        <TextBlock Text="{Binding RimTriggers.Count, FallbackValue=0, TargetNullValue=0}" />
-                                        <Span>)</Span>
+                                        <Run>Triggers (</Run>
+                                        <TextBlock Margin="-3,0" Text="{Binding RimTriggers.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Run>)</Run>
                                     </TextBlock>
                                 </CheckBox>
                             </StackPanel>
@@ -1362,21 +1405,187 @@
                             </ListView>
                         </Grid>
 
-                        <!-- RIM Encounters -->
-                        <Grid x:Name="rimEncounterGrid" Grid.Row="3">
+                        <!-- RIM Traps -->
+                        <Grid x:Name="rimTrapGrid" Grid.Row="3" Margin="0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
-                            <StackPanel>
+                            <StackPanel Margin="0,5,0,2">
+                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
+                                          IsChecked="{Binding ShowTrapsOnAddRim, Mode=TwoWay}"
+                                          VerticalContentAlignment="Center">
+                                    <TextBlock>
+                                        <Run>Traps (</Run>
+                                        <TextBlock Margin="-3,0" Text="{Binding RimTraps.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Run>)</Run>
+                                    </TextBlock>
+                                </CheckBox>
+                            </StackPanel>
+
+                            <StackPanel HorizontalAlignment="Right"
+                                        IsEnabled="{Binding RimTraps.Count,
+                                            Converter={StaticResource IntGreaterEqualConverter},
+                                            ConverterParameter=1}">
+                                <Button Content="Show" Margin="0" Tag="{Binding RimTraps}"
+                                        Style="{StaticResource btnRimDataShowHide}"
+                                        Command="{StaticResource Commands.ShowAllOfRimData}">
+                                    <Button.IsEnabled>
+                                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="HiddenRimTraps" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                            <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        </MultiBinding>
+                                    </Button.IsEnabled>
+                                </Button>
+                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimTraps}"
+                                        Style="{StaticResource btnRimDataShowHide}"
+                                        Command="{StaticResource Commands.HideAllOfRimData}">
+                                    <Button.IsEnabled>
+                                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="VisibleRimTraps" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                            <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        </MultiBinding>
+                                    </Button.IsEnabled>
+                                </Button>
+                            </StackPanel>
+
+                            <ListView x:Name="lvRimTrap" Grid.Row="1"
+                                      ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
+                                      ItemsSource="{Binding RimTraps}"
+                                      ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                      ScrollViewer.CanContentScroll="False">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Width="18" CellTemplate="{StaticResource dtRimDataInfo}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="Color" Content="" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="130" DisplayMemberBinding="{Binding ResRef}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="30" DisplayMemberBinding="{Binding Geometry.Count}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="V" Content="V" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
+
+                        <!-- RIM Zones -->
+                        <Grid x:Name="rimZoneGrid" Grid.Row="4" Margin="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Margin="0,5,0,2">
+                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
+                                          IsChecked="{Binding ShowZonesOnAddRim, Mode=TwoWay}"
+                                          VerticalContentAlignment="Center">
+                                    <TextBlock>
+                                        <Run>Zones (</Run>
+                                        <TextBlock Margin="-3,0" Text="{Binding RimZones.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Run>)</Run>
+                                    </TextBlock>
+                                </CheckBox>
+                            </StackPanel>
+
+                            <StackPanel HorizontalAlignment="Right"
+                                        IsEnabled="{Binding RimZones.Count,
+                                            Converter={StaticResource IntGreaterEqualConverter},
+                                            ConverterParameter=1}">
+                                <Button Content="Show" Margin="0" Tag="{Binding RimZones}"
+                                        Style="{StaticResource btnRimDataShowHide}"
+                                        Command="{StaticResource Commands.ShowAllOfRimData}">
+                                    <Button.IsEnabled>
+                                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="HiddenRimZones" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                            <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        </MultiBinding>
+                                    </Button.IsEnabled>
+                                </Button>
+                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimZones}"
+                                        Style="{StaticResource btnRimDataShowHide}"
+                                        Command="{StaticResource Commands.HideAllOfRimData}">
+                                    <Button.IsEnabled>
+                                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="VisibleRimZones" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
+                                            <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        </MultiBinding>
+                                    </Button.IsEnabled>
+                                </Button>
+                            </StackPanel>
+
+                            <ListView x:Name="lvRimZone" Grid.Row="1"
+                                      ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
+                                      ItemsSource="{Binding RimZones}"
+                                      ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                      ScrollViewer.CanContentScroll="False">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Width="18" CellTemplate="{StaticResource dtRimDataInfo}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="Color" Content="" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="80" DisplayMemberBinding="{Binding Module}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="130" DisplayMemberBinding="{Binding ResRef}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="ResRef" Content="ResRef" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="30" DisplayMemberBinding="{Binding Geometry.Count}">
+                                            <GridViewColumn.Header>
+                                                <GridViewColumnHeader Tag="V" Content="V" />
+                                            </GridViewColumn.Header>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
+
+                        <!-- RIM Encounters -->
+                        <Grid x:Name="rimEncounterGrid" Grid.Row="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Margin="0,5,0,2">
                                 <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
                                           IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}"
                                           VerticalContentAlignment="Center">
                                     <TextBlock>
-                                        <Span>RIM Encounters (</Span>
-                                        <TextBlock Text="{Binding RimEncounters.Count, FallbackValue=0, TargetNullValue=0}" />
-                                        <Span>)</Span>
+                                        <Run>Encounters (</Run>
+                                        <TextBlock Margin="-3,0" Text="{Binding RimEncounters.Count, FallbackValue=0, TargetNullValue=0}" />
+                                        <Run>)</Run>
                                     </TextBlock>
                                 </CheckBox>
                             </StackPanel>
@@ -1962,7 +2171,7 @@
                 <!--
                 Right Panel Buttons Column
                 -->
-                <StackPanel Grid.Column="6" Orientation="Vertical">
+                <StackPanel Grid.Column="6" Orientation="Vertical" Margin="4,0,0,0">
                     <StackPanel.Resources>
                         <Style TargetType="ToggleButton">
                             <Setter Property="Background" Value="Transparent" />
