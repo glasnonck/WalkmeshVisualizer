@@ -821,6 +821,31 @@
                     <Style TargetType="ListViewItem" x:Key="MatchItemStyle" BasedOn="{StaticResource BaseItemStyle}">
                         <EventSetter Event="MouseDoubleClick" Handler="MatchItem_DoubleClick" />
                     </Style>
+                    <Style TargetType="ToggleButton" x:Key="panelHorizontalToggleButton">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="#FF707070" />
+                        <Setter Property="BorderThickness" Value="0,0,0,4" />
+                        <Setter Property="Margin" Value="0,0,4,0" />
+                        <Setter Property="Height" Value="22" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                <Setter Property="Background" Value="Lavender" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="BorderBrush" Value="Indigo" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
                     <Style TargetType="ToggleButton" x:Key="panelToggleButton">
                         <Setter Property="Background" Value="Transparent" />
                         <Setter Property="BorderBrush" Value="#FF707070" />
@@ -863,9 +888,14 @@
                                   Click="CoordinatePanelButton_Click"
                                   Style="{StaticResource panelToggleButton}"
                                   />
-                    <ToggleButton Content="RIM Data"
+                    <ToggleButton Content="RIM Triggers"
                                   IsChecked="{Binding ShowRimDataPanel}"
                                   Click="RimDataPanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
+                                  />
+                    <ToggleButton Content="Distance"
+                                  IsChecked="{Binding ShowDistancePanel}"
+                                  Click="DistancePanelButton_Click"
                                   Style="{StaticResource panelToggleButton}"
                                   />
                 </StackPanel>
@@ -877,10 +907,6 @@
                       Visibility="{Binding ShowCoordinatePanel,
                             Converter={StaticResource BoolToVisibilityConverter},
                             FallbackValue=Collapsed, TargetNullValue=Collapsed}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="215" />
-                    </Grid.ColumnDefinitions>
-                    
                     <Grid Margin="4,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -1108,6 +1134,7 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     
+                    <!-- Sub Tabs Buttons -->
                     <StackPanel Orientation="Vertical" Margin="2,0,0,0">
                         <ToggleButton IsChecked="{Binding ShowRimDataDoors}"
                                       Style="{StaticResource panelToggleButton}"
@@ -1659,6 +1686,135 @@
                 </Grid>
 
                 <!--
+                Left Panel: Distance Panel
+                -->
+                <Grid x:Name="distancePanel" Grid.Column="1"
+                      Visibility="{Binding ShowDistancePanel,
+                            Converter={StaticResource BoolToVisibilityConverter},
+                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                    <Grid Margin="4,0,0,0" Width="300">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.Resources>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Height" Value="12" />
+                                <Setter Property="Width" Value="12" />
+                                <Setter Property="Stroke" Value="Black" />
+                                <Setter Property="Margin" Value="0,0,0,0" />
+                            </Style>
+                        </Grid.Resources>
+
+                        <!-- Distance speed options -->
+                        <StackPanel HorizontalAlignment="Center" x:Name="distPanelSpeedButtons" Orientation="Horizontal">
+                            <StackPanel.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Margin" Value="5,0" />
+                                </Style>
+                                <Style TargetType="ToggleButton" BasedOn="{StaticResource panelHorizontalToggleButton}">
+                                    <EventSetter Event="Click" Handler="DistanceSpeedButton_Click" />
+                                </Style>
+                            </StackPanel.Resources>
+                            <ToggleButton Tag="1.0" IsChecked="True">
+                                <TextBlock Text="Run" />
+                            </ToggleButton>
+                            <ToggleButton Tag="1.2">
+                                <TextBlock Text="Alacrity" />
+                            </ToggleButton>
+                            <ToggleButton Tag="1.3">
+                                <TextBlock Text="Hyper Alacrity" />
+                            </ToggleButton>
+                            <ToggleButton Tag="1.5">
+                                <TextBlock Text="Force Speed" />
+                            </ToggleButton>
+                        </StackPanel>
+
+                        <!-- Coordinate Distances -->
+                        <Border Grid.Row="1" Margin="0,4" Padding="4,2" BorderThickness="0,1" BorderBrush="#707070">
+                            <StackPanel Orientation="Vertical" Margin="0">
+                                <StackPanel.Resources>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Orientation" Value="Horizontal" />
+                                        <Setter Property="Margin" Value="0,0,0,4" />
+                                    </Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="BorderBrush" Value="Black" />
+                                        <Setter Property="BorderThickness" Value="0,1,0,0" />
+                                        <Setter Property="Padding" Value="0,1,0,0" />
+                                        <Setter Property="Margin" Value="0,0,2,0" />
+                                    </Style>
+                                </StackPanel.Resources>
+
+                                <!-- Title -->
+                                <TextBlock HorizontalAlignment="Center" Text="Coordinate Distances" Margin="0,0,0,4" />
+
+                                <!-- Distance from Left Point to Right Point -->
+                                <StackPanel>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Fill="Black" Margin="0,0,1,0" />
+                                            <Ellipse Fill="White" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text=" = " />
+                                    <TextBlock TextAlignment="Right" Width="36"
+                                           Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=4.20}" />
+                                    <TextBlock Text=", Time = " />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationLeftRight, StringFormat=N2, FallbackValue=333.33}" />
+                                </StackPanel>
+
+                                <!-- Distance from Live to Left Point -->
+                                <StackPanel>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Grid Margin="0,0,1,0">
+                                                <Ellipse Stroke="Black" Fill="#4E6BDF" />
+                                                <Polygon Points="6,6 0,10 6,0 12,10"
+                                                     Stroke="Black" Fill="#42BFA4"
+                                                     StrokeLineJoin="Round" StrokeThickness=".5" />
+                                            </Grid>
+                                            <Ellipse Fill="Black" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text=" = " />
+                                    <TextBlock TextAlignment="Right" Width="36"
+                                           Text="{Binding DistanceLiveLeft, StringFormat=N2, FallbackValue=69.69}" />
+                                    <TextBlock Text=", Time = " />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationLiveLeft, StringFormat=N2, FallbackValue=333.33}" />
+                                </StackPanel>
+
+                                <!-- Distance from Live to Right Point -->
+                                <StackPanel>
+                                    <Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Grid Margin="0,0,1,0">
+                                                <Ellipse Stroke="Black" Fill="#4E6BDF" />
+                                                <Polygon Points="6,6 0,10 6,0 12,10"
+                                                     Stroke="Black" Fill="#42BFA4"
+                                                     StrokeLineJoin="Round" StrokeThickness=".5" />
+                                            </Grid>
+                                            <Ellipse Fill="White" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text=" = " />
+                                    <TextBlock TextAlignment="Right" Width="36"
+                                           Text="{Binding DistanceLiveRight, StringFormat=N2, FallbackValue=333.33}" />
+                                    <TextBlock Text=", Time = " />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationLiveRight, StringFormat=N2, FallbackValue=333.33}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!--
                 Left Panel Grid Splitter
                 -->
                 <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Width="3" Background="#FF707070"
@@ -1669,6 +1825,7 @@
                                       FallbackValue="Collapsed" TargetNullValue="Collapsed">
                             <Binding Path="ShowCoordinatePanel" />
                             <Binding Path="ShowRimDataPanel" />
+                            <Binding Path="ShowDistancePanel" />
                         </MultiBinding>
                     </GridSplitter.Visibility>
                 </GridSplitter>

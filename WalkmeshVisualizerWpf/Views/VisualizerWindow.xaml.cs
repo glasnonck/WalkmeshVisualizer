@@ -325,6 +325,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showRimDataPanel = true;
 
+        public bool ShowDistancePanel
+        {
+            get => _showDistancePanel;
+            set => SetField(ref _showDistancePanel, value);
+        }
+        private bool _showDistancePanel = false;
+
         public bool ShowRimDataDoors
         {
             get => _showRimDataDoors;
@@ -926,6 +933,73 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private int _mouseHoverUpdateDelay = 50;
 
+        #region Distance
+
+        const double SPEED_UNITS_PER_SECOND = 5.4;
+
+        /// <summary>
+        /// Multiplier used to calulate for different movement speeds.
+        /// </summary>
+        public double DistanceToTimeMultiplier
+        {
+            get => _distanceToTimeMultiplier;
+            set => SetField(ref _distanceToTimeMultiplier, value);
+        }
+        private double _distanceToTimeMultiplier = 1.0;
+
+        /// <summary>
+        /// Distance between left click point and right click point.
+        /// </summary>
+        public double DistanceLeftRight
+        {
+            get => _distanceLeftRight;
+            set => SetField(ref _distanceLeftRight, value);
+        }
+        private double _distanceLeftRight = 0.0;
+
+        public double DurationLeftRight
+        {
+            get => _durationLeftRight;
+            set => SetField(ref _durationLeftRight, value);
+        }
+        private double _durationLeftRight = 0.0;
+
+        /// <summary>
+        /// Distance between live leader position and left click point.
+        /// </summary>
+        public double DistanceLiveLeft
+        {
+            get => _distanceLiveLeft;
+            set => SetField(ref _distanceLiveLeft, value);
+        }
+        private double _distanceLiveLeft = 0.0;
+
+        public double DurationLiveLeft
+        {
+            get => _durationLiveLeft;
+            set => SetField(ref _durationLiveLeft, value);
+        }
+        private double _durationLiveLeft = 0.0;
+
+        /// <summary>
+        /// Distance between live leader position and right click point.
+        /// </summary>
+        public double DistanceLiveRight
+        {
+            get => _distanceLiveRight;
+            set => SetField(ref _distanceLiveRight, value);
+        }
+        private double _distanceLiveRight = 0.0;
+
+        public double DurationLiveRight
+        {
+            get => _durationLiveRight;
+            set => SetField(ref _durationLiveRight, value);
+        }
+        private double _durationLiveRight = 0.0;
+
+        #endregion
+
         #endregion // END REGION DataBinding Members
 
         #region ZoomAndPanControl
@@ -1203,10 +1277,15 @@ namespace WalkmeshVisualizerWpf.Views
         private void CalculatePointDistance()
         {
             if (!LeftClickPointVisible) return;
-            var distanceSq = (LeftClickPoint - RightClickPoint).LengthSquared;
+            var distance = (LeftClickModuleCoords - RightClickModuleCoords).Length;
+            if (RightClickPointVisible)
+            {
+                DistanceLeftRight = distance;
+                DurationLeftRight = DistanceLeftRight / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            }
 
             // If right click point is not visible OR if in range...
-            if (!RightClickPointVisible || distanceSq <= 900.0)
+            if (!RightClickPointVisible || distance <= 30.0)
             {
                 LeftClickGatherPartyRangeFillBrush = gprFillGreen;
                 LeftClickGatherPartyRangeStrokeBrush = gprStrokeGreen;
@@ -3327,10 +3406,25 @@ namespace WalkmeshVisualizerWpf.Views
         #region Left Panel Methods
 
         private void CoordinatePanelButton_Click(object sender, RoutedEventArgs e)
-            => ShowRimDataPanel = false;    // Hide other panels in the Left Panel
+        {
+            // Hide other panels in the Left Panel
+            ShowRimDataPanel = false;
+            ShowDistancePanel = false;
+        }
 
         private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
-            => ShowCoordinatePanel = false; // Hide other panels in the Left Panel
+        {
+            // Hide other panels in the Left Panel
+            ShowCoordinatePanel = false;
+            ShowDistancePanel = false;
+        }
+
+        private void DistancePanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide other panels in the Left Panel
+            ShowCoordinatePanel = false;
+            ShowRimDataPanel = false;
+        }
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -3386,6 +3480,20 @@ namespace WalkmeshVisualizerWpf.Views
             var btn = sender as ToggleButton;
             if (!btn.IsChecked.HasValue) return;
             SetRimDataTypePanelVisibility(btn.IsChecked.Value, btn.Tag.ToString());
+        }
+
+        private void DistanceSpeedButton_Click(object sender, RoutedEventArgs e)
+        {
+            DistanceToTimeMultiplier = double.Parse((sender as ToggleButton).Tag.ToString());
+            DurationLeftRight = DistanceLeftRight / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationLiveLeft  = DistanceLiveLeft  / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationLiveRight = DistanceLiveRight / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+
+            foreach (ToggleButton btn in distPanelSpeedButtons.Children)
+            {
+                if (btn == sender) continue;
+                btn.IsChecked = false;
+            }
         }
 
         #endregion // END REGION Left Panel Methods
@@ -3519,10 +3627,22 @@ namespace WalkmeshVisualizerWpf.Views
                             var partyInRange = true;
 
                             // Handle party leader
-                            //LivePositionPoint = partyPositions[0];
                             LivePositionPoint = new Point(partyPositions3D[0].X, partyPositions3D[0].Y);
+
+                            if (LeftClickPointVisible)
+                            {
+                                DistanceLiveLeft = (LeftClickModuleCoords - LivePositionPoint).Length;
+                                DurationLiveLeft  = DistanceLiveLeft  / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                            }
+                            if (RightClickPointVisible)
+                            {
+                                DistanceLiveRight = (RightClickModuleCoords - LivePositionPoint).Length;
+                                DurationLiveRight = DistanceLiveRight / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                            }
+
                             LiveLeaderBearing = partyBearings[0];
                             LivePositionEllipsePoint = new Point(LivePositionPoint.X + LeftOffset - 0.5, LivePositionPoint.Y + BottomOffset - 0.5);
+
                             if (!LockGatherPartyRange)
                             {
                                 LiveGatherPartyRangePoint = LivePositionEllipsePoint;
@@ -3711,7 +3831,7 @@ namespace WalkmeshVisualizerWpf.Views
             LivePositionToggleButton.IsEnabled = true;
         }
 
-        #endregion
+        #endregion  // ENDREGION Live Position Methods
 
         #region Mouse Hover Methods
 
