@@ -176,6 +176,53 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private bool prevZoomRectSet = false;
 
+        public bool TempSegmentVisible
+        {
+            get => _tempSegmentVisible;
+            set => SetField(ref _tempSegmentVisible, value);
+        }
+        private bool _tempSegmentVisible = false;
+
+        public Point TempSegmentStart
+        {
+            get => _tempSegmentStart;
+            set => SetField(ref _tempSegmentStart, value);
+        }
+        private Point _tempSegmentStart = new Point();
+
+        public Point TempSegmentEnd
+        {
+            get => _tempSegmentEnd;
+            set => SetField(ref _tempSegmentEnd, value);
+        }
+        private Point _tempSegmentEnd = new Point();
+
+        public bool BluePathVisible
+        {
+            get => _bluePathVisible;
+            set => SetField(ref _bluePathVisible, value);
+        }
+        private bool _bluePathVisible = false;
+
+
+        public bool RedPathVisible
+        {
+            get => _redPathVisible;
+            set => SetField(ref _redPathVisible, value);
+        }
+        private bool _redPathVisible = false;
+
+        public bool GreenPathVisible
+        {
+            get => _greenPathVisible;
+            set => SetField(ref _greenPathVisible, value);
+        }
+        private bool _greenPathVisible = false;
+
+        public List<Tuple<Point,Point>> BluePathPointPairs = new List<Tuple<Point,Point>>();
+        public List<Tuple<Point,Point>> RedPathPointPairs = new List<Tuple<Point,Point>>();
+        public List<Tuple<Point,Point>> GreenPathPointPairs = new List<Tuple<Point,Point>>();
+
         #endregion // END REGION ZoomAndPanControl Members
 
         #region KIO Members
@@ -998,6 +1045,74 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private double _durationLiveRight = 0.0;
 
+        /// <summary>
+        /// Length of the temp segment.
+        /// </summary>
+        public double DistanceTempSegment
+        {
+            get => _distanceTempSegment;
+            set => SetField(ref _distanceTempSegment, value);
+        }
+        private double _distanceTempSegment = 0.0;
+
+        public double DurationTempSegment
+        {
+            get => _durationTempSegment;
+            set => SetField(ref _durationTempSegment, value);
+        }
+        private double _durationTempSegment = 0.0;
+
+        /// <summary>
+        /// Length of the temp segment.
+        /// </summary>
+        public double DistanceBluePath
+        {
+            get => _distanceBluePath;
+            set => SetField(ref _distanceBluePath, value);
+        }
+        private double _distanceBluePath = 0.0;
+
+        public double DurationBluePath
+        {
+            get => _durationBluePath;
+            set => SetField(ref _durationBluePath, value);
+        }
+        private double _durationBluePath = 0.0;
+
+        /// <summary>
+        /// Length of the temp segment.
+        /// </summary>
+        public double DistanceRedPath
+        {
+            get => _distanceRedPath;
+            set => SetField(ref _distanceRedPath, value);
+        }
+        private double _distanceRedPath = 0.0;
+
+        public double DurationRedPath
+        {
+            get => _durationRedPath;
+            set => SetField(ref _durationRedPath, value);
+        }
+        private double _durationRedPath = 0.0;
+
+        /// <summary>
+        /// Length of the temp segment.
+        /// </summary>
+        public double DistanceGreenPath
+        {
+            get => _distanceGreenPath;
+            set => SetField(ref _distanceGreenPath, value);
+        }
+        private double _distanceGreenPath = 0.0;
+
+        public double DurationGreenPath
+        {
+            get => _durationGreenPath;
+            set => SetField(ref _durationGreenPath, value);
+        }
+        private double _durationGreenPath = 0.0;
+
         #endregion
 
         #endregion // END REGION DataBinding Members
@@ -1030,6 +1145,31 @@ namespace WalkmeshVisualizerWpf.Views
                 if (!ShowLivePosition || !ViewFollowsLivePosition)
                     mouseHandlingMode = MouseHandlingMode.Panning;
             }
+            else if (mouseButtonDown == MouseButton.Right)
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(tempSegment);
+                    _ = content.Children.Add(tempSegment);
+                });
+
+                mouseHandlingMode = MouseHandlingMode.DrawingLine;
+
+                const double allowed_distance = 1.0;
+                var pairs = BluePathPointPairs
+                    .Concat(RedPathPointPairs)
+                    .Concat(GreenPathPointPairs);
+                var match = pairs.FirstOrDefault(t => (t.Item1 - origContentMouseDownPoint).Length <= allowed_distance)?.Item1
+                    ?? pairs.FirstOrDefault(t => (t.Item2 - origContentMouseDownPoint).Length <= allowed_distance)?.Item2;
+                if (match != null) origContentMouseDownPoint = match.Value;
+
+                TempSegmentStart = origContentMouseDownPoint;
+                TempSegmentEnd = origContentMouseDownPoint;
+                TempSegmentVisible = true;
+                DistanceTempSegment = 0.0;
+                DurationTempSegment = 0.0;
+            }
 
             if (mouseHandlingMode != MouseHandlingMode.None)
             {
@@ -1054,6 +1194,27 @@ namespace WalkmeshVisualizerWpf.Views
                     //
                     ApplyDragZoomRect();
                 }
+                if (mouseHandlingMode == MouseHandlingMode.DrawingLine)
+                {
+                    if (TempSegmentStart == TempSegmentEnd)
+                        TempSegmentVisible = false;
+                    else
+                    {
+                        const double allowed_distance = 1.0;
+                        var pairs = BluePathPointPairs
+                            .Concat(RedPathPointPairs)
+                            .Concat(GreenPathPointPairs);
+                        var match = pairs.FirstOrDefault(t => (t.Item1 - TempSegmentEnd).Length <= allowed_distance)?.Item1
+                            ?? pairs.FirstOrDefault(t => (t.Item2 - TempSegmentEnd).Length <= allowed_distance)?.Item2;
+                        if (match != null)
+                        {
+                            mouseHandlingMode = MouseHandlingMode.None;
+                            TempSegmentEnd = match.Value;
+                            DistanceTempSegment = (TempSegmentEnd - TempSegmentStart).Length;
+                            DurationTempSegment = DistanceTempSegment / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                        }
+                    }
+                }
 
                 zoomAndPanControl.ReleaseMouseCapture();
                 mouseHandlingMode = MouseHandlingMode.None;
@@ -1066,6 +1227,13 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void zoomAndPanControl_MouseMove(object sender, MouseEventArgs e)
         {
+            if (mouseHandlingMode == MouseHandlingMode.DrawingLine)
+            {
+                TempSegmentEnd = e.GetPosition(content);
+                DistanceTempSegment = (TempSegmentEnd - TempSegmentStart).Length;
+                DurationTempSegment = DistanceTempSegment / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                e.Handled = true;
+            }
             if (mouseHandlingMode == MouseHandlingMode.Panning)
             {
                 //
@@ -3485,9 +3653,13 @@ namespace WalkmeshVisualizerWpf.Views
         private void DistanceSpeedButton_Click(object sender, RoutedEventArgs e)
         {
             DistanceToTimeMultiplier = double.Parse((sender as ToggleButton).Tag.ToString());
-            DurationLeftRight = DistanceLeftRight / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
-            DurationLiveLeft  = DistanceLiveLeft  / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
-            DurationLiveRight = DistanceLiveRight / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationLeftRight   = DistanceLeftRight   / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationLiveLeft    = DistanceLiveLeft    / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationLiveRight   = DistanceLiveRight   / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationTempSegment = DistanceTempSegment / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationBluePath    = DistanceBluePath    / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationRedPath     = DistanceRedPath     / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            DurationGreenPath   = DistanceGreenPath   / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
 
             foreach (ToggleButton btn in distPanelSpeedButtons.Children)
             {
@@ -4100,5 +4272,114 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion
+
+        private void ClearPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var tag = (sender as Button).Tag.ToString();
+            if (tag.ToString() == "Black")
+            {
+                TempSegmentVisible = false;
+                DistanceTempSegment = 0.0;
+                DurationTempSegment = 0.0;
+            }
+            else if (tag.ToString() == "Blue")
+            {
+                BluePathPointPairs.Clear();
+                BluePathGrid.Children.Clear();
+                BluePathVisible = false;
+                DistanceBluePath = 0.0;
+                DurationBluePath = 0.0;
+            }
+            else if (tag == "Red")
+            {
+                RedPathPointPairs.Clear();
+                RedPathGrid.Children.Clear();
+                RedPathVisible = false;
+                DistanceRedPath = 0.0;
+                DurationRedPath = 0.0;
+            }
+            else if (tag == "Green")
+            {
+                GreenPathPointPairs.Clear();
+                GreenPathGrid.Children.Clear();
+                GreenPathVisible = false;
+                DistanceGreenPath = 0.0;
+                DurationGreenPath = 0.0;
+            }
+        }
+
+        private void AddToPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!TempSegmentVisible) return;
+
+            var tag = (sender as Button).Tag.ToString();
+            if (tag == "Blue")
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(BluePathGrid);
+                    _ = content.Children.Add(BluePathGrid);
+                });
+
+                BluePathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
+                BluePathGrid.Children.Add(new Line
+                {
+                    X1 = TempSegmentStart.X,
+                    Y1 = TempSegmentStart.Y,
+                    X2 = TempSegmentEnd.X,
+                    Y2 = TempSegmentEnd.Y
+                });
+                BluePathVisible = true;
+                DistanceBluePath += DistanceTempSegment;
+                DurationBluePath += DurationTempSegment;
+            }
+            else if (tag == "Red")
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(RedPathGrid);
+                    _ = content.Children.Add(RedPathGrid);
+                });
+
+                RedPathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
+                RedPathGrid.Children.Add(new Line
+                {
+                    X1 = TempSegmentStart.X,
+                    Y1 = TempSegmentStart.Y,
+                    X2 = TempSegmentEnd.X,
+                    Y2 = TempSegmentEnd.Y
+                });
+                RedPathVisible = true;
+                DistanceRedPath += DistanceTempSegment;
+                DurationRedPath += DurationTempSegment;
+            }
+            else if (tag == "Green")
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(GreenPathGrid);
+                    _ = content.Children.Add(GreenPathGrid);
+                });
+
+                GreenPathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
+                GreenPathGrid.Children.Add(new Line
+                {
+                    X1 = TempSegmentStart.X,
+                    Y1 = TempSegmentStart.Y,
+                    X2 = TempSegmentEnd.X,
+                    Y2 = TempSegmentEnd.Y
+                });
+                GreenPathVisible = true;
+                DistanceGreenPath += DistanceTempSegment;
+                DurationGreenPath += DurationTempSegment;
+            }
+
+            DistanceTempSegment = 0.0;
+            DurationTempSegment = 0.0;
+            TempSegmentVisible = false;
+        }
     }
 }

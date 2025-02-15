@@ -39,6 +39,7 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
       </ul>
     </td>
   </tr>
+
   <tr><td colspan="2" align="center"><b id="modules">Gather Party Info</b></td></tr>
   <tr>
     <td align="center">
@@ -53,6 +54,7 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
       </ul>
     </td>
   </tr>
+
   <tr><td colspan="2" align="center"><b id="items">Compare Modules</b></td></tr>
   <tr>
     <td align="center">
@@ -68,6 +70,7 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
       </ul>
     </td>
   </tr>
+
   <tr><td colspan="2" align="center"><b id="items">View Triggers and Doors</b></td></tr>
   <tr>
     <td align="center">
@@ -81,6 +84,41 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
         <li>Triggers and encounters display their entire geometry, allowing you to find gaps or route around them.</li>
         <li>Encounters also display the spawn point for enemies created by the encounter.</li>
         <li>A toggle button will display DLZ lines from each corner. This allows you to see where is possible to perform the <a href="https://kotor-speedruns.github.io/kotor1/Major%20Glitches/Displaced%20Load%20Zone">Displaced Loading Zone</a> glitch, which activates the trigger when your position matches exactly.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr><td colspan="2" align="center"><b id="items">View Live Position</b></td></tr>
+  <tr>
+    <td align="center">
+    </td>
+    <td>
+      <ul>
+        <li>View live position and bearing of each party member.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr><td colspan="2" align="center"><b id="items">View Gather Party Distance</b></td></tr>
+  <tr>
+    <td align="center">
+    </td>
+    <td>
+      <ul>
+        <li>View the maximum distance party members can be from the Leader when traveling through loading zones. The highlighted area will display as Green when party members are in range and red when they are out of range.</li>
+        <li>This range can be displayed either from the live Leader position or one of the double click coordinates.</li>
+        <li>The live Leader position GP range can be locked in place temporarily to assist when testing with no party members.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr><td colspan="2" align="center"><b id="items">Distance and Real-Time Calculation</b></td></tr>
+  <tr>
+    <td align="center">
+    </td>
+    <td>
+      <ul>
+        <li>Distance can be calculated between double click points and live Leader position. The distance is displayed as both in-game units and the time it takes to travel that distance when running without buffs or with alacrity, hyper-alacrity, or force speed.</li>
       </ul>
     </td>
   </tr>

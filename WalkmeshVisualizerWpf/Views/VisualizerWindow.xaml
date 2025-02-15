@@ -1707,6 +1707,34 @@
                                 <Setter Property="Stroke" Value="Black" />
                                 <Setter Property="Margin" Value="0,0,0,0" />
                             </Style>
+                            <Style TargetType="Button" x:Key="styleClearPathButton">
+                                <Setter Property="Content" Value="X" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="FontSize" Value="8" />
+                                <Setter Property="Padding" Value="3,0" />
+                                <Setter Property="Margin" Value="0,0,8,0" />
+                                <Setter Property="Width" Value="13" />
+                                <EventSetter Event="Click" Handler="ClearPathButton_Click" />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleAddToPathButton">
+                                <Setter Property="Content" Value="+" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="FontSize" Value="10" />
+                                <Setter Property="Padding" Value="2,-3,2,1" />
+                                <Setter Property="Margin" Value="8,0,0,0" />
+                                <Setter Property="Width" Value="13" />
+                                <EventSetter Event="Click" Handler="AddToPathButton_Click" />
+                            </Style>
+                            <Style TargetType="Line" x:Key="styleSegmentIcon">
+                                <Setter Property="X1" Value="0" />
+                                <Setter Property="Y1" Value="0" />
+                                <Setter Property="X2" Value="14" />
+                                <Setter Property="Y2" Value="0" />
+                                <Setter Property="StrokeThickness" Value="3" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="StrokeEndLineCap" Value="Round" />
+                                <Setter Property="StrokeStartLineCap" Value="Round" />
+                            </Style>
                         </Grid.Resources>
 
                         <!-- Distance speed options -->
@@ -1754,23 +1782,23 @@
 
                                 <!-- Distance from Left Point to Right Point -->
                                 <StackPanel>
-                                    <Border>
+                                    <Border Margin="12,0,0,0">
                                         <StackPanel Orientation="Horizontal">
                                             <Ellipse Fill="Black" Margin="0,0,1,0" />
                                             <Ellipse Fill="White" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock Text=" = " />
-                                    <TextBlock TextAlignment="Right" Width="36"
-                                           Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=4.20}" />
-                                    <TextBlock Text=", Time = " />
                                     <TextBlock TextAlignment="Right" Width="50"
-                                           Text="{Binding DurationLeftRight, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=1.11}" />
+                                    <TextBlock Text="m," />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationLeftRight, StringFormat=N2, FallbackValue=1.11}" />
+                                    <TextBlock Text="s" />
                                 </StackPanel>
 
                                 <!-- Distance from Live to Left Point -->
                                 <StackPanel>
-                                    <Border>
+                                    <Border Margin="12,0,0,0">
                                         <StackPanel Orientation="Horizontal">
                                             <Grid Margin="0,0,1,0">
                                                 <Ellipse Stroke="Black" Fill="#4E6BDF" />
@@ -1781,17 +1809,17 @@
                                             <Ellipse Fill="Black" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock Text=" = " />
-                                    <TextBlock TextAlignment="Right" Width="36"
+                                    <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DistanceLiveLeft, StringFormat=N2, FallbackValue=69.69}" />
-                                    <TextBlock Text=", Time = " />
+                                    <TextBlock Text="m," />
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DurationLiveLeft, StringFormat=N2, FallbackValue=333.33}" />
+                                    <TextBlock Text="s" />
                                 </StackPanel>
 
                                 <!-- Distance from Live to Right Point -->
                                 <StackPanel>
-                                    <Border>
+                                    <Border Margin="12,0,0,0">
                                         <StackPanel Orientation="Horizontal">
                                             <Grid Margin="0,0,1,0">
                                                 <Ellipse Stroke="Black" Fill="#4E6BDF" />
@@ -1802,12 +1830,79 @@
                                             <Ellipse Fill="White" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock Text=" = " />
-                                    <TextBlock TextAlignment="Right" Width="36"
+                                    <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DistanceLiveRight, StringFormat=N2, FallbackValue=333.33}" />
-                                    <TextBlock Text=", Time = " />
+                                    <TextBlock Text="m," />
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DurationLiveRight, StringFormat=N2, FallbackValue=333.33}" />
+                                    <TextBlock Text="s" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Segment Distance -->
+                        <Border Grid.Row="2" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                            <StackPanel Orientation="Vertical">
+                                <!-- Title -->
+                                <TextBlock HorizontalAlignment="Center" Text="Segment Distance" Margin="0,0,0,4" />
+
+                                <!-- Length of the segment -->
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Black" />
+                                    <Line Style="{StaticResource styleSegmentIcon}" Stroke="Black" />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DistanceTempSegment, StringFormat=N2, FallbackValue=1.11}" />
+                                    <TextBlock Text="m," />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationTempSegment, StringFormat=N2, FallbackValue=333.33}" />
+                                    <TextBlock Text="s" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Path Distances -->
+                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                            <StackPanel Orientation="Vertical">
+                                <!-- Title -->
+                                <TextBlock HorizontalAlignment="Center" Text="Path Distances" Margin="0,0,0,4" />
+
+                                <!-- Length of blue path -->
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Blue" />
+                                    <Line Style="{StaticResource styleSegmentIcon}" Stroke="Blue" />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DistanceBluePath, StringFormat=N2, FallbackValue=1.11}" />
+                                    <TextBlock Text="m," />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationBluePath, StringFormat=N2, FallbackValue=1.11}" />
+                                    <TextBlock Text="s" />
+                                    <Button Style="{StaticResource styleAddToPathButton}" Tag="Blue" />
+                                </StackPanel>
+                                
+                                <!-- Length of red path -->
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Red" />
+                                    <Line Style="{StaticResource styleSegmentIcon}" Stroke="Red" />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DistanceRedPath, StringFormat=N2, FallbackValue=22.22}" />
+                                    <TextBlock Text="m," />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationRedPath, StringFormat=N2, FallbackValue=22.22}" />
+                                    <TextBlock Text="s" />
+                                    <Button Style="{StaticResource styleAddToPathButton}" Tag="Red" />
+                                </StackPanel>
+                                
+                                <!-- Length of green path -->
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Green" />
+                                    <Line Style="{StaticResource styleSegmentIcon}" Stroke="Green" />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DistanceGreenPath, StringFormat=N2, FallbackValue=333.33}" />
+                                    <TextBlock Text="m," />
+                                    <TextBlock TextAlignment="Right" Width="50"
+                                           Text="{Binding DurationGreenPath, StringFormat=N2, FallbackValue=333.33}" />
+                                    <TextBlock Text="s" />
+                                    <Button Style="{StaticResource styleAddToPathButton}" Tag="Green" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -1897,6 +1992,19 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontSize" Value="4" />
                                         <Setter Property="Foreground" Value="{Binding CoordinateTextBrush}" />
+                                    </Style>
+
+                                    <Style TargetType="Path">
+                                        <Setter Property="StrokeThickness" Value=".35" />
+                                        <Setter Property="StrokeStartLineCap" Value="Round" />
+                                        <Setter Property="StrokeEndLineCap" Value="Round" />
+                                        <!--<Setter Property="StrokeLineJoin" Value="" />-->
+                                    </Style>
+
+                                    <Style TargetType="Line" x:Key="baseLine">
+                                        <Setter Property="StrokeThickness" Value=".35" />
+                                        <Setter Property="StrokeEndLineCap" Value="Round" />
+                                        <Setter Property="StrokeStartLineCap" Value="Round" />
                                     </Style>
                                 </Canvas.Resources>
 
@@ -2087,6 +2195,34 @@
                                         <TextBlock Text=")" />
                                     </StackPanel>
                                 </Border>
+
+                                <Path x:Name="tempSegment" Stroke="Black" Visibility="{Binding TempSegmentVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Path.Data>
+                                        <LineGeometry StartPoint="{Binding TempSegmentStart}" EndPoint="{Binding TempSegmentEnd, Mode=TwoWay}" />
+                                    </Path.Data>
+                                </Path>
+
+                                <Grid x:Name="BluePathGrid" Visibility="{Binding BluePathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Grid.Resources>
+                                        <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
+                                            <Setter Property="Stroke" Value="Blue" />
+                                        </Style>
+                                    </Grid.Resources>
+                                </Grid>
+                                <Grid x:Name="RedPathGrid" Visibility="{Binding RedPathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Grid.Resources>
+                                        <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
+                                            <Setter Property="Stroke" Value="Red" />
+                                        </Style>
+                                    </Grid.Resources>
+                                </Grid>
+                                <Grid x:Name="GreenPathGrid" Visibility="{Binding GreenPathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Grid.Resources>
+                                        <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
+                                            <Setter Property="Stroke" Value="Green" />
+                                        </Style>
+                                    </Grid.Resources>
+                                </Grid>
                             </Canvas>
 
                             <!--

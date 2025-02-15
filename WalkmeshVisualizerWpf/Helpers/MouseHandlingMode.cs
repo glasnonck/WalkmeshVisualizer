@@ -26,6 +26,11 @@ namespace WalkmeshVisualizerWpf.Helpers
         Panning,
 
         /// <summary>
+        /// The user is right-mouse-button-dragging a line segment.
+        /// </summary>
+        DrawingLine,
+
+        /// <summary>
         /// The user is holding down shift and left-clicking or right-clicking to zoom in or out.
         /// </summary>
         Zooming,
