@@ -95,6 +95,8 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
     <td>
       <ul>
         <li>View live position and bearing of each party member.</li>
+        <li>Automatically load the walkmesh for the current level in-game, and automatically swap to a new walkmesh when entering a new level.</li>
+        <li>Automatically detect which game is running and load the walkmesh data for that game.</li>
       </ul>
     </td>
   </tr>
@@ -118,7 +120,9 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
     </td>
     <td>
       <ul>
-        <li>Distance can be calculated between double click points and live Leader position. The distance is displayed as both in-game units and the time it takes to travel that distance when running without buffs or with alacrity, hyper-alacrity, or force speed.</li>
+        <li>In-game distance can be calculated and displayed in both in-game units and the time it takes to travel that distance when running without buffs or with alacrity, hyper-alacrity, or force speed.</li>
+        <li>Distance can calculated between double click points and the live Leader position.</li>
+        <li>Distance can calculated as a single line segment or as a path of line segments. Up to three paths can be compared at the same time.</li>
       </ul>
     </td>
   </tr>
