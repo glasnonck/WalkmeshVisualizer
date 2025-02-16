@@ -119,6 +119,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowLeftClickGatherPartyRange = settings.ShowLeftClickGatherPartyRange;
             ShowCoordinatePanel = settings.ShowCoordinatePanel;
             ShowRimDataPanel = settings.ShowRimDataPanel;
+            ShowDistancePanel = settings.ShowDistancePanel;
             ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
@@ -127,7 +128,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
 
-            if (ShowCoordinatePanel || ShowRimDataPanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
+            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
             if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
 
             SetRimDataTypePanelVisibility(ShowRimDataDoors, "Door");
@@ -3440,7 +3441,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowLeftClickGatherPartyRange = ShowLeftClickGatherPartyRange;
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
-            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
+            settings.ShowDistancePanel = ShowDistancePanel;
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
             settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
             settings.PrevRightPanelSize = ShowWalkmeshPanel ?  columnRightPanel.ActualWidth : prevRightPanelSize;
             settings.Save();
@@ -3596,9 +3598,9 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (ShowRimDataPanel || ShowCoordinatePanel)
+            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel)
             {
-                columnLeftPanel.MinWidth = 215;
+                columnLeftPanel.MinWidth = 240;
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
             }
             else
@@ -3666,6 +3668,190 @@ namespace WalkmeshVisualizerWpf.Views
                 if (btn == sender) continue;
                 btn.IsChecked = false;
             }
+        }
+
+        private void ClearPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var tag = (sender as Button).Tag.ToString();
+            if (tag.ToString() == "Black")
+            {
+                TempSegmentVisible = false;
+                DistanceTempSegment = 0.0;
+                DurationTempSegment = 0.0;
+            }
+            else if (tag.ToString() == "Blue")
+            {
+                BluePathPointPairs.Clear();
+                BluePathGrid.Children.Clear();
+                BluePathVisible = false;
+                DistanceBluePath = 0.0;
+                DurationBluePath = 0.0;
+            }
+            else if (tag == "Red")
+            {
+                RedPathPointPairs.Clear();
+                RedPathGrid.Children.Clear();
+                RedPathVisible = false;
+                DistanceRedPath = 0.0;
+                DurationRedPath = 0.0;
+            }
+            else if (tag == "Green")
+            {
+                GreenPathPointPairs.Clear();
+                GreenPathGrid.Children.Clear();
+                GreenPathVisible = false;
+                DistanceGreenPath = 0.0;
+                DurationGreenPath = 0.0;
+            }
+        }
+
+        private void AddToPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!TempSegmentVisible) return;
+
+            var tag = (sender as Button).Tag.ToString();
+            if (tag == "Blue")
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(BluePathGrid);
+                    _ = content.Children.Add(BluePathGrid);
+                });
+
+                BluePathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
+                BluePathGrid.Children.Add(new Line
+                {
+                    X1 = TempSegmentStart.X,
+                    Y1 = TempSegmentStart.Y,
+                    X2 = TempSegmentEnd.X,
+                    Y2 = TempSegmentEnd.Y
+                });
+                BluePathVisible = true;
+                DistanceBluePath += DistanceTempSegment;
+                DurationBluePath += DurationTempSegment;
+            }
+            else if (tag == "Red")
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(RedPathGrid);
+                    _ = content.Children.Add(RedPathGrid);
+                });
+
+                RedPathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
+                RedPathGrid.Children.Add(new Line
+                {
+                    X1 = TempSegmentStart.X,
+                    Y1 = TempSegmentStart.Y,
+                    X2 = TempSegmentEnd.X,
+                    Y2 = TempSegmentEnd.Y
+                });
+                RedPathVisible = true;
+                DistanceRedPath += DistanceTempSegment;
+                DurationRedPath += DurationTempSegment;
+            }
+            else if (tag == "Green")
+            {
+                // Bring segment to front.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    content.Children.Remove(GreenPathGrid);
+                    _ = content.Children.Add(GreenPathGrid);
+                });
+
+                GreenPathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
+                GreenPathGrid.Children.Add(new Line
+                {
+                    X1 = TempSegmentStart.X,
+                    Y1 = TempSegmentStart.Y,
+                    X2 = TempSegmentEnd.X,
+                    Y2 = TempSegmentEnd.Y
+                });
+                GreenPathVisible = true;
+                DistanceGreenPath += DistanceTempSegment;
+                DurationGreenPath += DurationTempSegment;
+            }
+
+            DistanceTempSegment = 0.0;
+            DurationTempSegment = 0.0;
+            TempSegmentVisible = false;
+        }
+
+        private void MinusPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var tag = (sender as Button).Tag.ToString();
+            Tuple<Point,Point> last = null;
+            if (tag == "Blue" && BluePathPointPairs.Any())
+            {
+                last = BluePathPointPairs.Last();
+                BluePathPointPairs.RemoveAt(BluePathPointPairs.Count - 1);
+                BluePathGrid.Children.RemoveAt(BluePathGrid.Children.Count - 1);
+                DistanceTempSegment = (last.Item2 - last.Item1).Length;
+
+                if (BluePathPointPairs.Count == 0)
+                {
+                    DistanceBluePath = 0.0;
+                    DurationBluePath = 0.0;
+                    BluePathVisible = false;
+                }
+                else
+                {
+                    DistanceBluePath -= DistanceTempSegment;
+                    DurationBluePath = DistanceBluePath / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                }
+            }
+            else if (tag == "Red")
+            {
+                last = RedPathPointPairs.Last();
+                RedPathPointPairs.RemoveAt(RedPathPointPairs.Count - 1);
+                RedPathGrid.Children.RemoveAt(RedPathGrid.Children.Count - 1);
+                DistanceTempSegment = (last.Item2 - last.Item1).Length;
+
+                if (RedPathPointPairs.Count == 0)
+                {
+                    DistanceRedPath = 0.0;
+                    DurationRedPath = 0.0;
+                    RedPathVisible = false;
+                }
+                else
+                {
+                    DistanceRedPath -= DistanceTempSegment;
+                    DurationRedPath = DistanceRedPath / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                }
+            }
+            else if (tag == "Green")
+            {
+                last = GreenPathPointPairs.Last();
+                GreenPathPointPairs.RemoveAt(GreenPathPointPairs.Count - 1);
+                GreenPathGrid.Children.RemoveAt(GreenPathGrid.Children.Count - 1);
+                DistanceTempSegment = (last.Item2 - last.Item1).Length;
+
+                if (GreenPathPointPairs.Count == 0)
+                {
+                    DistanceGreenPath = 0.0;
+                    DurationGreenPath = 0.0;
+                    GreenPathVisible = false;
+                }
+                else
+                {
+                    DistanceGreenPath -= DistanceTempSegment;
+                    DurationGreenPath = DistanceGreenPath / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                }
+            }
+
+            DurationTempSegment = DistanceTempSegment / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            TempSegmentStart = last.Item1;
+            TempSegmentEnd = last.Item2;
+            TempSegmentVisible = true;
+
+            // Bring segment to front.
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                content.Children.Remove(tempSegment);
+                _ = content.Children.Add(tempSegment);
+            });
         }
 
         #endregion // END REGION Left Panel Methods
@@ -4272,114 +4458,5 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion
-
-        private void ClearPathButton_Click(object sender, RoutedEventArgs e)
-        {
-            var tag = (sender as Button).Tag.ToString();
-            if (tag.ToString() == "Black")
-            {
-                TempSegmentVisible = false;
-                DistanceTempSegment = 0.0;
-                DurationTempSegment = 0.0;
-            }
-            else if (tag.ToString() == "Blue")
-            {
-                BluePathPointPairs.Clear();
-                BluePathGrid.Children.Clear();
-                BluePathVisible = false;
-                DistanceBluePath = 0.0;
-                DurationBluePath = 0.0;
-            }
-            else if (tag == "Red")
-            {
-                RedPathPointPairs.Clear();
-                RedPathGrid.Children.Clear();
-                RedPathVisible = false;
-                DistanceRedPath = 0.0;
-                DurationRedPath = 0.0;
-            }
-            else if (tag == "Green")
-            {
-                GreenPathPointPairs.Clear();
-                GreenPathGrid.Children.Clear();
-                GreenPathVisible = false;
-                DistanceGreenPath = 0.0;
-                DurationGreenPath = 0.0;
-            }
-        }
-
-        private void AddToPathButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!TempSegmentVisible) return;
-
-            var tag = (sender as Button).Tag.ToString();
-            if (tag == "Blue")
-            {
-                // Bring segment to front.
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    content.Children.Remove(BluePathGrid);
-                    _ = content.Children.Add(BluePathGrid);
-                });
-
-                BluePathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
-                BluePathGrid.Children.Add(new Line
-                {
-                    X1 = TempSegmentStart.X,
-                    Y1 = TempSegmentStart.Y,
-                    X2 = TempSegmentEnd.X,
-                    Y2 = TempSegmentEnd.Y
-                });
-                BluePathVisible = true;
-                DistanceBluePath += DistanceTempSegment;
-                DurationBluePath += DurationTempSegment;
-            }
-            else if (tag == "Red")
-            {
-                // Bring segment to front.
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    content.Children.Remove(RedPathGrid);
-                    _ = content.Children.Add(RedPathGrid);
-                });
-
-                RedPathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
-                RedPathGrid.Children.Add(new Line
-                {
-                    X1 = TempSegmentStart.X,
-                    Y1 = TempSegmentStart.Y,
-                    X2 = TempSegmentEnd.X,
-                    Y2 = TempSegmentEnd.Y
-                });
-                RedPathVisible = true;
-                DistanceRedPath += DistanceTempSegment;
-                DurationRedPath += DurationTempSegment;
-            }
-            else if (tag == "Green")
-            {
-                // Bring segment to front.
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    content.Children.Remove(GreenPathGrid);
-                    _ = content.Children.Add(GreenPathGrid);
-                });
-
-                GreenPathPointPairs.Add(new Tuple<Point, Point>(TempSegmentStart, TempSegmentEnd));
-                GreenPathGrid.Children.Add(new Line
-                {
-                    X1 = TempSegmentStart.X,
-                    Y1 = TempSegmentStart.Y,
-                    X2 = TempSegmentEnd.X,
-                    Y2 = TempSegmentEnd.Y
-                });
-                GreenPathVisible = true;
-                DistanceGreenPath += DistanceTempSegment;
-                DurationGreenPath += DurationTempSegment;
-            }
-
-            DistanceTempSegment = 0.0;
-            DurationTempSegment = 0.0;
-            TempSegmentVisible = false;
-        }
     }
 }

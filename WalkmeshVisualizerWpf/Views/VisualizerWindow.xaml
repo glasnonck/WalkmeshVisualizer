@@ -825,7 +825,7 @@
                         <Setter Property="Background" Value="Transparent" />
                         <Setter Property="BorderBrush" Value="#FF707070" />
                         <Setter Property="BorderThickness" Value="0,0,0,4" />
-                        <Setter Property="Margin" Value="0,0,4,0" />
+                        <Setter Property="Margin" Value="0,0,3,0" />
                         <Setter Property="Height" Value="22" />
                         <Setter Property="Template">
                             <Setter.Value>
@@ -842,6 +842,8 @@
                                 <Setter Property="Background" Value="Lavender" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="BorderThickness" Value="1,1,1,4" />
+                                <Setter Property="Margin" Value="-1,-1,2,0" />
                                 <Setter Property="BorderBrush" Value="Indigo" />
                             </Trigger>
                         </Style.Triggers>
@@ -1692,7 +1694,7 @@
                       Visibility="{Binding ShowDistancePanel,
                             Converter={StaticResource BoolToVisibilityConverter},
                             FallbackValue=Visible, TargetNullValue=Collapsed}">
-                    <Grid Margin="4,0,0,0" Width="300">
+                    <Grid Margin="4,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1716,12 +1718,21 @@
                                 <Setter Property="Width" Value="13" />
                                 <EventSetter Event="Click" Handler="ClearPathButton_Click" />
                             </Style>
+                            <Style TargetType="Button" x:Key="styleMinusPathButton">
+                                <Setter Property="Content" Value="–" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="FontSize" Value="10" />
+                                <Setter Property="Padding" Value="2,-3,2,1" />
+                                <Setter Property="Margin" Value="8,0,0,0" />
+                                <Setter Property="Width" Value="13" />
+                                <EventSetter Event="Click" Handler="MinusPathButton_Click" />
+                            </Style>
                             <Style TargetType="Button" x:Key="styleAddToPathButton">
                                 <Setter Property="Content" Value="+" />
                                 <Setter Property="VerticalAlignment" Value="Center" />
                                 <Setter Property="FontSize" Value="10" />
                                 <Setter Property="Padding" Value="2,-3,2,1" />
-                                <Setter Property="Margin" Value="8,0,0,0" />
+                                <Setter Property="Margin" Value="4,0,0,0" />
                                 <Setter Property="Width" Value="13" />
                                 <EventSetter Event="Click" Handler="AddToPathButton_Click" />
                             </Style>
@@ -1738,12 +1749,13 @@
                         </Grid.Resources>
 
                         <!-- Distance speed options -->
-                        <StackPanel HorizontalAlignment="Center" x:Name="distPanelSpeedButtons" Orientation="Horizontal">
+                        <StackPanel HorizontalAlignment="Center" x:Name="distPanelSpeedButtons" Orientation="Horizontal" Margin="0,0,-3,0">
                             <StackPanel.Resources>
                                 <Style TargetType="TextBlock">
-                                    <Setter Property="Margin" Value="5,0" />
+                                    <Setter Property="Margin" Value="3,0" />
                                 </Style>
                                 <Style TargetType="ToggleButton" BasedOn="{StaticResource panelHorizontalToggleButton}">
+                                    <Setter Property="FontSize" Value="12" />
                                     <EventSetter Event="Click" Handler="DistanceSpeedButton_Click" />
                                 </Style>
                             </StackPanel.Resources>
@@ -1868,7 +1880,7 @@
 
                                 <!-- Length of blue path -->
                                 <StackPanel Orientation="Horizontal" Margin="0">
-                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Blue" />
+                                    <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Blue" />
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DistanceBluePath, StringFormat=N2, FallbackValue=1.11}" />
@@ -1876,12 +1888,13 @@
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DurationBluePath, StringFormat=N2, FallbackValue=1.11}" />
                                     <TextBlock Text="s" />
-                                    <Button Style="{StaticResource styleAddToPathButton}" Tag="Blue" />
+                                    <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
+                                    <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Blue" />
                                 </StackPanel>
                                 
                                 <!-- Length of red path -->
                                 <StackPanel Orientation="Horizontal" Margin="0">
-                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Red" />
+                                    <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding RedPathVisible}" Tag="Red" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Red" />
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DistanceRedPath, StringFormat=N2, FallbackValue=22.22}" />
@@ -1889,12 +1902,13 @@
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DurationRedPath, StringFormat=N2, FallbackValue=22.22}" />
                                     <TextBlock Text="s" />
-                                    <Button Style="{StaticResource styleAddToPathButton}" Tag="Red" />
+                                    <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding RedPathVisible}" Tag="Red" />
+                                    <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Red" />
                                 </StackPanel>
                                 
                                 <!-- Length of green path -->
                                 <StackPanel Orientation="Horizontal" Margin="0">
-                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Green" />
+                                    <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding GreenPathVisible}" Tag="Green" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Green" />
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DistanceGreenPath, StringFormat=N2, FallbackValue=333.33}" />
@@ -1902,7 +1916,8 @@
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DurationGreenPath, StringFormat=N2, FallbackValue=333.33}" />
                                     <TextBlock Text="s" />
-                                    <Button Style="{StaticResource styleAddToPathButton}" Tag="Green" />
+                                    <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding GreenPathVisible}" Tag="Green" />
+                                    <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Green" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>
