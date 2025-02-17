@@ -1700,6 +1700,10 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid.Resources>
@@ -1708,6 +1712,15 @@
                                 <Setter Property="Width" Value="12" />
                                 <Setter Property="Stroke" Value="Black" />
                                 <Setter Property="Margin" Value="0,0,0,0" />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleHelpButton">
+                                <Setter Property="Content" Value="?" />
+                                <Setter Property="HorizontalAlignment" Value="Left" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="FontSize" Value="8" />
+                                <Setter Property="Padding" Value="3,0" />
+                                <Setter Property="Margin" Value="0,0,8,0" />
+                                <Setter Property="Width" Value="13" />
                             </Style>
                             <Style TargetType="Button" x:Key="styleClearPathButton">
                                 <Setter Property="Content" Value="X" />
@@ -1851,13 +1864,55 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
-                        
-                        <!-- Segment Distance -->
+
                         <Border Grid.Row="2" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Title -->
+                                <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Center" Text="Segment Settings" Margin="0,0,0,4" />
+
+                                <!-- Sticky Range Combobox -->
+                                <CheckBox Grid.Row="2" Grid.Column="0" Content="Sticky Range:"
+                                          IsChecked="{Binding SegmentIsSticky, Mode=TwoWay}"
+                                          ToolTip="A newly drawn segment will stick to the start and end point of segments in paths within range." />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Width="70" Height="18" Padding="0"
+                                          HorizontalContentAlignment="Right" IsEnabled="{Binding SegmentIsSticky}"
+                                          Text="{Binding SegmentStickyDistance, StringFormat=N1, Mode=TwoWay, FallbackValue=1.0}">
+                                    <ComboBoxItem>0.0</ComboBoxItem>
+                                    <ComboBoxItem>0.5</ComboBoxItem>
+                                    <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
+                                    <ComboBoxItem>1.5</ComboBoxItem>
+                                    <ComboBoxItem>2.0</ComboBoxItem>
+                                    <ComboBoxItem>2.5</ComboBoxItem>
+                                    <ComboBoxItem>3.0</ComboBoxItem>
+                                    <ComboBoxItem>3.5</ComboBoxItem>
+                                    <ComboBoxItem>4.0</ComboBoxItem>
+                                    <ComboBoxItem>4.5</ComboBoxItem>
+                                    <ComboBoxItem>5.0</ComboBoxItem>
+                                </ComboBox>
+
+                            </Grid>
+                        </Border>
+
+                            <!-- Segment Distance -->
+                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical">
                                 <!-- Title -->
-                                <TextBlock HorizontalAlignment="Center" Text="Segment Distance" Margin="0,0,0,4" />
-
+                                <Grid>
+                                    <TextBlock HorizontalAlignment="Center" Text="Segment Distance" Margin="0,0,0,4" />
+                                    <Button HorizontalAlignment="Left" Style="{StaticResource styleHelpButton}"
+                                            ToolTip="Right click and drag to draw a segment." />
+                                </Grid>
+                                
                                 <!-- Length of the segment -->
                                 <StackPanel Orientation="Horizontal" Margin="0">
                                     <Button Style="{StaticResource styleClearPathButton}" Tag="Black" />
@@ -1873,10 +1928,14 @@
                         </Border>
                         
                         <!-- Path Distances -->
-                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                        <Border Grid.Row="4" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical">
                                 <!-- Title -->
-                                <TextBlock HorizontalAlignment="Center" Text="Path Distances" Margin="0,0,0,4" />
+                                <Grid>
+                                    <TextBlock HorizontalAlignment="Center" Text="Path Distances" Margin="0,0,0,4" />
+                                    <Button HorizontalAlignment="Left" Style="{StaticResource styleHelpButton}"
+                                            ToolTip="+ to add segment to a path, - to remove last added segment, X to clear a path." />
+                                </Grid>
 
                                 <!-- Length of blue path -->
                                 <StackPanel Orientation="Horizontal" Margin="0">

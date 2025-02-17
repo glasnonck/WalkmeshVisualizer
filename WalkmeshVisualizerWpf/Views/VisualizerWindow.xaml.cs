@@ -198,13 +198,26 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _tempSegmentEnd = new Point();
 
+        public bool SegmentIsSticky
+        {
+            get => _segmentIsSticky;
+            set => SetField(ref _segmentIsSticky, value);
+        }
+        private bool _segmentIsSticky = false;
+
+        public double SegmentStickyDistance
+        {
+            get => _segmentStickyDistance;
+            set => SetField(ref _segmentStickyDistance, value);
+        }
+        private double _segmentStickyDistance = 1.0;
+
         public bool BluePathVisible
         {
             get => _bluePathVisible;
             set => SetField(ref _bluePathVisible, value);
         }
         private bool _bluePathVisible = false;
-
 
         public bool RedPathVisible
         {
@@ -1157,13 +1170,15 @@ namespace WalkmeshVisualizerWpf.Views
 
                 mouseHandlingMode = MouseHandlingMode.DrawingLine;
 
-                const double allowed_distance = 1.0;
-                var pairs = BluePathPointPairs
-                    .Concat(RedPathPointPairs)
-                    .Concat(GreenPathPointPairs);
-                var match = pairs.FirstOrDefault(t => (t.Item1 - origContentMouseDownPoint).Length <= allowed_distance)?.Item1
-                    ?? pairs.FirstOrDefault(t => (t.Item2 - origContentMouseDownPoint).Length <= allowed_distance)?.Item2;
-                if (match != null) origContentMouseDownPoint = match.Value;
+                if (SegmentIsSticky)
+                {
+                    var pairs = BluePathPointPairs
+                        .Concat(RedPathPointPairs)
+                        .Concat(GreenPathPointPairs);
+                    var match = pairs.FirstOrDefault(t => (t.Item1 - origContentMouseDownPoint).Length <= SegmentStickyDistance)?.Item1
+                    ?? pairs.FirstOrDefault(t => (t.Item2 - origContentMouseDownPoint).Length <= SegmentStickyDistance)?.Item2;
+                    if (match != null) origContentMouseDownPoint = match.Value;
+                }
 
                 TempSegmentStart = origContentMouseDownPoint;
                 TempSegmentEnd = origContentMouseDownPoint;
@@ -1198,15 +1213,16 @@ namespace WalkmeshVisualizerWpf.Views
                 if (mouseHandlingMode == MouseHandlingMode.DrawingLine)
                 {
                     if (TempSegmentStart == TempSegmentEnd)
-                        TempSegmentVisible = false;
-                    else
                     {
-                        const double allowed_distance = 1.0;
+                        TempSegmentVisible = false;
+                    }
+                    else if (SegmentIsSticky)
+                    {
                         var pairs = BluePathPointPairs
                             .Concat(RedPathPointPairs)
                             .Concat(GreenPathPointPairs);
-                        var match = pairs.FirstOrDefault(t => (t.Item1 - TempSegmentEnd).Length <= allowed_distance)?.Item1
-                            ?? pairs.FirstOrDefault(t => (t.Item2 - TempSegmentEnd).Length <= allowed_distance)?.Item2;
+                        var match = pairs.FirstOrDefault(t => t.Item1 != TempSegmentStart && (t.Item1 - TempSegmentEnd).Length <= SegmentStickyDistance)?.Item1
+                            ?? pairs.FirstOrDefault(t => t.Item2 != TempSegmentStart && (t.Item2 - TempSegmentEnd).Length <= SegmentStickyDistance)?.Item2;
                         if (match != null)
                         {
                             mouseHandlingMode = MouseHandlingMode.None;
