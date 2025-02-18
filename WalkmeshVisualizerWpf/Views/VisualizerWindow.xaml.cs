@@ -959,6 +959,41 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showEncountersOnAddRim = true;
 
+        public bool ShowRimDataDoorsDlzLines
+        {
+            get => _showRimDataDoorsDlzLines;
+            set => SetField(ref _showRimDataDoorsDlzLines, value);
+        }
+        private bool _showRimDataDoorsDlzLines = true;
+
+        public bool ShowRimDataTriggersDlzLines
+        {
+            get => _showRimDataTriggersDlzLines;
+            set => SetField(ref _showRimDataTriggersDlzLines, value);
+        }
+        private bool _showRimDataTriggersDlzLines = true;
+
+        public bool ShowRimDataTrapsDlzLines
+        {
+            get => _showRimDataTrapsDlzLines;
+            set => SetField(ref _showRimDataTrapsDlzLines, value);
+        }
+        private bool _showRimDataTrapsDlzLines = true;
+
+        public bool ShowRimDataZonesDlzLines
+        {
+            get => _showRimDataZonesDlzLines;
+            set => SetField(ref _showRimDataZonesDlzLines, value);
+        }
+        private bool _showRimDataZonesDlzLines = true;
+
+        public bool ShowRimDataEncountersDlzLines
+        {
+            get => _showRimDataEncountersDlzLines;
+            set => SetField(ref _showRimDataEncountersDlzLines, value);
+        }
+        private bool _showRimDataEncountersDlzLines = true;
+
         public Brush CoordinateTextBrush
         {
             get => _coordinateTextBrush;
@@ -1338,9 +1373,6 @@ namespace WalkmeshVisualizerWpf.Views
             }
             else
             {
-                // Don't set points if a game is not selected.
-                if (!(SelectedGame == K1_NAME || SelectedGame == K2_NAME)) return;
-
                 // Set left or right point.
                 if (e.ChangedButton == MouseButton.Left)
                 {
@@ -2193,7 +2225,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 BuildRimDataInfoMesh(rdi);
                 SetRimDataInfoMeshBrush(rdi);
-                if (ShowDlzLines) rdi.LineColor = rdi.MeshColor;
+                ShowDlzLinesMethod(rdi);
             }
         }
 
@@ -2208,8 +2240,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 BuildRimDataInfoMesh(rdi);
                 SetRimDataInfoMeshBrush(rdi);
-                if (ShowDlzLines)
-                    rdi.LineColor = rdi.MeshColor;
+                ShowDlzLinesMethod(rdi);
             }
 
             VisibleRimDoors = RimDoors.Count(d => d.MeshVisible);
@@ -2227,6 +2258,39 @@ namespace WalkmeshVisualizerWpf.Views
         private void HideRimDataInfoMesh(RimDataInfo rdi)
         {
             rdi.MeshColor = Brushes.Transparent;
+        }
+
+        private void ShowDlzLinesMethod(RimDataInfo rdi)
+        {
+            if (ShowDlzLines)
+            {
+                switch (rdi.RimDataType)
+                {
+                    case RimDataType.Door:
+                        if (ShowRimDataDoorsDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Trigger:
+                        if (ShowRimDataTriggersDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Encounter:
+                        if (ShowRimDataEncountersDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Trap:
+                        if (ShowRimDataTrapsDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Zone:
+                        if (ShowRimDataZonesDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Unknown:
+                    default:
+                        break;
+                }
+            }
         }
 
         private void HideDlzLines(RimDataInfo rdi)
@@ -2848,6 +2912,19 @@ namespace WalkmeshVisualizerWpf.Views
             RightClickPoint = new Point(RightClickPoint.X + diffLeft, RightClickPoint.Y + diffBottom);
         }
 
+        private void ResizePathPointPairs(List<Tuple<Point, Point>> pairs, double diffLeft, double diffBottom)
+        {
+            for (int i = 0; i < pairs.Count; i++)
+            {
+                var p1 = pairs[i].Item1;
+                var p2 = pairs[i].Item2;
+                p1.X += diffLeft;
+                p1.Y += diffBottom;
+                p2.X += diffLeft;
+                p2.Y += diffBottom;
+            }
+        }
+
         /// <summary>
         /// Add or make visible all faces in the newly active walkmesh.
         /// </summary>
@@ -3320,7 +3397,7 @@ namespace WalkmeshVisualizerWpf.Views
             var info = (sender as Button).DataContext as RimDataInfo;
             if (info.MeshVisible == false) return;
             SetRimDataInfoMeshBrush(info);
-            if (ShowDlzLines) info.LineColor = info.MeshColor;
+            ShowDlzLinesMethod(info);
         }
 
         //private void ClrPcker_Background_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color> e)
@@ -3868,6 +3945,25 @@ namespace WalkmeshVisualizerWpf.Views
                 content.Children.Remove(tempSegment);
                 _ = content.Children.Add(tempSegment);
             });
+        }
+
+        private void BuildSegmentFromBlackWhitePoints_Click(object sender, RoutedEventArgs e)
+        {
+            TempSegmentStart = new Point(LeftClickPoint.X  + .5, theGrid.Height - LeftClickPoint.Y  - .5);
+            TempSegmentEnd   = new Point(RightClickPoint.X + .5, theGrid.Height - RightClickPoint.Y - .5);
+            DistanceTempSegment = (TempSegmentEnd - TempSegmentStart).Length;
+            DurationTempSegment = DistanceTempSegment / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            TempSegmentVisible = true;
+        }
+
+        private void AddBlackPointToPathButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void AddWhitePointToPathButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         #endregion // END REGION Left Panel Methods
@@ -4428,11 +4524,11 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowDlzLines = !ShowDlzLines;
-            var visibleRimDataInfo = RimDoors.Where(i => i.MeshVisible)
-                .Concat(RimTriggers.Where(i => i.MeshVisible))
-                .Concat(RimTraps.Where(i => i.MeshVisible))
-                .Concat(RimZones.Where(i => i.MeshVisible))
-                .Concat(RimEncounters.Where(i => i.MeshVisible));
+            var visibleRimDataInfo = RimDoors.Where(i => ShowRimDataDoorsDlzLines && i.MeshVisible)
+                .Concat(RimTriggers.Where(i => ShowRimDataTriggersDlzLines && i.MeshVisible))
+                .Concat(RimTraps.Where(i => ShowRimDataTrapsDlzLines && i.MeshVisible))
+                .Concat(RimZones.Where(i => ShowRimDataZonesDlzLines && i.MeshVisible))
+                .Concat(RimEncounters.Where(i => ShowRimDataEncountersDlzLines && i.MeshVisible));
             if (ShowDlzLines)
                 foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
             else
@@ -4471,6 +4567,17 @@ namespace WalkmeshVisualizerWpf.Views
                 ?.Tag as ObservableCollection<RimDataInfo>)
                 ?.Any(rdi => rdi.MeshVisible) ?? false;
             e.CanExecute = !IsBusy && anyVisible;
+        }
+
+        private void ShowRimDataDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (!ShowDlzLines) return;
+            var btn = e.Source as ToggleButton;
+            var visibleRimDataInfo = (btn.Tag as ObservableCollection<RimDataInfo>).Where(i => i.MeshVisible);
+            if (btn.IsChecked.HasValue && btn.IsChecked.Value)
+                foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
+            else
+                foreach (var rdi in visibleRimDataInfo) HideDlzLines(rdi);
         }
 
         #endregion

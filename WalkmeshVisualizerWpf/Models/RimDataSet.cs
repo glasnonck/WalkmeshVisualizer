@@ -21,10 +21,10 @@ namespace WalkmeshVisualizerWpf.Models
         private ObservableCollection<RimData> _rimData = new ObservableCollection<RimData>();
         public string Version = "v1.0";
 
-        public readonly Regex regexAll = new Regex(@"(^g_t_\w+\d+$)|(^g_zonecata(\d\d\d)$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)$");
+        public readonly Regex regexAll = new Regex(@"(^g_t_\w+\d+$)|(^g_zoncata\d+$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)$");
         public readonly Regex regexTrap = new Regex(@"^g_t_\w+\d+$");
         //public readonly Regex regexTrap = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)");
-        public readonly Regex regexZone = new Regex(@"(^g_zonecata(\d\d\d)$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)");
+        public readonly Regex regexZone = new Regex(@"(^g_zoncata\d+$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)");
 
         /// <summary>
         /// Collection of ModuleDLZ objects.

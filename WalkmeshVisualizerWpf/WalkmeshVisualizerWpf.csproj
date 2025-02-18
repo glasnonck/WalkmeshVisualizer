@@ -162,6 +162,7 @@
     <Content Include="Resources\DlzData.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\DlzIcon.png" />
     <Content Include="Resources\GameData.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

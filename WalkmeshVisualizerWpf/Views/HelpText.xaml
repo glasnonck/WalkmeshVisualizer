@@ -20,7 +20,7 @@
         <List>
             <ListItem>
                 <Paragraph>
-                    Pan View = left-drag
+                    Pan View = left-click-drag
                 </Paragraph>
             </ListItem>
             <ListItem>
@@ -61,6 +61,11 @@
             <ListItem>
                 <Paragraph>
                     Clear White Point = shift + right-double-click
+                </Paragraph>
+            </ListItem>
+            <ListItem>
+                <Paragraph>
+                    Draw Line Segment = right-click-drag
                 </Paragraph>
             </ListItem>
         </List>
