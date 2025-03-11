@@ -18,6 +18,11 @@ namespace WalkmeshVisualizerWpf.Models
 {
     public class RimDataSet : INotifyPropertyChanged
     {
+        private readonly Dictionary<string, string> moduleToLayoutLookup = new Dictionary<string, string>();
+        private readonly Dictionary<string, BIF> bifLayoutsLookup = new Dictionary<string, BIF>();
+        private readonly Dictionary<string, KEY> keyLookup = new Dictionary<string, KEY>();
+        private readonly Dictionary<string, LYT> lytLookup = new Dictionary<string, LYT>();
+
         private ObservableCollection<RimData> _rimData = new ObservableCollection<RimData>();
         public string Version = "v1.0";
 
@@ -52,20 +57,20 @@ namespace WalkmeshVisualizerWpf.Models
             var kpath = new KPaths(gamePath);
             foreach (var rimFileInfo in kpath.FilesInModules.Where(fi => !fi.Name.EndsWith("_s.rim") && fi.Extension != ".erf"))
             {
-                var moduleName = rimFileInfo.Name.Substring(0, rimFileInfo.Name.Length - 4);
+                var moduleName = rimFileInfo.Name.Substring(0, rimFileInfo.Name.Length - 4).ToLower();
                 var rim = new RIM(rimFileInfo.FullName);
                 var srim = new RIM(rimFileInfo.FullName.Substring(0, rimFileInfo.FullName.Length - 4) + "_s.rim");
-
+                
                 var rimDoors = ParseRimDoors(rim);
                 var rimTriggers = ParseRimTriggers(rim);
                 var rimTraps = ParseRimTraps(rim);
                 var rimZones = ParseRimZones(rim);
                 var rimEncounters = ParseRimEncounters(rim, srim);
 
-                RimData module = RimData.FirstOrDefault(m => m.Module == moduleName.ToLower());
+                RimData module = RimData.FirstOrDefault(m => m.Module == moduleName);
                 if (module == null)
                 {
-                    module = new RimData { Module = moduleName.ToLower() };
+                    module = new RimData { Module = moduleName };
                     RimData.Add(module);
                 }
 
@@ -80,8 +85,186 @@ namespace WalkmeshVisualizerWpf.Models
                 module.Traps = rimTraps.Select(t => new RimDataInfo(t, module.Module, RimDataType.Trap)).ToList();
                 module.Zones = rimZones.Select(t => new RimDataInfo(t, module.Module, RimDataType.Zone)).ToList();
                 module.Encounters = rimEncounters.Select(e => new RimDataInfo(e, module.Module)).ToList();
+
+                // Handle Swoop Modules
+                if (!moduleToLayoutLookup.ContainsKey(moduleName) && IsSwoopModule(moduleName))
+                {
+                    // Parse LYT files.
+                    var ifo = new GFF(rim.File_Table.First(rf => rf.TypeID == (int)ResourceType.IFO).File_Data);
+                    var lytFile = (ifo.Top_Level.Fields.First(f => f.Label == "Mod_Entry_Area") as GFF.ResRef).Reference;
+                    var lyt = GetLayout(kpath, lytFile);
+                    moduleToLayoutLookup.Add(moduleName, lytFile);
+
+                    var are = new GFF(rim.File_Table.First(rf => rf.TypeID == (int)ResourceType.ARE).File_Data);
+                    var mg = are.Top_Level.Fields.First(f => f.Label == "MiniGame") as GFF.STRUCT;
+                    var mgE = mg.Fields.First(f => f.Label == "Enemies") as GFF.LIST;
+                    //var mgO = mg.Fields.First(f => f.Label == "Obstacles") as GFF.LIST;
+                    var mgP = mg.Fields.First(f => f.Label == "Player") as GFF.STRUCT;
+                    var mgT = mgP.Fields.First(f => f.Label == "Track") as GFF.ResRef;
+                    var playerRadius = (mgP.Fields.First(f => f.Label == "Sphere_Radius") as GFF.FLOAT).Value;
+
+                    module.Triggers.AddRange(ParseLayoutPlaceable(moduleName, lyt.Tracks, playerRadius, mgE, mgT.Reference));
+                    module.Traps.AddRange(ParseLayoutPlaceable(moduleName, lyt.Obstacles, playerRadius));
+                }
             }
         }
+
+        private List<RimDataInfo> ParseLayoutPlaceable(string moduleName, List<LYT.ArtPlaceable> items, float playerRadius, GFF.LIST boosters = null, string ignoreTrack = "")
+        {
+            var triggers = new List<RimDataInfo>();
+            foreach (var item in items)
+            {
+                // Ignore the track LYT entry.
+                if (item.Model.ToLower() == ignoreTrack.ToLower()) continue;
+
+                // Calculate booster / obstacle radius.
+                var radius = playerRadius;
+                if (boosters != null)
+                {
+                    var obj = boosters.Structs.Find(s =>
+                        (s.Fields.First(f => f.Label == "Track") as GFF.ResRef)
+                        .Reference.ToLower() == item.Model.ToLower());
+                    var flo = obj.Fields.First(f => f.Label == "Sphere_Radius") as GFF.FLOAT;
+                    var val = flo.Value;
+
+                    radius += (boosters.Structs.First(s => 
+                        (s.Fields.First(f => f.Label == "Track") as GFF.ResRef)
+                        .Reference.ToLower() == item.Model.ToLower())
+                        .Fields.First(f => f.Label == "Sphere_Radius") as GFF.FLOAT)
+                        .Value;
+                }
+
+                // Create RDI object.
+                triggers.Add(new RimDataInfo(item, moduleName)
+                {
+                    EllipseRadius = radius,
+                });
+            }
+            return triggers;
+        }
+
+        private static bool IsSwoopModule(string moduleName)
+        {
+            return moduleName == "tar_m03mg"
+                || moduleName == "tat_m17mg"
+                || moduleName == "manm26mg"
+
+                //|| moduleName == "m12ab"
+                //|| moduleName == "107per"
+                //|| moduleName == "421dxn"
+                //|| moduleName == "505ond"
+
+                || moduleName == "211tel"
+                || moduleName == "371nar"
+                || moduleName == "510ond";
+        }
+
+        private static void AddMoreToSwoops(Random rand, string moduleName, RIM rim, string lytFile, LYT lyt, string outputDirectory)
+        {
+            // Swoop Tracks
+            // K1: tar_m03mg, tat_m17mg, manm26mg
+            // K2:    211tel,    371nar,   510ond
+            // Other LYT with tracks / obstacles
+            // K1: m12ab (fighters)
+            // K2: 107per (turrets), 421dxn (blockade), 505ond (turrets)
+
+            // ** Manaan Swoops (55:75)
+            // Start:  (0.042248, 100)
+            // Finish: y = ~3800
+            // X [ 84.7235,  123.842] <  39.1185> (104.28275)
+            // Y [170.042 , 3589.13 ] <3419.088 >
+            // [0] t01 - all zeros
+            // [8] t09 - out of range (1703.79, 83.7564)
+
+            // ** Taris Swoops (54:08)
+            // Start:  (0, 0) slight left push, slides to -1.359033 if unchanged
+            // Finish: y = ~3800
+            // X [ 81.4833,  122.339] <  40.8557> (101.91115)
+            // Y [190.006 , 3742.73 ] <3552.724 >
+            // [0] tr01 - (95.0, 0.0)  Not sure what this is.
+
+            // ** Tatooine Swoops (55:75)
+            // Start:  (0.031483, 100) appear to start at x=0, but slight right shift at start
+            // Finish: y = ~3800
+            // X [ 80.796,  119.461] <  38.6649> (100.1285)
+            // Y [209.04 , 3778.61 ] <3569.57  >
+            // [0] t01 - all zeroes
+            // [8] t09 - out of range (1933.7, 677.246, 4993.0)
+
+            var are = new GFF(rim.File_Table.First(rf => rf.TypeID == (int)ResourceType.ARE).File_Data);
+            var mg = are.Top_Level.Fields.First(f => f.Label == "MiniGame") as GFF.STRUCT;
+            var mgE = mg.Fields.First(f => f.Label == "Enemies") as GFF.LIST;
+            var mgO = mg.Fields.First(f => f.Label == "Obstacles") as GFF.LIST;
+            var mgP = mg.Fields.First(f => f.Label == "Player") as GFF.STRUCT;
+            var mgT = mgP.Fields.First(f => f.Label == "Track") as GFF.ResRef;
+
+            var xCoords = lyt.Tracks.Concat(lyt.Obstacles).Select(o => o.X).ToList();
+            xCoords.RemoveAt(8);
+            xCoords.RemoveAt(0);
+            var xMin = xCoords.Min();
+            var xMax = xCoords.Max();
+            var xDif = xMax - xMin;
+            var xMid = xMin + xDif/2;
+
+            var yCoords = lyt.Tracks.Concat(lyt.Obstacles).Select(o => o.Y).ToList();
+            yCoords.RemoveAt(8);
+            yCoords.RemoveAt(0);
+            var yMin = yCoords.Min();
+            var yMax = yCoords.Max();
+            var yDif = yMax - yMin;
+
+            var trackPrefix = string.Empty;
+            if (moduleName == "manm26mg") trackPrefix = "m26mg_mgt";
+            if (moduleName == "tat_m17mg") trackPrefix = "m17mg_mgt";
+            if (moduleName == "tar_m03mg") trackPrefix = "m03mg_mgt";
+
+            for (int i = 50; i < 70; i++)
+            {
+                var newpad = new GFF.STRUCT("", 0, mgE.Structs[4].Fields.ToList());
+                var resref = newpad.Fields.First(f => f.Label == "Track") as GFF.ResRef;
+                newpad.Fields.Remove(resref);
+                resref = new GFF.ResRef("Track", $"{trackPrefix}{i}");
+                newpad.Fields.Add(resref);
+                mgE.Structs.Add(newpad);
+                lyt.Tracks.Add(new LYT.ArtPlaceable()
+                {
+                    Model = $"{trackPrefix}{i}",
+                    X = (float)((rand.NextDouble() * xDif) + xMin),
+                    Y = (float)((rand.NextDouble() * yDif) + yMin),
+                    Z = 0.0f
+                });
+            }
+
+            lyt.WriteToFile($"{outputDirectory}\\{moduleName}\\{lytFile}_mod.lyt");
+            are.WriteToFile($"{outputDirectory}\\{moduleName}\\{lytFile}_mod.are");
+            rim.File_Table.RemoveAll(rf => rf.TypeID == (int)ResourceType.ARE);
+            rim.File_Table.Add(new RIM.rFile() { Label = lytFile, TypeID = (int)ResourceType.ARE, File_Data = are.ToRawData() });
+            rim.WriteToFile($"{outputDirectory}\\{moduleName}\\{moduleName}_mod.rim");
+        }
+
+        private LYT GetLayout(KPaths kpath, string fileName)
+        {
+            if (lytLookup.ContainsKey(fileName))
+                return lytLookup[fileName];
+
+            if (!bifLayoutsLookup.ContainsKey(kpath.swkotor))
+            {
+                bifLayoutsLookup.Add(kpath.swkotor, new BIF(System.IO.Path.Combine(kpath.data, "layouts.bif")));
+                keyLookup.Add(kpath.swkotor, new KEY(kpath.chitin));
+                bifLayoutsLookup[kpath.swkotor].AttachKey(keyLookup[kpath.swkotor], $"data\\layouts.bif");
+            }
+
+            var vre = bifLayoutsLookup[kpath.swkotor].VariableResourceTable.First(x => x.ResRef == fileName);
+            var lyt = new LYT(vre.EntryData);
+            lytLookup.Add(fileName, lyt);
+            return lyt;
+        }
+
+        public LYT GetLayoutFromModuleName(string moduleName)
+            => moduleToLayoutLookup.ContainsKey(moduleName) &&
+                lytLookup.ContainsKey(moduleToLayoutLookup[moduleName])
+                ? lytLookup[moduleToLayoutLookup[moduleName]]
+                : null;
 
         public RimDataSet() { }
 
@@ -259,11 +442,14 @@ namespace WalkmeshVisualizerWpf.Models
         Encounter,
         Trap,
         Zone,
+        Swoop,
     }
 
     [Serializable]
     public class RimDataInfo : INotifyPropertyChanged, IComparable<RimDataInfo>
     {
+        public bool AreVisualsBuilt { get; set; } = false;
+
         public RimDataType RimDataType { get; set; }
         public string Module { get; set; }
         public string ResRef { get; set; }
@@ -276,6 +462,7 @@ namespace WalkmeshVisualizerWpf.Models
         public List<Line> Lines { get; set; } = new List<Line>();
         public Polygon Polygon { get; set; }
         public List<Ellipse> Ellipses { get; set; } = new List<Ellipse>();
+        public double EllipseRadius { get; set; } = 1.0;
 
         public bool MeshVisible => MeshColor != Brushes.Transparent;
         public bool LineVisible => LineColor != Brushes.Transparent;
@@ -302,6 +489,14 @@ namespace WalkmeshVisualizerWpf.Models
             ResRef = encounter.TemplateResRef;
             Geometry = encounter.Corners;
             SpawnPoints = encounter.SpawnPoints;
+        }
+
+        public RimDataInfo(LYT.ArtPlaceable art, string module = "")
+        {        
+            RimDataType = RimDataType.Swoop;
+            Module = module;
+            ResRef = art.Model;
+            SpawnPoints = new List<Tuple<float, float>> { new Tuple<float, float>(art.X, art.Y) };
         }
 
         #endregion
@@ -387,9 +582,10 @@ namespace WalkmeshVisualizerWpf.Models
         {
             // True if near a spawn point.
             const double NEAR_POINT_DISTANCE = 3.0;
+            var point_distance = Math.Max(NEAR_POINT_DISTANCE, EllipseRadius);
             foreach (var sp in SpawnPoints)
             {
-                if ((new Point(sp.Item1, sp.Item2) - testPoint).Length <= NEAR_POINT_DISTANCE)
+                if ((new Point(sp.Item1, sp.Item2) - testPoint).Length <= point_distance)
                     return true;
             }
 
@@ -413,6 +609,5 @@ namespace WalkmeshVisualizerWpf.Models
 
             return result;
         }
-
     }
 }

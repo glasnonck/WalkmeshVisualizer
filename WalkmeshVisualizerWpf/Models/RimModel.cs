@@ -25,6 +25,8 @@ namespace WalkmeshVisualizerWpf.Models
             set => SetField(ref _meshColor, value);
         }
 
+        public override string ToString() => $"{FileName}";
+
         #region INotifyPropertyChanged Implementation
 
         public event PropertyChangedEventHandler PropertyChanged;

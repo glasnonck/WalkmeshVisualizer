@@ -730,6 +730,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showTransAbortRegions = false;
 
+        public RimModel SelectedGatherPartyRim
+        {
+            get => _selectedGatherPartyRim;
+            set => SetField(ref _selectedGatherPartyRim, value);
+        }
+        private RimModel _selectedGatherPartyRim = null;
+
         public bool ShowDlzLines
         {
             get => _showDlzLines;
@@ -2313,8 +2320,10 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void BuildRimDataInfoMesh(RimDataInfo rdi)
         {
-            if (rdi.Lines.Count == 0)
+            //if (rdi.Lines.Count == 0)   // Need to check if swoops are built...
+            if (rdi.AreVisualsBuilt == false)
             {
+                rdi.AreVisualsBuilt = true;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     rdi.LineCanvas = new Canvas
@@ -2360,19 +2369,19 @@ namespace WalkmeshVisualizerWpf.Views
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        const double SIZE = 1;
+                        var size = rdi.EllipseRadius * 2;
                         var e = new Ellipse
                         {
                             Stroke = Brushes.Black,
                             StrokeThickness = 0.1,
-                            Height = SIZE,
-                            Width = SIZE,
+                            Height = size,
+                            Width = size,
                             Opacity = 0.8,
                             RenderTransform = content.Resources["CartesianTransform"] as Transform,
                             Fill = Brushes.Transparent,
                         };
-                        Canvas.SetLeft(e, point.Item1 - (e.Width / SIZE));
-                        Canvas.SetTop(e, -point.Item2 + (e.Height / SIZE));
+                        Canvas.SetLeft(e, point.Item1 - (e.Width / 2));
+                        Canvas.SetTop(e, -point.Item2 + (e.Height / 2));
                         rdi.Ellipses.Add(e);
                     });
                 }
@@ -2420,6 +2429,9 @@ namespace WalkmeshVisualizerWpf.Views
             try
             {
                 IsBusy = true;
+
+                if (SelectedGatherPartyRim == null)
+                    SelectedGatherPartyRim = rim;
 
                 // Disable regions if needed.
                 if (ShowTransAbortRegions && OnRims.Count == 1)
@@ -2890,6 +2902,15 @@ namespace WalkmeshVisualizerWpf.Views
             var MinY = woks.Min(w => w.MinY);
             var RngX = woks.Max(w => w.MaxX) - MinX;
             var RngY = woks.Max(w => w.MaxY) - MinY;
+
+            // Handle taris swoops exception.
+            if (OnRims.Any(r => r.FileName == "tar_m03mg"))
+            {
+                MinX = (float)Math.Min(MinX,   -3.294533);
+                MinY = (float)Math.Min(MinY,  -80.829834);
+                RngX = (float)Math.Max(RngX,  200);
+                RngY = (float)Math.Max(RngY, 4000);
+            }
 
             // Resize canvas for active walkmeshes.
             theGrid.Dispatcher.Invoke(() =>

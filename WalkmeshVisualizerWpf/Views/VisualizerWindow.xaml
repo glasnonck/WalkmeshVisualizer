@@ -667,6 +667,10 @@
                         </ToggleButton.IsEnabled>
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </ToggleButton>
+                    <ComboBox ItemsSource="{Binding OnRims}"
+                              Width="100" IsEditable="False"
+                              SelectedItem="{Binding SelectedGatherPartyRim, Mode=TwoWay}"
+                              Background="#FFF8F8FF" />
                     <Separator />
                     <ToggleButton
                         x:Name="MouseHoverToggleButton"
