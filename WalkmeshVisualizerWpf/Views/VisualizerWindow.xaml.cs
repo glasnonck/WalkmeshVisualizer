@@ -23,6 +23,8 @@ using KotOR_IO.Helpers;
 using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
+using kmih = KotorMessageInjector.KotorHelpers;
+using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
 
 namespace WalkmeshVisualizerWpf.Views
@@ -121,6 +123,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataPanel = settings.ShowRimDataPanel;
             ShowDistancePanel = settings.ShowDistancePanel;
             ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
+            ShowToolsPanel = settings.ShowToolsPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
 
@@ -128,8 +131,14 @@ namespace WalkmeshVisualizerWpf.Views
             if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
 
-            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
-            if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel)
+            {
+                columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
+            }
+            if (ShowWalkmeshPanel)
+            {
+                columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            }
 
             SetRimDataTypePanelVisibility(ShowRimDataDoors, "Door");
             SetRimDataTypePanelVisibility(ShowRimDataTriggers, "Trigger");
@@ -393,6 +402,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showDistancePanel = false;
 
+        public bool ShowToolsPanel
+        {
+            get => _showToolsPanel;
+            set => SetField(ref _showToolsPanel, value);
+        }
+        private bool _showToolsPanel = false;
+
         public bool ShowRimDataDoors
         {
             get => _showRimDataDoors;
@@ -434,6 +450,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showWalkmeshPanel, value);
         }
         private bool _showWalkmeshPanel = true;
+
+        private List<string> _allRimNames = new List<string>();
+        public List<string> AllRimNames
+        {
+            get => _allRimNames;
+            set => SetField(ref _allRimNames, value);
+        }
 
         private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OnRims
@@ -1035,6 +1058,35 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _mouseHoverUpdateDelay, value);
         }
         private int _mouseHoverUpdateDelay = 50;
+
+        public Point TeleportToCoordinates
+        {
+            get => _teleportToCoordinates;
+            set => SetField(ref _teleportToCoordinates, value);
+        }
+        private Point _teleportToCoordinates = new Point(0.0, 0.0);
+
+        public float FreeCamSpeed
+        {
+            get => _freeCamSpeed;
+            set => SetField(ref _freeCamSpeed, value);
+        }
+        private float _freeCamSpeed = 10f;
+
+        public const float DEFAULT_MOVEMENT_SPEED = 5.4f;
+        public string MoveSpeedMultiplier
+        {
+            get => _moveSpeedMultiplier;
+            set => SetField(ref _moveSpeedMultiplier, value);
+        }
+        private string _moveSpeedMultiplier = "1.0";
+
+        public bool SetMoveSpeedOnLoad
+        {
+            get => _setMoveSpeedOnLoad;
+            set => SetField(ref _setMoveSpeedOnLoad, value);
+        }
+        private bool _setMoveSpeedOnLoad = false;
 
         #region Distance
 
@@ -1955,6 +2007,7 @@ namespace WalkmeshVisualizerWpf.Views
                 }
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
+                AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
 
                 SelectedGame = e.Argument?.ToString() ?? DEFAULT;
 
@@ -2320,7 +2373,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void BuildRimDataInfoMesh(RimDataInfo rdi)
         {
-            //if (rdi.Lines.Count == 0)   // Need to check if swoops are built...
             if (rdi.AreVisualsBuilt == false)
             {
                 rdi.AreVisualsBuilt = true;
@@ -3556,9 +3608,14 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.ShowDistancePanel = ShowDistancePanel;
-            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
+            settings.ShowToolsPanel = ShowToolsPanel;
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel)
+                ? columnLeftPanel.ActualWidth
+                : prevLeftPanelSize;
             settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
-            settings.PrevRightPanelSize = ShowWalkmeshPanel ?  columnRightPanel.ActualWidth : prevRightPanelSize;
+            settings.PrevRightPanelSize = ShowWalkmeshPanel
+                ?  columnRightPanel.ActualWidth
+                : prevRightPanelSize;
             settings.Save();
         }
 
@@ -3694,6 +3751,7 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide other panels in the Left Panel
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
+            ShowToolsPanel = false;
         }
 
         private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
@@ -3701,6 +3759,7 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide other panels in the Left Panel
             ShowCoordinatePanel = false;
             ShowDistancePanel = false;
+            ShowToolsPanel = false;
         }
 
         private void DistancePanelButton_Click(object sender, RoutedEventArgs e)
@@ -3708,11 +3767,20 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide other panels in the Left Panel
             ShowCoordinatePanel = false;
             ShowRimDataPanel = false;
+            ShowToolsPanel = false;
+        }
+
+        private void ToolsPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide other panels in the Left Panel
+            ShowCoordinatePanel = false;
+            ShowRimDataPanel = false;
+            ShowDistancePanel = false;
         }
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel)
+            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel)
             {
                 columnLeftPanel.MinWidth = 240;
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
@@ -4016,7 +4084,6 @@ namespace WalkmeshVisualizerWpf.Views
 
             if (LivePositionWorker.IsBusy)
             {
-                LivePositionToggleButton.IsEnabled = false;
                 LivePositionWorker.CancelAsync();
             }
             else
@@ -4318,8 +4385,6 @@ namespace WalkmeshVisualizerWpf.Views
         private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ShowLivePosition = false;
-            //ShowLivePosition = false;
-            LivePositionToggleButton.IsEnabled = true;
         }
 
         #endregion  // ENDREGION Live Position Methods
@@ -4599,6 +4664,166 @@ namespace WalkmeshVisualizerWpf.Views
                 foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
             else
                 foreach (var rdi in visibleRimDataInfo) HideDlzLines(rdi);
+        }
+
+        #endregion
+
+        #region Live Tools Panel Methods
+
+        /*
+         * Movement
+         */
+        private void TeleportPlayerToPoint_Click(object sender, RoutedEventArgs e)
+        {
+            var point = ((e.Source as Button).Tag as Point?).Value;
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(
+                km.pr.h,
+                kmia.TeleportPlayer(
+                    km.GetClientPlayerID(),
+                    (float)point.X,
+                    (float)point.Y,
+                    0f));
+        }
+
+        private void SetMoveSpeedMultiplier_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var isFloat = float.TryParse(MoveSpeedMultiplier, out float msm);
+            if (isFloat)
+                kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * msm);
+            else
+                MessageBox.Show("Move speed multiplier must be a floating point number.");
+        }
+
+        private void WarpCheat_Click(object sender, RoutedEventArgs e)
+        {
+            var module = cbbWarpToRim.SelectedItem.ToString();
+            if (string.IsNullOrEmpty(module)) return;
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.Warp(km.pr.h, module);
+        }
+
+        /*
+         * Party Members
+         */
+        private void HealLeaderCheat_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.Heal());
+        }
+
+        private void StartGatherPartyDialog_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var script = (e.Source as Button).Tag.ToString() == "Warp"
+                ? "k_trg_transfail1"
+                : "k_trg_transfail";
+            kmia.SendMessage(
+                km.pr.h,
+                kmia.RunScript(
+                    script,
+                    km.pr.h));
+        }
+
+        private void UnlockFullParty_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var script = km.version == 1
+                ? "k_cheat_01"
+                : "a_debugparty";
+            kmia.SendMessage(
+                km.pr.h,
+                kmia.RunScript(
+                    script,
+                    km.pr.h));
+        }
+
+        private void SwapToTargetCreature_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var target = kmih.getLookingAtClientID(km.pr.h);
+            kmia.SendMessage(km.pr.h, kmia.SwapToTarget(target));
+        }
+
+        /*
+         * Free Camera
+         */
+        private void TurnOnFreeCam_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.FreeCamOn());
+            km.SetFreeCamSpeed(FreeCamSpeed);
+        }
+
+        private void TurnOffFreeCam_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.FreeCamOff());
+            km.SetFreeCamSpeed(10f);
+        }
+
+        //private void ResetFreeCamSpeed_Click(object sender, RoutedEventArgs e)
+        //{
+        //    FreeCamSpeed = 10f;
+        //}
+
+        //private void FreeCamSpeed_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+        //{
+        //    var version = GetRunningKotor();
+        //    if (version == 0) return;
+        //    var km = new KotorManager(version);
+        //    if (!km.TestRead() || !km.SetLoadDirection()) return;
+        //    km.SetFreeCamSpeed(FreeCamSpeed);
+        //}
+
+        /*
+         * Affect Target
+         */
+        private void DeleteTargetDoor_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: Update kmi adapter to handle getLokingAtClientID.
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var target = kmih.getLookingAtClientID(km.pr.h);
+            kmia.SendMessage(km.pr.h, kmia.DeleteTargetDoor(target));
+        }
+
+        private void KillTargetCreature_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var handle = km.pr.h;
+            var player = kmih.getPlayerServerID(handle);
+            var target = kmih.getLookingAtServerID(handle);
+            kmia.SendMessage(handle, kmia.KillTargetCreature(player, target, handle));
+        }
+
+        private void PeekTargetContainer_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var target = kmih.getLookingAtClientID(km.pr.h);
+            kmia.SendMessage(km.pr.h, kmia.PeekContainerContents(target));
+        }
+
+        /*
+         * Cheats
+         */
+        private void InvulnerabilityCheat_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.Invulnerability());
         }
 
         #endregion

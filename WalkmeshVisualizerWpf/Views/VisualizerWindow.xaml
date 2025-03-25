@@ -281,7 +281,6 @@
         <CommandBinding
             Command="{StaticResource Commands.ShowLivePosition}"
             Executed="ShowLivePosition_Executed"
-            CanExecute="ShowLivePosition_CanExecute"
             />
         <CommandBinding
             Command="{StaticResource Commands.ShowRimDataDlzLines}"
@@ -913,6 +912,11 @@
                                   Click="DistancePanelButton_Click"
                                   Style="{StaticResource panelToggleButton}"
                                   />
+                    <ToggleButton Content="Live Tools"
+                                  IsChecked="{Binding ShowToolsPanel}"
+                                  Click="ToolsPanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
+                                  />
                 </StackPanel>
 
                 <!--
@@ -1003,8 +1007,8 @@
                         </Button>
 
                         <!-- No point set text. -->
-                        <TextBlock Grid.Row="1" Margin="5,5,5,0" TextWrapping="Wrap" Width="290"
-                                       Text="Place a point by double clicking to begin matching walkmesh coordinates.">
+                        <TextBlock Grid.Row="1" Margin="5,5,5,0" TextWrapping="Wrap"
+                                   Text="Place a point by double clicking to begin matching walkmesh coordinates.">
                             <TextBlock.Visibility>
                                 <MultiBinding Converter="{StaticResource OrInverseBoolToVisibilityMultiConverter}"
                                               FallbackValue="Collapsed" TargetNullValue="Collapsed">
@@ -1143,7 +1147,7 @@
                 <Grid x:Name="rimDataPanel" Grid.Column="1"
                       Visibility="{Binding ShowRimDataPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -1758,7 +1762,7 @@
                 <Grid x:Name="distancePanel" Grid.Column="1"
                       Visibility="{Binding ShowDistancePanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Hidden, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid Margin="4,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -2074,6 +2078,225 @@
                 </Grid>
 
                 <!--
+                Left Panel: Live Tools Panel
+                -->
+                <ScrollViewer x:Name="toolsPanel" Grid.Column="1"
+                              Margin="0,0,-4,0" Padding="0,0,4,0"
+                              VerticalScrollBarVisibility="Auto">
+                    <Grid Visibility="{Binding ShowToolsPanel,
+                            Converter={StaticResource BoolToVisibilityConverter},
+                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                        <Grid.IsEnabled>
+                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                <Binding Path="ShowLivePosition" />
+                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                            </MultiBinding>
+                        </Grid.IsEnabled>
+                        
+                        <StackPanel Margin="4,2,0,0">
+                            <StackPanel.Resources>
+                                <Style TargetType="TextBlock" x:Key="tbHeader">
+                                    <Setter Property="Margin" Value="0,0,0,6" />
+                                    <Setter Property="TextAlignment" Value="Center" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Margin" Value="0,0,0,4" />
+                                    <Setter Property="Padding" Value="4,2" />
+                                </Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                    <Setter Property="BorderBrush" Value="#707070" />
+                                    <Setter Property="Margin" Value="0,0,0,6" />
+                                </Style>
+                            </StackPanel.Resources>
+
+                            <!--#region Momvement -->
+                            <TextBlock Text="Movement" Style="{StaticResource tbHeader}" />
+                            
+                            <!-- Teleport Leader -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Column="0" Text="Teleport Leader To:" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                <!-- To Left Click Point -->
+                                <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to left double-click (black) point.">
+                                    <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
+                                </Button>
+                                <!-- To Right Click Point -->
+                                <Button Grid.Column="3" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to right double-click (white) point.">
+                                    <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
+                                </Button>
+                                <!-- To Custom Coordinates -->
+                                <Button Grid.Column="4" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
+                                        ToolTip="Teleport player to custom coordinates.">
+                                </Button>
+                                <!-- Custom Coordinates -->
+                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Margin="50,2,4,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="4" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="X: " />
+                                    <TextBox   Grid.Column="1" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="3" Text="Y: " />
+                                    <TextBox   Grid.Column="4" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                </Grid>
+                            </Grid>
+
+                            <!-- Movement Speed -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Margin="0,0,2,0"
+                                           Text="Speed Multiplier:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="2" Width="110" Margin="4,0"
+                                          HorizontalContentAlignment="Right"
+                                          Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
+                                    <ComboBoxItem>0.5</ComboBoxItem>
+                                    <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
+                                    <ComboBoxItem>2.0</ComboBoxItem>
+                                    <ComboBoxItem>5.0</ComboBoxItem>
+                                    <ComboBoxItem>10.0</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
+                                        ToolTip="Multiply the default movement speed by the selected value.">
+                                    <Image Width="18" Height="18" Source="/Resources/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
+
+                            <!-- Warp to Module -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Margin="0,0,2,2"
+                                           Text="Warp To Module:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="2" Margin="4,0" Width="110" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
+                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="WarpCheat_Click"
+                                        ToolTip="Load the selected module using the warp cheat.">
+                                    <Image Width="18" Height="18" Source="/Resources/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
+                            
+                            <Border />
+                            <!--#endregion-->
+
+                            <!--#region Party Members -->
+                            <TextBlock Text="Party Members" Style="{StaticResource tbHeader}" />
+                            <Button Content="Heal Leader" Click="HealLeaderCheat_Click"
+                                    ToolTip="Run the cheat to heal the party leader." />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="GP Dialog" Tag="Dialog"
+                                        Click="StartGatherPartyDialog_Click"
+                                        ToolTip="Pop up the gather / revive party dialog."
+                                        />
+                                <Button Grid.Column="2" Content="GP Warp" Tag="Warp"
+                                        Click="StartGatherPartyDialog_Click"
+                                        ToolTip="Run the script that warps the leader to a gather / revive party point."
+                                        />
+                            </Grid>
+                            <Button Content="Unlock Full Party"
+                                    Click="UnlockFullParty_Click"
+                                    ToolTip="Unlock all standard party members."
+                                    />
+                            <Button Content="Swap to Target Creature"
+                                    Click="SwapToTargetCreature_Click"
+                                    ToolTip="Set target creature as party leader."
+                                    />
+                            <Border Margin="0,2,0,6" />
+                            <!--#endregion-->
+
+                            <!--#region FreeCam -->
+                            <TextBlock Text="FreeCam Mode" Style="{StaticResource tbHeader}" />
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="Turn On" Click="TurnOnFreeCam_Click" />
+                                <Button Grid.Column="2" Content="Turn Off" Click="TurnOffFreeCam_Click" />
+                            </Grid>
+                            <!--<Border />-->
+                            <!--#endregion-->
+
+                            <!-- TODO: Consider adding Set Attribute or Set Skill cheats.
+                                Invulnerability - Can we determine if this is currently active?
+                                Set Attributes To 99
+                                Set Skills To 99
+                                Set [Attribute](CB) to [Value](TB)
+                                Set [Skill](CB) to [Value](TB)
+                            -->
+
+                            <!--#region Affect Target (Disabled) -->
+                            <!--<TextBlock Text="Affect Target" Style="{StaticResource tbHeader}" />
+                            <Button Content="Delete Door"
+                                    Click="DeleteTargetDoor_Click"
+                                    />
+                            <Button Content="Kill Creature"
+                                    Click="KillTargetCreature_Click"
+                                    />
+                            <Button Content="Peek Container"
+                                    Click="PeekTargetContainer_Click"
+                                    />
+                            <Border />-->
+                            <!--#endregion-->
+
+                            <!--#region Models (Disabled) -->
+                            <!--<TextBlock Text="Add Models" Style="{StaticResource tbHeader}" />
+
+                            <ComboBox Margin="0,4" Padding="6,3,5,3">
+                                <ComboBoxItem IsSelected="True">Note</ComboBoxItem>
+                            </ComboBox>
+
+                            <Border />
+
+                            <TextBlock Text="Edit Models" Style="{StaticResource tbHeader}" />
+
+                            <ComboBox Margin="0,4" Padding="6,3,5,3">
+                                <ComboBoxItem IsSelected="True">Note 1</ComboBoxItem>
+                                <ComboBoxItem>Note 2</ComboBoxItem>
+                                <ComboBoxItem></ComboBoxItem>
+                            </ComboBox>
+
+                            <Button Content="Add Target to List" />
+
+                            <Border />-->
+                            <!--#endregion-->
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+                
+                <!--
                 Left Panel Grid Splitter
                 -->
                 <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Width="3" Background="#FF707070"
@@ -2085,6 +2308,7 @@
                             <Binding Path="ShowCoordinatePanel" />
                             <Binding Path="ShowRimDataPanel" />
                             <Binding Path="ShowDistancePanel" />
+                            <Binding Path="ShowToolsPanel" />
                         </MultiBinding>
                     </GridSplitter.Visibility>
                 </GridSplitter>

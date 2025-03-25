@@ -36,6 +36,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KotorMessageInjector">
+      <HintPath>..\..\KotorMessageInjector\KotorMessageInjector\bin\Debug\netstandard2.0\KotorMessageInjector.dll</HintPath>
+    </Reference>
     <Reference Include="KotOR_IO, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\KotOR_IO\KotOR_IO\bin\Debug\KotOR_IO.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
@@ -148,6 +151,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\UndoIcon.png" />
     <Resource Include="Resources\GatherPartyRangeLeftClickIcon.png" />
     <Resource Include="Resources\GatherPartyRangeLockIcon.png" />
     <Resource Include="Resources\GatherPartyRangeIcon.png" />
