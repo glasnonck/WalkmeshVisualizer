@@ -89,7 +89,9 @@
                 <KeyGesture>Ctrl+F1</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
-        
+
+        <RoutedUICommand x:Key="Commands.SetColorPreferences" />
+
         <!--
         ToolBar related commands and keybinds.
         -->
@@ -250,7 +252,12 @@
             Executed="ViewHelpCommand_Executed"
             CanExecute="ViewHelpCommand_CanExecute"
             />
-        
+        <CommandBinding
+            Command="{StaticResource Commands.SetColorPreferences}"
+            Executed="SetColorPreferences_Executed"
+            CanExecute="SetColorPreferences_CanExecute"
+            />
+
         <!--
         ToolBar related command bindings.
         -->
@@ -342,6 +349,8 @@
                     <MenuItem Header="_Fill Page Zoom" Command="{StaticResource Commands.Fill}" />
                     <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
                     <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
+                    <Separator />
+                    <MenuItem Header="Set color preferences" Command="{StaticResource Commands.SetColorPreferences}"/>
                 </MenuItem>
 
                 <!--
@@ -2082,10 +2091,11 @@
                 -->
                 <ScrollViewer x:Name="toolsPanel" Grid.Column="1"
                               Margin="0,0,-4,0" Padding="0,0,4,0"
-                              VerticalScrollBarVisibility="Auto">
-                    <Grid Visibility="{Binding ShowToolsPanel,
-                            Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                              VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding ShowToolsPanel,
+                                  Converter={StaticResource BoolToVisibilityConverter},
+                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                    <Grid>
                         <Grid.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                 <Binding Path="ShowLivePosition" />

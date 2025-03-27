@@ -87,6 +87,9 @@
     <Compile Include="Views\MatchingWindow.xaml.cs">
       <DependentUpon>MatchingWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SetColorPreferencesWindow.xaml.cs">
+      <DependentUpon>SetColorPreferencesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VisualizerWindow.xaml.cs">
       <DependentUpon>VisualizerWindow.xaml</DependentUpon>
     </Compile>
@@ -115,6 +118,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\MatchingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SetColorPreferencesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
