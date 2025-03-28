@@ -667,6 +667,8 @@
                         ToolTip="Show gather party regions. (Ctrl+Shift+G)"
                         IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowTransAbortRegion}">
+                        <!-- Code for multiple module display with GP regions. -->
+                        <!--IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"-->
                         <ToggleButton.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                 <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -675,10 +677,14 @@
                         </ToggleButton.IsEnabled>
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </ToggleButton>
-                    <ComboBox ItemsSource="{Binding OnRims}"
-                              Width="100" IsEditable="False"
+                    <!-- Code for multiple module display with GP regions. -->
+                    <!--<ComboBox ItemsSource="{Binding OnRims}"
+                              Width="90" IsEditable="False"
                               SelectedItem="{Binding SelectedGatherPartyRim, Mode=TwoWay}"
-                              Background="#FFF8F8FF" />
+                              SelectionChanged="SelectedGatherPartyRim_Changed"
+                              Background="#FFF8F8FF"
+                              IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
+                              />-->
                     <Separator />
                     <ToggleButton
                         x:Name="MouseHoverToggleButton"

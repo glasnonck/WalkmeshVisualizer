@@ -2618,6 +2618,9 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var args = (AddPolyWorkerArgs)e.Argument;
 
+            // Code for multiple module display with GP regions.
+            //if (OnRims.Count == 1) SelectedGatherPartyRim = OnRims.First();
+
             BuildNewWalkmeshes(AddPolyWorker);
 
             ResizeCanvas();
@@ -2681,13 +2684,15 @@ namespace WalkmeshVisualizerWpf.Views
             });
 
             // Build unbuilt RIM walkmeshes.
-            //var unbuilt = OnRims.Where(n => !RimPolyLookup.ContainsKey(n.FileName)).ToList();
             var unbuilt = OnRims.ToList();
             for (var i = 0; i < unbuilt.Count; i++)
             {
                 var rimmodel = unbuilt[i];
                 if (useModuleBrush) brushToUse = rimmodel.MeshColor;
                 if (ShowTransAbortRegions) brushToUse = GrayScaleBrush;
+
+                // Code for multiple module display with GP regions.
+                //if (ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel) brushToUse = GrayScaleBrush;
 
                 var name = rimmodel.FileName;
                 Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, defaultSpawnCanvas = null, rimDataCanvas = null, fullCanvas = null;
@@ -2845,6 +2850,8 @@ namespace WalkmeshVisualizerWpf.Views
                     walkCanvas.Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
                     nonWalkCanvas.Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
                     transBorderCanvas.Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed;
+                    // Code for multiple module display with GP regions.
+                    //transBorderCanvas.Visibility = ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel ? Visibility.Visible : Visibility.Collapsed;
                     defaultSpawnCanvas.Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed;
                     transAbortCanvas.Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed;
                 });
@@ -3004,14 +3011,14 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         Stroke = TransAbortBorderBrush,
                         StrokeThickness = .3,
-                        Fill = PolyBrushCount.Keys.ElementAt(fillIdx),
+                        Fill = BrushCycle[fillIdx],
                         RenderTransform = content.Resources["CartesianTransform"] as Transform,
                         Points = new PointCollection(region),
                     };
                     _ = transBorderCanvas.Children.Add(poly);
                     polys.Add(poly);
                 });
-                fillIdx = (fillIdx + 1) % PolyBrushCount.Count;
+                fillIdx = (fillIdx + 1) % BrushCycle.Count;
             }
             RimTransRegions.Add(rimName, polys);
         }
@@ -3092,7 +3099,11 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 brush = GetLeastUsedWalkmeshBrush();
                 var oldBrush = RimToBrushUsed[rimToAdd.FileName];
-                brushChanged = brush != oldBrush;
+
+                var isGrayscale = false;
+                Application.Current.Dispatcher.Invoke(() => isGrayscale = (RimPolyLookup[rimToAdd.FileName].FirstOrDefault()?.Fill ?? null) == GrayScaleBrush);
+
+                brushChanged = brush != oldBrush || (ShowTransAbortRegions ^ isGrayscale);
                 PolyBrushCount[brush]++;
             }
             // Else, if get least used color...
@@ -3128,6 +3139,8 @@ namespace WalkmeshVisualizerWpf.Views
             // Update the fill color.
             if (brushChanged)
             {
+                // Code for multiple module display with GP regions.
+                //if (ShowTransAbortRegions && SelectedGatherPartyRim == rimToAdd)
                 if (ShowTransAbortRegions)
                 {
                     UpdateRimFillColor(bw, GrayScaleBrush, rimToAdd);
@@ -3279,6 +3292,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemovePolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            // Code for multiple module display with GP regions.
+            //if (OnRims.Count == 1) SelectedGatherPartyRim = OnRims.First();
             var rimToRemove = (RimModel)e.Argument;   // grab rim info
             HideWalkmeshOnCanvas(rimToRemove);
             ResizeCanvas();
@@ -3911,6 +3926,20 @@ namespace WalkmeshVisualizerWpf.Views
         {
             e.CanExecute = !IsBusy;
         }
+
+        // Code for multiple module display with GP regions.
+        //private async void SelectedGatherPartyRim_Changed(object sender, SelectionChangedEventArgs e)
+        //{
+        //    if (IsBusy || !ShowTransAbortRegions) return;
+        //    if (ShowTransAbortRegions)
+        //    {
+        //        ShowTransAbortRegions = false;
+        //        await Task.Run(() => { ShowTransAbortRegionCommand_Executed(this, null); });
+
+        //        ShowTransAbortRegions = true;
+        //        await Task.Run(() => { ShowTransAbortRegionCommand_Executed(this, null); });
+        //    }
+        //}
 
         #endregion
 
@@ -4703,6 +4732,27 @@ namespace WalkmeshVisualizerWpf.Views
                     c.Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed;
                 });
             });
+            // Code for multiple module display with GP regions.
+            //foreach (var rimmodel in OnRims)
+            //{
+            //    if (ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel)
+            //    {
+            //        Application.Current.Dispatcher.Invoke(() => content.Background = Brushes.Black);
+            //        CoordinateTextBrush = Brushes.White;
+            //        if (rimmodel == null) return;
+            //        UpdateRimFillColor(null, GrayScaleBrush, rimmodel);
+            //    }
+            //    else
+            //    {
+            //        Application.Current.Dispatcher.Invoke(() => content.Background = BackgroundColors[SelectedBackgroundColor]);
+            //        CoordinateTextBrush = ForegroundColors[SelectedBackgroundColor];
+            //        if (rimmodel == null) return;
+            //        UpdateRimFillColor(null, RimToBrushUsed[rimmodel.FileName], rimmodel);
+            //    }
+
+            //    Application.Current.Dispatcher.Invoke(() => RimTransAbortRegionCanvasLookup[rimmodel.FileName].Visibility =
+            //        ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel ? Visibility.Visible : Visibility.Collapsed);
+            //}
         }
 
         private void UpdateLayerVisibilityWorker_DoWork(object sender, DoWorkEventArgs e)
@@ -4754,7 +4804,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowTransAbortRegionCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (e.OriginalSource is VisualizerWindow) ShowTransAbortRegions = !ShowTransAbortRegions;
+            if (e?.OriginalSource is VisualizerWindow) ShowTransAbortRegions = !ShowTransAbortRegions;
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimTransRegions.ContainsKey(r.FileName)))

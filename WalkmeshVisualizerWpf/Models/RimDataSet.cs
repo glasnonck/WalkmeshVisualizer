@@ -27,6 +27,42 @@ namespace WalkmeshVisualizerWpf.Models
         private ObservableCollection<RimData> _rimData = new ObservableCollection<RimData>();
         public string Version = "v1.0";
 
+        /** Trigger Sorting Notes
+            * Mines / Traps
+                * No Damage
+                    * k_kor_rockfall2
+                    * k_kor_rockfalltr
+                    * k_kor_deadrocktr
+                * Verify these triggers
+                    * k39_trg_trap
+            * Zone Controller
+                * k_zonetrigger##(#)? (manm27aa)
+                * tar09_area09
+                * tar10_wtflee
+                * unk41_fleetrig
+                * unk44_area08
+                * unk44_area11
+                * unk44_area14
+                * dan15_compon002 / 003 / 1
+                * area## (unk_44ac, summit)
+                * dan14_rapid03
+                * man_enter#? (Manaan Docking Bay)
+            * Conversation Triggers
+                * g_i_partyinit###
+                * g_partyinit###
+                * k_bant_trig(###)?
+                * plottalk (How broad do we want conversations triggers to be?)
+            * Other Encounters ?
+                * kas22_kinrathen#
+                * kas24_katarnenc#
+                * k34_trg_shywyrm#
+                * k34_trg_tukdire1
+                * tat18_tuskenc_##
+                * encounttrig
+            * Unused triggers
+                * [modulename]_swooptrig#
+                * k_kor_swoop_03
+         */
         public readonly Regex regexAll  = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)|(^poisongas$)|(^g_zoncata\d+$)|(^zonecatalogu?er?\d\d$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)$");
         public readonly Regex regexTrap = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)|(^poisongas$)");
         public readonly Regex regexZone = new Regex(@"(^g_zoncata\d+$)|(^zonecatalogu?er?\d\d$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)");
