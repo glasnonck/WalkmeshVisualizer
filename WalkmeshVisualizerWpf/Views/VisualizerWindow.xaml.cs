@@ -23,7 +23,11 @@ using KotOR_IO.Helpers;
 using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
+using kmih = KotorMessageInjector.KotorHelpers;
+using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -38,16 +42,6 @@ namespace WalkmeshVisualizerWpf.Views
         {
             InitializeComponent();
             XmlGameData.Initialize();
-
-            // Grab current brush theme.
-            BrushToName = BrushThemeMuted;
-            foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
-
-            BrushCycle = new List<Brush>(PolyBrushCount.Keys);
-            CurrentRimDataInfoBrush = BrushCycle.First();
-
-            BrushToName.Add(Brushes.Black, "Black");
-            BrushToName.Add(Brushes.White, "White");
 
             // Hide selected game label.
             pnlSelectedGame.Visibility = Visibility.Collapsed;
@@ -121,21 +115,46 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataPanel = settings.ShowRimDataPanel;
             ShowDistancePanel = settings.ShowDistancePanel;
             ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
+            ShowToolsPanel = settings.ShowToolsPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
+            SelectedBrushTheme = (ColorTheme)settings.SelectedBrushTheme;
+            SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
+            ShowRimDataDoors = settings.ShowRimDataDoors;
+            ShowRimDataTriggers = settings.ShowRimDataTriggers;
+            ShowRimDataTraps = settings.ShowRimDataTraps;
+            ShowRimDataZones = settings.ShowRimDataZones;
+            ShowRimDataEncounters = settings.ShowRimDataEncounters;
 
-            if (ShowTransAbortRegions) content.Background = Brushes.Black;
-            if (ShowTransAbortRegions) CoordinateTextBrush = Brushes.White;
+            // Brush Theme
+            BrushToName = BrushThemes[SelectedBrushTheme].ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
+
+            BrushCycle = new List<Brush>(PolyBrushCount.Keys);
+            CurrentRimDataInfoBrush = BrushCycle.First();
+
+            BrushToName.Add(Brushes.Black, "Black");
+            BrushToName.Add(Brushes.White, "White");
+
+            // Canvas
+            content.Background = ShowTransAbortRegions ? Brushes.Black : BackgroundColors[SelectedBackgroundColor];
+            CoordinateTextBrush = ShowTransAbortRegions ? Brushes.White : ForegroundColors[SelectedBackgroundColor];
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
 
-            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel) columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
-            if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            // Left Panel
+            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel)
+                columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
 
+            // - Rim Data Panel
             SetRimDataTypePanelVisibility(ShowRimDataDoors, "Door");
             SetRimDataTypePanelVisibility(ShowRimDataTriggers, "Trigger");
             SetRimDataTypePanelVisibility(ShowRimDataTraps, "Trap");
             SetRimDataTypePanelVisibility(ShowRimDataZones, "Zone");
             SetRimDataTypePanelVisibility(ShowRimDataEncounters, "Encounter");
+
+            // Right Panel
+            if (ShowWalkmeshPanel)
+                columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
         }
 
         #endregion // END REGION Constructors
@@ -198,13 +217,26 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _tempSegmentEnd = new Point();
 
+        public bool SegmentIsSticky
+        {
+            get => _segmentIsSticky;
+            set => SetField(ref _segmentIsSticky, value);
+        }
+        private bool _segmentIsSticky = false;
+
+        public double SegmentStickyDistance
+        {
+            get => _segmentStickyDistance;
+            set => SetField(ref _segmentStickyDistance, value);
+        }
+        private double _segmentStickyDistance = 1.0;
+
         public bool BluePathVisible
         {
             get => _bluePathVisible;
             set => SetField(ref _bluePathVisible, value);
         }
         private bool _bluePathVisible = false;
-
 
         public bool RedPathVisible
         {
@@ -271,35 +303,93 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private Dictionary<Brush, int> PolyBrushCount { get; set; } = new Dictionary<Brush, int>();
 
-        private Dictionary<Brush, string> BrushThemeRainbow { get; set; } = new Dictionary<Brush, string>
+        private BackgroundColor SelectedBackgroundColor { get; set; }
+
+        private Dictionary<BackgroundColor, Brush> BackgroundColors { get; set; } = new Dictionary<BackgroundColor, Brush>
         {
-            { new SolidColorBrush(new Color { R = 0xff, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
-            { new SolidColorBrush(new Color { R = 0xe2, G = 0x98, B = 0x18, A = 0xFF }), "Orange" },
-            { new SolidColorBrush(new Color { R = 0xff, G = 0xd7, B = 0x00, A = 0xFF }), "Yellow" },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF }), "Green" },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xff, A = 0xFF }), "Blue" },
-            { new SolidColorBrush(new Color { R = 0x4b, G = 0x00, B = 0x82, A = 0xFF }), "Indigo" },
-            { new SolidColorBrush(new Color { R = 0xee, G = 0x82, B = 0xee, A = 0xFF }), "Violet" },
+            { BackgroundColor.White,     Brushes.White },
+            { BackgroundColor.LightGray, Brushes.LightGray },
+            { BackgroundColor.DarkGray,  Brushes.DimGray },
+            { BackgroundColor.Black,     Brushes.Black },
         };
 
-        private Dictionary<Brush, string> BrushThemeMuted { get; set; } = new Dictionary<Brush, string>
+        private Dictionary<BackgroundColor, Brush> ForegroundColors { get; set; } = new Dictionary<BackgroundColor, Brush>
         {
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
-            { new SolidColorBrush(new Color { R = 0x33, G = 0xCC, B = 0x33, A = 0xFF }), "Green" },
-            { new SolidColorBrush(new Color { R = 0xDD, G = 0x11, B = 0x11, A = 0xFF }), "Red" },
-            { new SolidColorBrush(new Color { R = 0x40, G = 0xE0, B = 0xD0, A = 0xFF }), "Turquoise" },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x69, B = 0xB4, A = 0xFF }), "Hot Pink" },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0xD7, B = 0x00, A = 0xFF }), "Gold" },
+            { BackgroundColor.White,     Brushes.Black },
+            { BackgroundColor.LightGray, Brushes.Black },
+            { BackgroundColor.DarkGray,  Brushes.White },
+            { BackgroundColor.Black,     Brushes.White },
         };
 
-        private Dictionary<Brush, string> BrushThemeOriginal { get; set; } = new Dictionary<Brush, string>
+        private ColorTheme SelectedBrushTheme { get; set; }
+
+        private Dictionary<ColorTheme, Dictionary<Brush, string>> BrushThemes { get; set; } = new Dictionary<ColorTheme, Dictionary<Brush, string>>
         {
-            { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), "Green" },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
-            { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), "Cyan" },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), "Magenta" },
-            { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), "Yellow" },
+            {
+                ColorTheme.Bright, new Dictionary<Brush, string>
+                {
+                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
+                    { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), "Green" },
+                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
+                    { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), "Cyan" },
+                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), "Magenta" },
+                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), "Yellow" },
+                }
+            },
+            {
+                ColorTheme.Muted, new Dictionary<Brush, string>
+                {
+                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
+                    { new SolidColorBrush(new Color { R = 0x33, G = 0xCC, B = 0x33, A = 0xFF }), "Green" },
+                    { new SolidColorBrush(new Color { R = 0xDD, G = 0x11, B = 0x11, A = 0xFF }), "Red" },
+                    { new SolidColorBrush(new Color { R = 0x40, G = 0xE0, B = 0xD0, A = 0xFF }), "Cyan" },
+                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x69, B = 0xB4, A = 0xFF }), "Pink" },
+                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xD7, B = 0x00, A = 0xFF }), "Gold" },
+                }
+            },
+            {
+                ColorTheme.Rainbow, new Dictionary<Brush, string>
+                {
+                    { new SolidColorBrush(new Color { R = 0xff, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
+                    { new SolidColorBrush(new Color { R = 0xe2, G = 0x98, B = 0x18, A = 0xFF }), "Orange" },
+                    { new SolidColorBrush(new Color { R = 0xff, G = 0xd7, B = 0x00, A = 0xFF }), "Yellow" },
+                    { new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF }), "Green" },
+                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xff, A = 0xFF }), "Blue" },
+                    { new SolidColorBrush(new Color { R = 0x4b, G = 0x00, B = 0x82, A = 0xFF }), "Indigo" },
+                    { new SolidColorBrush(new Color { R = 0xee, G = 0x82, B = 0xee, A = 0xFF }), "Violet" },
+                }
+            },
+            {
+                ColorTheme.Spring, new Dictionary<Brush, string>
+                {
+                    { new SolidColorBrush(new Color { R = 0x76, G = 0xBA, B = 0x71, A = 0xFF }), "Green" },
+                    { new SolidColorBrush(new Color { R = 0xED, G = 0xE6, B = 0x87, A = 0xFF }), "Yellow" },
+                    { new SolidColorBrush(new Color { R = 0xF7, G = 0xB0, B = 0x5E, A = 0xFF }), "Orange" },
+                    { new SolidColorBrush(new Color { R = 0xE6, G = 0x7A, B = 0x73, A = 0xFF }), "Red" },
+                    { new SolidColorBrush(new Color { R = 0x99, G = 0x40, B = 0x8A, A = 0xFF }), "Violet" },
+                }
+            },
+            {
+                ColorTheme.Pastel, new Dictionary<Brush, string>
+                {
+                    { new SolidColorBrush(new Color { R = 0xC5, G = 0xA7, B = 0xCD, A = 0xFF }), "Purple" },
+                    { new SolidColorBrush(new Color { R = 0xB7, G = 0xD9, B = 0xE2, A = 0xFF }), "Blue" },
+                    { new SolidColorBrush(new Color { R = 0xDB, G = 0xE9, B = 0xC0, A = 0xFF }), "Green" },
+                    { new SolidColorBrush(new Color { R = 0xFB, G = 0xF3, B = 0xD4, A = 0xFF }), "Yellow" },
+                    { new SolidColorBrush(new Color { R = 0xF1, G = 0xD8, B = 0xB8, A = 0xFF }), "Orange" },
+                    { new SolidColorBrush(new Color { R = 0xEE, G = 0xBB, B = 0xDD, A = 0xFF }), "Pink" },
+                }
+            },
+            {
+                ColorTheme.Baby, new Dictionary<Brush, string>
+                {
+                    { new SolidColorBrush(new Color { R = 0xBA, G = 0xDD, B = 0xF4, A = 0xFF }), "Blue" },
+                    { new SolidColorBrush(new Color { R = 0xFE, G = 0xD9, B = 0xF9, A = 0xFF }), "Pink" },
+                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xFA, B = 0xDD, A = 0xFF }), "Yellow" },
+                    { new SolidColorBrush(new Color { R = 0xFE, G = 0xE7, B = 0xD6, A = 0xFF }), "Orange" },
+                    { new SolidColorBrush(new Color { R = 0xD2, G = 0xE5, B = 0xB6, A = 0xFF }), "Green" },
+                }
+            },
         };
 
         private Dictionary<Brush, string> BrushToName { get; set; } = new Dictionary<Brush, string>();
@@ -380,6 +470,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showDistancePanel = false;
 
+        public bool ShowToolsPanel
+        {
+            get => _showToolsPanel;
+            set => SetField(ref _showToolsPanel, value);
+        }
+        private bool _showToolsPanel = false;
+
         public bool ShowRimDataDoors
         {
             get => _showRimDataDoors;
@@ -421,6 +518,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showWalkmeshPanel, value);
         }
         private bool _showWalkmeshPanel = true;
+
+        private List<string> _allRimNames = new List<string>();
+        public List<string> AllRimNames
+        {
+            get => _allRimNames;
+            set => SetField(ref _allRimNames, value);
+        }
 
         private ObservableCollection<RimModel> _onRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OnRims
@@ -717,6 +821,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showTransAbortRegions = false;
 
+        public RimModel SelectedGatherPartyRim
+        {
+            get => _selectedGatherPartyRim;
+            set => SetField(ref _selectedGatherPartyRim, value);
+        }
+        private RimModel _selectedGatherPartyRim = null;
+
         public bool ShowDlzLines
         {
             get => _showDlzLines;
@@ -946,6 +1057,41 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showEncountersOnAddRim = true;
 
+        public bool ShowRimDataDoorsDlzLines
+        {
+            get => _showRimDataDoorsDlzLines;
+            set => SetField(ref _showRimDataDoorsDlzLines, value);
+        }
+        private bool _showRimDataDoorsDlzLines = true;
+
+        public bool ShowRimDataTriggersDlzLines
+        {
+            get => _showRimDataTriggersDlzLines;
+            set => SetField(ref _showRimDataTriggersDlzLines, value);
+        }
+        private bool _showRimDataTriggersDlzLines = true;
+
+        public bool ShowRimDataTrapsDlzLines
+        {
+            get => _showRimDataTrapsDlzLines;
+            set => SetField(ref _showRimDataTrapsDlzLines, value);
+        }
+        private bool _showRimDataTrapsDlzLines = true;
+
+        public bool ShowRimDataZonesDlzLines
+        {
+            get => _showRimDataZonesDlzLines;
+            set => SetField(ref _showRimDataZonesDlzLines, value);
+        }
+        private bool _showRimDataZonesDlzLines = true;
+
+        public bool ShowRimDataEncountersDlzLines
+        {
+            get => _showRimDataEncountersDlzLines;
+            set => SetField(ref _showRimDataEncountersDlzLines, value);
+        }
+        private bool _showRimDataEncountersDlzLines = true;
+
         public Brush CoordinateTextBrush
         {
             get => _coordinateTextBrush;
@@ -980,6 +1126,35 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _mouseHoverUpdateDelay, value);
         }
         private int _mouseHoverUpdateDelay = 50;
+
+        public Point TeleportToCoordinates
+        {
+            get => _teleportToCoordinates;
+            set => SetField(ref _teleportToCoordinates, value);
+        }
+        private Point _teleportToCoordinates = new Point(0.0, 0.0);
+
+        public float FreeCamSpeed
+        {
+            get => _freeCamSpeed;
+            set => SetField(ref _freeCamSpeed, value);
+        }
+        private float _freeCamSpeed = 10f;
+
+        public const float DEFAULT_MOVEMENT_SPEED = 5.4f;
+        public string MoveSpeedMultiplier
+        {
+            get => _moveSpeedMultiplier;
+            set => SetField(ref _moveSpeedMultiplier, value);
+        }
+        private string _moveSpeedMultiplier = "1.0";
+
+        public bool SetMoveSpeedOnLoad
+        {
+            get => _setMoveSpeedOnLoad;
+            set => SetField(ref _setMoveSpeedOnLoad, value);
+        }
+        private bool _setMoveSpeedOnLoad = false;
 
         #region Distance
 
@@ -1157,13 +1332,15 @@ namespace WalkmeshVisualizerWpf.Views
 
                 mouseHandlingMode = MouseHandlingMode.DrawingLine;
 
-                const double allowed_distance = 1.0;
-                var pairs = BluePathPointPairs
-                    .Concat(RedPathPointPairs)
-                    .Concat(GreenPathPointPairs);
-                var match = pairs.FirstOrDefault(t => (t.Item1 - origContentMouseDownPoint).Length <= allowed_distance)?.Item1
-                    ?? pairs.FirstOrDefault(t => (t.Item2 - origContentMouseDownPoint).Length <= allowed_distance)?.Item2;
-                if (match != null) origContentMouseDownPoint = match.Value;
+                if (SegmentIsSticky)
+                {
+                    var pairs = BluePathPointPairs
+                        .Concat(RedPathPointPairs)
+                        .Concat(GreenPathPointPairs);
+                    var match = pairs.FirstOrDefault(t => (t.Item1 - origContentMouseDownPoint).Length <= SegmentStickyDistance)?.Item1
+                    ?? pairs.FirstOrDefault(t => (t.Item2 - origContentMouseDownPoint).Length <= SegmentStickyDistance)?.Item2;
+                    if (match != null) origContentMouseDownPoint = match.Value;
+                }
 
                 TempSegmentStart = origContentMouseDownPoint;
                 TempSegmentEnd = origContentMouseDownPoint;
@@ -1198,15 +1375,16 @@ namespace WalkmeshVisualizerWpf.Views
                 if (mouseHandlingMode == MouseHandlingMode.DrawingLine)
                 {
                     if (TempSegmentStart == TempSegmentEnd)
-                        TempSegmentVisible = false;
-                    else
                     {
-                        const double allowed_distance = 1.0;
+                        TempSegmentVisible = false;
+                    }
+                    else if (SegmentIsSticky)
+                    {
                         var pairs = BluePathPointPairs
                             .Concat(RedPathPointPairs)
                             .Concat(GreenPathPointPairs);
-                        var match = pairs.FirstOrDefault(t => (t.Item1 - TempSegmentEnd).Length <= allowed_distance)?.Item1
-                            ?? pairs.FirstOrDefault(t => (t.Item2 - TempSegmentEnd).Length <= allowed_distance)?.Item2;
+                        var match = pairs.FirstOrDefault(t => t.Item1 != TempSegmentStart && (t.Item1 - TempSegmentEnd).Length <= SegmentStickyDistance)?.Item1
+                            ?? pairs.FirstOrDefault(t => t.Item2 != TempSegmentStart && (t.Item2 - TempSegmentEnd).Length <= SegmentStickyDistance)?.Item2;
                         if (match != null)
                         {
                             mouseHandlingMode = MouseHandlingMode.None;
@@ -1322,9 +1500,6 @@ namespace WalkmeshVisualizerWpf.Views
             }
             else
             {
-                // Don't set points if a game is not selected.
-                if (!(SelectedGame == K1_NAME || SelectedGame == K2_NAME)) return;
-
                 // Set left or right point.
                 if (e.ChangedButton == MouseButton.Left)
                 {
@@ -1900,6 +2075,7 @@ namespace WalkmeshVisualizerWpf.Views
                 }
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
+                AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
 
                 SelectedGame = e.Argument?.ToString() ?? DEFAULT;
 
@@ -2177,7 +2353,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 BuildRimDataInfoMesh(rdi);
                 SetRimDataInfoMeshBrush(rdi);
-                if (ShowDlzLines) rdi.LineColor = rdi.MeshColor;
+                ShowDlzLinesMethod(rdi);
             }
         }
 
@@ -2192,8 +2368,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 BuildRimDataInfoMesh(rdi);
                 SetRimDataInfoMeshBrush(rdi);
-                if (ShowDlzLines)
-                    rdi.LineColor = rdi.MeshColor;
+                ShowDlzLinesMethod(rdi);
             }
 
             VisibleRimDoors = RimDoors.Count(d => d.MeshVisible);
@@ -2213,28 +2388,58 @@ namespace WalkmeshVisualizerWpf.Views
             rdi.MeshColor = Brushes.Transparent;
         }
 
+        private void ShowDlzLinesMethod(RimDataInfo rdi)
+        {
+            if (ShowDlzLines)
+            {
+                switch (rdi.RimDataType)
+                {
+                    case RimDataType.Door:
+                        if (ShowRimDataDoorsDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Trigger:
+                        if (ShowRimDataTriggersDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Encounter:
+                        if (ShowRimDataEncountersDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Trap:
+                        if (ShowRimDataTrapsDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Zone:
+                        if (ShowRimDataZonesDlzLines)
+                            rdi.LineColor = rdi.MeshColor;
+                        break;
+                    case RimDataType.Unknown:
+                    default:
+                        break;
+                }
+            }
+        }
+
         private void HideDlzLines(RimDataInfo rdi)
         {
             rdi.LineColor = Brushes.Transparent;
         }
 
-        private void SetRimDataInfoMeshBrush(RimDataInfo rdi, Brush setColor = null)
+        private void SetRimDataInfoMeshBrush(RimDataInfo rdi)
         {
-            if (setColor != null)
-            {
-                rdi.MeshColor = setColor;
-                return;
-            }
-
-            setColor = GetNextRimDataInfoBrush();
+            rdi.ColorThemeUsed = SelectedBrushTheme;
+            var setColor = GetNextRimDataInfoBrush();
             if (setColor == RimToBrushUsed[rdi.Module]) setColor = GetNextRimDataInfoBrush();
             rdi.MeshColor = setColor;
         }
 
         private void BuildRimDataInfoMesh(RimDataInfo rdi)
         {
-            if (rdi.Lines.Count == 0)
+            if (rdi.AreVisualsBuilt == false)
             {
+                rdi.AreVisualsBuilt = true;
+                rdi.ColorThemeUsed = SelectedBrushTheme;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     rdi.LineCanvas = new Canvas
@@ -2280,19 +2485,19 @@ namespace WalkmeshVisualizerWpf.Views
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        const double SIZE = 1;
+                        var size = rdi.EllipseRadius * 2;
                         var e = new Ellipse
                         {
                             Stroke = Brushes.Black,
                             StrokeThickness = 0.1,
-                            Height = SIZE,
-                            Width = SIZE,
+                            Height = size,
+                            Width = size,
                             Opacity = 0.8,
                             RenderTransform = content.Resources["CartesianTransform"] as Transform,
                             Fill = Brushes.Transparent,
                         };
-                        Canvas.SetLeft(e, point.Item1 - (e.Width / SIZE));
-                        Canvas.SetTop(e, -point.Item2 + (e.Height / SIZE));
+                        Canvas.SetLeft(e, point.Item1 - (e.Width / 2));
+                        Canvas.SetTop(e, -point.Item2 + (e.Height / 2));
                         rdi.Ellipses.Add(e);
                     });
                 }
@@ -2340,6 +2545,9 @@ namespace WalkmeshVisualizerWpf.Views
             try
             {
                 IsBusy = true;
+
+                if (SelectedGatherPartyRim == null)
+                    SelectedGatherPartyRim = rim;
 
                 // Disable regions if needed.
                 if (ShowTransAbortRegions && OnRims.Count == 1)
@@ -2410,14 +2618,29 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var args = (AddPolyWorkerArgs)e.Argument;
 
+            // Code for multiple module display with GP regions.
+            //if (OnRims.Count == 1) SelectedGatherPartyRim = OnRims.First();
+
             BuildNewWalkmeshes(AddPolyWorker);
 
             ResizeCanvas();
 
-            ShowWalkmeshOnCanvas(args.rimToAdd, args.getLeastUsedBrush, args.cycleColor);
+            ShowWalkmeshOnCanvas(args.rimToAdd, AddPolyWorker, args.getLeastUsedBrush, args.cycleColor);
 
             Application.Current.Dispatcher.Invoke(() =>
             {
+                var needsUpdate = RimDoors.ToList()
+                    .Concat(RimTriggers)
+                    .Concat(RimTraps)
+                    .Concat(RimZones)
+                    .Concat(RimEncounters)
+                    .Where(rdi => rdi.MeshVisible
+                        && rdi.AreVisualsBuilt
+                        && rdi.ColorThemeUsed != ColorTheme.Unknown
+                        && rdi.ColorThemeUsed != SelectedBrushTheme)
+                    .ToList();
+                foreach (var rdi in needsUpdate) SetRimDataInfoMeshBrush(rdi);
+
                 if (ShowDoorsOnAddRim) ShowAllRimDataInfo(RimDoors);
                 if (ShowTriggersOnAddRim) ShowAllRimDataInfo(RimTriggers);
                 if (ShowTrapsOnAddRim) ShowAllRimDataInfo(RimTraps);
@@ -2454,16 +2677,22 @@ namespace WalkmeshVisualizerWpf.Views
         private void BuildNewWalkmeshes(BackgroundWorker bw, bool useModuleBrush = false)
         {
             Brush brushToUse = null;
-            content.Dispatcher.Invoke(() => content.Background = ShowTransAbortRegions ? Brushes.Black : Brushes.White);
+            content.Dispatcher.Invoke(() =>
+            {
+                content.Background  = ShowTransAbortRegions ? Brushes.Black : BackgroundColors[SelectedBackgroundColor];
+                CoordinateTextBrush = ShowTransAbortRegions ? Brushes.White : ForegroundColors[SelectedBackgroundColor];
+            });
 
             // Build unbuilt RIM walkmeshes.
-            //var unbuilt = OnRims.Where(n => !RimPolyLookup.ContainsKey(n.FileName)).ToList();
             var unbuilt = OnRims.ToList();
             for (var i = 0; i < unbuilt.Count; i++)
             {
                 var rimmodel = unbuilt[i];
                 if (useModuleBrush) brushToUse = rimmodel.MeshColor;
                 if (ShowTransAbortRegions) brushToUse = GrayScaleBrush;
+
+                // Code for multiple module display with GP regions.
+                //if (ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel) brushToUse = GrayScaleBrush;
 
                 var name = rimmodel.FileName;
                 Canvas walkCanvas = null, nonWalkCanvas = null, transAbortCanvas = null, transBorderCanvas = null, defaultSpawnCanvas = null, rimDataCanvas = null, fullCanvas = null;
@@ -2621,6 +2850,8 @@ namespace WalkmeshVisualizerWpf.Views
                     walkCanvas.Visibility = ShowWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
                     nonWalkCanvas.Visibility = ShowNonWalkableFaces ? Visibility.Visible : Visibility.Collapsed;
                     transBorderCanvas.Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed;
+                    // Code for multiple module display with GP regions.
+                    //transBorderCanvas.Visibility = ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel ? Visibility.Visible : Visibility.Collapsed;
                     defaultSpawnCanvas.Visibility = ShowDefaultSpawnPoints ? Visibility.Visible : Visibility.Collapsed;
                     transAbortCanvas.Visibility = ShowTransAbortPoints ? Visibility.Visible : Visibility.Collapsed;
                 });
@@ -2780,14 +3011,14 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         Stroke = TransAbortBorderBrush,
                         StrokeThickness = .3,
-                        Fill = PolyBrushCount.Keys.ElementAt(fillIdx),
+                        Fill = BrushCycle[fillIdx],
                         RenderTransform = content.Resources["CartesianTransform"] as Transform,
                         Points = new PointCollection(region),
                     };
                     _ = transBorderCanvas.Children.Add(poly);
                     polys.Add(poly);
                 });
-                fillIdx = (fillIdx + 1) % PolyBrushCount.Count;
+                fillIdx = (fillIdx + 1) % BrushCycle.Count;
             }
             RimTransRegions.Add(rimName, polys);
         }
@@ -2811,6 +3042,15 @@ namespace WalkmeshVisualizerWpf.Views
             var RngX = woks.Max(w => w.MaxX) - MinX;
             var RngY = woks.Max(w => w.MaxY) - MinY;
 
+            // Handle taris swoops exception.
+            if (OnRims.Any(r => r.FileName == "tar_m03mg"))
+            {
+                MinX = (float)Math.Min(MinX,   -3.294533);
+                MinY = (float)Math.Min(MinY,  -80.829834);
+                RngX = (float)Math.Max(RngX,  200);
+                RngY = (float)Math.Max(RngY, 4000);
+            }
+
             // Resize canvas for active walkmeshes.
             theGrid.Dispatcher.Invoke(() =>
             {
@@ -2832,10 +3072,23 @@ namespace WalkmeshVisualizerWpf.Views
             RightClickPoint = new Point(RightClickPoint.X + diffLeft, RightClickPoint.Y + diffBottom);
         }
 
+        private void ResizePathPointPairs(List<Tuple<Point, Point>> pairs, double diffLeft, double diffBottom)
+        {
+            for (int i = 0; i < pairs.Count; i++)
+            {
+                var p1 = pairs[i].Item1;
+                var p2 = pairs[i].Item2;
+                p1.X += diffLeft;
+                p1.Y += diffBottom;
+                p2.X += diffLeft;
+                p2.Y += diffBottom;
+            }
+        }
+
         /// <summary>
         /// Add or make visible all faces in the newly active walkmesh.
         /// </summary>
-        private void ShowWalkmeshOnCanvas(RimModel rimToAdd, bool getLeastUsed = true, bool cycleColor = false)
+        private void ShowWalkmeshOnCanvas(RimModel rimToAdd, BackgroundWorker bw = null, bool getLeastUsed = true, bool cycleColor = false)
         {
             // Determine next brush to use.
             var brushChanged = true;
@@ -2846,7 +3099,11 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 brush = GetLeastUsedWalkmeshBrush();
                 var oldBrush = RimToBrushUsed[rimToAdd.FileName];
-                brushChanged = brush != oldBrush;
+
+                var isGrayscale = false;
+                Application.Current.Dispatcher.Invoke(() => isGrayscale = (RimPolyLookup[rimToAdd.FileName].FirstOrDefault()?.Fill ?? null) == GrayScaleBrush);
+
+                brushChanged = brush != oldBrush || (ShowTransAbortRegions ^ isGrayscale);
                 PolyBrushCount[brush]++;
             }
             // Else, if get least used color...
@@ -2882,13 +3139,15 @@ namespace WalkmeshVisualizerWpf.Views
             // Update the fill color.
             if (brushChanged)
             {
+                // Code for multiple module display with GP regions.
+                //if (ShowTransAbortRegions && SelectedGatherPartyRim == rimToAdd)
                 if (ShowTransAbortRegions)
                 {
-                    UpdateRimFillColor(AddPolyWorker, GrayScaleBrush, rimToAdd);
+                    UpdateRimFillColor(bw, GrayScaleBrush, rimToAdd);
                 }
                 else
                 {
-                    UpdateRimFillColor(AddPolyWorker, brush, rimToAdd);
+                    UpdateRimFillColor(bw, brush, rimToAdd);
                 }
             }
 
@@ -3033,6 +3292,8 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void RemovePolyWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            // Code for multiple module display with GP regions.
+            //if (OnRims.Count == 1) SelectedGatherPartyRim = OnRims.First();
             var rimToRemove = (RimModel)e.Argument;   // grab rim info
             HideWalkmeshOnCanvas(rimToRemove);
             ResizeCanvas();
@@ -3304,7 +3565,7 @@ namespace WalkmeshVisualizerWpf.Views
             var info = (sender as Button).DataContext as RimDataInfo;
             if (info.MeshVisible == false) return;
             SetRimDataInfoMeshBrush(info);
-            if (ShowDlzLines) info.LineColor = info.MeshColor;
+            ShowDlzLinesMethod(info);
         }
 
         //private void ClrPcker_Background_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color> e)
@@ -3442,9 +3703,21 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.ShowDistancePanel = ShowDistancePanel;
-            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel) ? columnLeftPanel.ActualWidth : prevLeftPanelSize;
+            settings.ShowToolsPanel = ShowToolsPanel;
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel)
+                ? columnLeftPanel.ActualWidth
+                : prevLeftPanelSize;
             settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
-            settings.PrevRightPanelSize = ShowWalkmeshPanel ?  columnRightPanel.ActualWidth : prevRightPanelSize;
+            settings.PrevRightPanelSize = ShowWalkmeshPanel
+                ?  columnRightPanel.ActualWidth
+                : prevRightPanelSize;
+            settings.SelectedBrushTheme = (int)SelectedBrushTheme;
+            settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
+            settings.ShowRimDataDoors = ShowRimDataDoors;
+            settings.ShowRimDataTriggers = ShowRimDataTriggers;
+            settings.ShowRimDataTraps = ShowRimDataTraps;
+            settings.ShowRimDataZones = ShowRimDataZones;
+            settings.ShowRimDataEncounters = ShowRimDataEncounters;
             settings.Save();
         }
 
@@ -3571,6 +3844,103 @@ namespace WalkmeshVisualizerWpf.Views
             e.CanExecute = true;
         }
 
+        private void SetColorPreferences_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var sctws = OwnedWindows.OfType<SetColorPreferencesWindow>();
+            if (sctws.Any())
+            {
+                sctws.First().Show();
+            }
+            else
+            {
+                var sctw = new SetColorPreferencesWindow(SelectedBrushTheme, SelectedBackgroundColor)
+                {
+                    Owner = this
+                };
+
+                if (sctw.ShowDialog() ?? false)
+                {
+                    SetBackgroundColor(sctw.SelectedBackground);
+                    SetColorTheme(sctw.SelectedTheme);
+                }
+            }
+        }
+
+        private void SetBackgroundColor(BackgroundColor newBackground)
+        {
+            if (newBackground == BackgroundColor.Unknown || newBackground == SelectedBackgroundColor) return;
+            SelectedBackgroundColor = newBackground;
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                content.Background  = ShowTransAbortRegions ? Brushes.Black : BackgroundColors[SelectedBackgroundColor];
+                CoordinateTextBrush = ShowTransAbortRegions ? Brushes.White : ForegroundColors[SelectedBackgroundColor];
+            });
+        }
+
+        private async void SetColorTheme(ColorTheme newTheme)
+        {
+            if (newTheme == ColorTheme.Unknown || newTheme == SelectedBrushTheme) return;
+
+            // Set up new brush theme.
+            SelectedBrushTheme = newTheme;
+            BrushToName = BrushThemes[newTheme].ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            PolyBrushCount.Clear();
+            foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
+
+            BrushCycle = new List<Brush>(PolyBrushCount.Keys);
+            CurrentRimDataInfoBrush = BrushCycle.First();
+
+            BrushToName.Add(Brushes.Black, "Black");
+            BrushToName.Add(Brushes.White, "White");
+
+            // Calculate border lines between each pair of trans_abort points.
+            IsBusy = true;
+            if (ShowTransAbortRegions && OnRims.Count == 1)
+            {
+                var rim = OnRims.First();
+                var polys = RimTransRegions[rim.FileName];
+                var index = 0;
+                foreach (var poly in polys)
+                {
+                    Application.Current.Dispatcher.Invoke(() => poly.Fill = BrushCycle[index]);
+                    index = (index + 1) % BrushCycle.Count;
+                }
+            }
+
+            // foreach active walkmesh, redraw color
+            foreach (var rim in OnRims) await Task.Run(() => { ShowWalkmeshOnCanvas(rim); });
+            IsBusy = false;
+
+            // foreach active rimdata, redraw color
+            var rimInfos = RimDoors
+                .Concat(RimTriggers)
+                .Concat(RimTraps)
+                .Concat(RimZones)
+                .Concat(RimEncounters)
+                .Where(rdi => rdi.MeshVisible);
+            foreach (var info in rimInfos)
+                SetRimDataInfoMeshBrush(info);
+        }
+
+        private void SetColorPreferences_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !IsBusy;
+        }
+
+        // Code for multiple module display with GP regions.
+        //private async void SelectedGatherPartyRim_Changed(object sender, SelectionChangedEventArgs e)
+        //{
+        //    if (IsBusy || !ShowTransAbortRegions) return;
+        //    if (ShowTransAbortRegions)
+        //    {
+        //        ShowTransAbortRegions = false;
+        //        await Task.Run(() => { ShowTransAbortRegionCommand_Executed(this, null); });
+
+        //        ShowTransAbortRegions = true;
+        //        await Task.Run(() => { ShowTransAbortRegionCommand_Executed(this, null); });
+        //    }
+        //}
+
         #endregion
 
         #region Left Panel Methods
@@ -3580,6 +3950,7 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide other panels in the Left Panel
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
+            ShowToolsPanel = false;
         }
 
         private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
@@ -3587,6 +3958,7 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide other panels in the Left Panel
             ShowCoordinatePanel = false;
             ShowDistancePanel = false;
+            ShowToolsPanel = false;
         }
 
         private void DistancePanelButton_Click(object sender, RoutedEventArgs e)
@@ -3594,11 +3966,20 @@ namespace WalkmeshVisualizerWpf.Views
             // Hide other panels in the Left Panel
             ShowCoordinatePanel = false;
             ShowRimDataPanel = false;
+            ShowToolsPanel = false;
+        }
+
+        private void ToolsPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide other panels in the Left Panel
+            ShowCoordinatePanel = false;
+            ShowRimDataPanel = false;
+            ShowDistancePanel = false;
         }
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel)
+            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel)
             {
                 columnLeftPanel.MinWidth = 240;
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
@@ -3854,6 +4235,25 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
+        private void BuildSegmentFromBlackWhitePoints_Click(object sender, RoutedEventArgs e)
+        {
+            TempSegmentStart = new Point(LeftClickPoint.X  + .5, theGrid.Height - LeftClickPoint.Y  - .5);
+            TempSegmentEnd   = new Point(RightClickPoint.X + .5, theGrid.Height - RightClickPoint.Y - .5);
+            DistanceTempSegment = (TempSegmentEnd - TempSegmentStart).Length;
+            DurationTempSegment = DistanceTempSegment / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+            TempSegmentVisible = true;
+        }
+
+        private void AddBlackPointToPathButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void AddWhitePointToPathButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         #endregion // END REGION Left Panel Methods
 
         #region Right Panel Methods
@@ -3883,7 +4283,6 @@ namespace WalkmeshVisualizerWpf.Views
 
             if (LivePositionWorker.IsBusy)
             {
-                LivePositionToggleButton.IsEnabled = false;
                 LivePositionWorker.CancelAsync();
             }
             else
@@ -4185,8 +4584,6 @@ namespace WalkmeshVisualizerWpf.Views
         private void LivePositionWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ShowLivePosition = false;
-            //ShowLivePosition = false;
-            LivePositionToggleButton.IsEnabled = true;
         }
 
         #endregion  // ENDREGION Live Position Methods
@@ -4234,7 +4631,8 @@ namespace WalkmeshVisualizerWpf.Views
                         .Where(r => r.MeshVisible);
                     message = string.Join(Environment.NewLine, visibleRimData
                         .Where(r => r.IsTouching(mousePosition))
-                        .Select(r => $"{r.RimDataType,-12}\t{BrushToName[r.MeshColor],-7}\t      {r.ResRef}")
+                        .Select(r => $"{r.RimDataType,-12}\t{GetBrushName(r.MeshColor),-7}\t      {r.ResRef}")
+                        //.Select(r => $"{r.RimDataType,-12}\t{BrushToName[r.MeshColor],-7}\t      {r.ResRef}")
                         .ToArray());
                 });
 
@@ -4243,6 +4641,8 @@ namespace WalkmeshVisualizerWpf.Views
                 sw.Restart();
             }
         }
+
+        private string GetBrushName(Brush brush) => BrushToName.ContainsKey(brush) ? BrushToName[brush] : "Unknown";
 
         private void MouseHoverWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -4319,8 +4719,8 @@ namespace WalkmeshVisualizerWpf.Views
             }
             else
             {
-                content.Background = Brushes.White;
-                CoordinateTextBrush = Brushes.Black;
+                content.Background = BackgroundColors[SelectedBackgroundColor];
+                CoordinateTextBrush = ForegroundColors[SelectedBackgroundColor];
                 if (rimmodel == null) return;
                 UpdateRimFillColor(null, RimToBrushUsed[rimmodel.FileName], rimmodel);
             }
@@ -4332,6 +4732,27 @@ namespace WalkmeshVisualizerWpf.Views
                     c.Visibility = ShowTransAbortRegions ? Visibility.Visible : Visibility.Collapsed;
                 });
             });
+            // Code for multiple module display with GP regions.
+            //foreach (var rimmodel in OnRims)
+            //{
+            //    if (ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel)
+            //    {
+            //        Application.Current.Dispatcher.Invoke(() => content.Background = Brushes.Black);
+            //        CoordinateTextBrush = Brushes.White;
+            //        if (rimmodel == null) return;
+            //        UpdateRimFillColor(null, GrayScaleBrush, rimmodel);
+            //    }
+            //    else
+            //    {
+            //        Application.Current.Dispatcher.Invoke(() => content.Background = BackgroundColors[SelectedBackgroundColor]);
+            //        CoordinateTextBrush = ForegroundColors[SelectedBackgroundColor];
+            //        if (rimmodel == null) return;
+            //        UpdateRimFillColor(null, RimToBrushUsed[rimmodel.FileName], rimmodel);
+            //    }
+
+            //    Application.Current.Dispatcher.Invoke(() => RimTransAbortRegionCanvasLookup[rimmodel.FileName].Visibility =
+            //        ShowTransAbortRegions && SelectedGatherPartyRim == rimmodel ? Visibility.Visible : Visibility.Collapsed);
+            //}
         }
 
         private void UpdateLayerVisibilityWorker_DoWork(object sender, DoWorkEventArgs e)
@@ -4383,7 +4804,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowTransAbortRegionCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (e.OriginalSource is VisualizerWindow) ShowTransAbortRegions = !ShowTransAbortRegions;
+            if (e?.OriginalSource is VisualizerWindow) ShowTransAbortRegions = !ShowTransAbortRegions;
 
             // If any OnRim is not in Keys, build walkmeshes...
             if (OnRims.Any(r => !RimTransRegions.ContainsKey(r.FileName)))
@@ -4412,11 +4833,11 @@ namespace WalkmeshVisualizerWpf.Views
         private void ShowDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is VisualizerWindow) ShowDlzLines = !ShowDlzLines;
-            var visibleRimDataInfo = RimDoors.Where(i => i.MeshVisible)
-                .Concat(RimTriggers.Where(i => i.MeshVisible))
-                .Concat(RimTraps.Where(i => i.MeshVisible))
-                .Concat(RimZones.Where(i => i.MeshVisible))
-                .Concat(RimEncounters.Where(i => i.MeshVisible));
+            var visibleRimDataInfo = RimDoors.Where(i => ShowRimDataDoorsDlzLines && i.MeshVisible)
+                .Concat(RimTriggers.Where(i => ShowRimDataTriggersDlzLines && i.MeshVisible))
+                .Concat(RimTraps.Where(i => ShowRimDataTrapsDlzLines && i.MeshVisible))
+                .Concat(RimZones.Where(i => ShowRimDataZonesDlzLines && i.MeshVisible))
+                .Concat(RimEncounters.Where(i => ShowRimDataEncountersDlzLines && i.MeshVisible));
             if (ShowDlzLines)
                 foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
             else
@@ -4455,6 +4876,177 @@ namespace WalkmeshVisualizerWpf.Views
                 ?.Tag as ObservableCollection<RimDataInfo>)
                 ?.Any(rdi => rdi.MeshVisible) ?? false;
             e.CanExecute = !IsBusy && anyVisible;
+        }
+
+        private void ShowRimDataDlzLines_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (!ShowDlzLines) return;
+            var btn = e.Source as ToggleButton;
+            var visibleRimDataInfo = (btn.Tag as ObservableCollection<RimDataInfo>).Where(i => i.MeshVisible);
+            if (btn.IsChecked.HasValue && btn.IsChecked.Value)
+                foreach (var rdi in visibleRimDataInfo) rdi.LineColor = rdi.MeshColor;
+            else
+                foreach (var rdi in visibleRimDataInfo) HideDlzLines(rdi);
+        }
+
+        #endregion
+
+        #region Live Tools Panel Methods
+
+        /*
+         * Movement
+         */
+        private void TeleportPlayerToPoint_Click(object sender, RoutedEventArgs e)
+        {
+            var point = ((e.Source as Button).Tag as Point?).Value;
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(
+                km.pr.h,
+                kmia.TeleportPlayer(
+                    km.GetClientPlayerID(),
+                    (float)point.X,
+                    (float)point.Y,
+                    0f));
+        }
+
+        private void SetMoveSpeedMultiplier_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var isFloat = float.TryParse(MoveSpeedMultiplier, out float msm);
+            if (isFloat)
+                kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * msm);
+            else
+                MessageBox.Show("Move speed multiplier must be a floating point number.");
+        }
+
+        private void WarpCheat_Click(object sender, RoutedEventArgs e)
+        {
+            var module = cbbWarpToRim.SelectedItem.ToString();
+            if (string.IsNullOrEmpty(module)) return;
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.Warp(km.pr.h, module);
+        }
+
+        /*
+         * Party Members
+         */
+        private void HealLeaderCheat_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.Heal());
+        }
+
+        private void StartGatherPartyDialog_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var script = (e.Source as Button).Tag.ToString() == "Warp"
+                ? "k_trg_transfail1"
+                : "k_trg_transfail";
+            kmia.SendMessage(
+                km.pr.h,
+                kmia.RunScript(
+                    script,
+                    km.pr.h));
+        }
+
+        private void UnlockFullParty_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var script = km.version == 1
+                ? "k_cheat_01"
+                : "a_debugparty";
+            kmia.SendMessage(
+                km.pr.h,
+                kmia.RunScript(
+                    script,
+                    km.pr.h));
+        }
+
+        private void SwapToTargetCreature_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var target = kmih.getLookingAtClientID(km.pr.h);
+            kmia.SendMessage(km.pr.h, kmia.SwapToTarget(target));
+        }
+
+        /*
+         * Free Camera
+         */
+        private void TurnOnFreeCam_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.FreeCamOn());
+            km.SetFreeCamSpeed(FreeCamSpeed);
+        }
+
+        private void TurnOffFreeCam_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.FreeCamOff());
+            km.SetFreeCamSpeed(10f);
+        }
+
+        //private void ResetFreeCamSpeed_Click(object sender, RoutedEventArgs e)
+        //{
+        //    FreeCamSpeed = 10f;
+        //}
+
+        //private void FreeCamSpeed_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+        //{
+        //    var version = GetRunningKotor();
+        //    if (version == 0) return;
+        //    var km = new KotorManager(version);
+        //    if (!km.TestRead() || !km.SetLoadDirection()) return;
+        //    km.SetFreeCamSpeed(FreeCamSpeed);
+        //}
+
+        /*
+         * Affect Target
+         */
+        private void DeleteTargetDoor_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: Update kmi adapter to handle getLokingAtClientID.
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var target = kmih.getLookingAtClientID(km.pr.h);
+            kmia.SendMessage(km.pr.h, kmia.DeleteTargetDoor(target));
+        }
+
+        private void KillTargetCreature_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var handle = km.pr.h;
+            var player = kmih.getPlayerServerID(handle);
+            var target = kmih.getLookingAtServerID(handle);
+            kmia.SendMessage(handle, kmia.KillTargetCreature(player, target, handle));
+        }
+
+        private void PeekTargetContainer_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var target = kmih.getLookingAtClientID(km.pr.h);
+            kmia.SendMessage(km.pr.h, kmia.PeekContainerContents(target));
+        }
+
+        /*
+         * Cheats
+         */
+        private void InvulnerabilityCheat_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SendMessage(km.pr.h, kmia.Invulnerability());
         }
 
         #endregion

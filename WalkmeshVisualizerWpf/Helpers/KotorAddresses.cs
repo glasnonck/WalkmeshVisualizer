@@ -24,7 +24,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public float x;
         public float y;
         public float z;
-        public override string ToString() => $"({x},{y},{z})";
+        public override string ToString() => $"({x:N6},{y:N6},{z:N6})";
     }
 
     public enum GameObjectTypes : byte
@@ -89,6 +89,22 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public uint[] AREA_NAME;
         public uint[] LOAD_DIRECTION;
+        public uint FREE_CAMERA_MOVEMENT_SPEED;
+
+        public uint[] MG_PLAYER_SPEED;
+        public uint[] MG_PLAYER_MINSPEED;
+        public uint[] MG_PLAYER_MAXSPEED;
+        public uint[] MG_PLAYER_ACCEL;
+        public uint[] MG_PLAYER_OFFSET;     // vector, only x position useful
+        public uint[] MG_PLAYER_OFFSET_X;
+        public uint[] MG_PLAYER_OFFSET_Y;
+        public uint[] MG_PLAYER_OFFSET_Z;
+        public uint[] MG_PLAYER_POSITION;   // vector, only y position useful
+        public uint[] MG_PLAYER_POSITION_X;
+        public uint[] MG_PLAYER_POSITION_Y;
+        public uint[] MG_PLAYER_POSITION_Z;
+        public uint[] MG_TUNNEL_LIMIT_POS;  // float, positive tunnel limit
+        public uint[] MG_TUNNEL_LIMIT_NEG;  // float, negative tunnel limit
 
         public KotorAddresses(int version = 1)
         {
@@ -116,6 +132,24 @@ namespace WalkmeshVisualizerWpf.Helpers
                 LEADER_Z_POS = 0x00833930;
                 CAMERA_ANGLE = new uint[] { 0x00833bb4, 0x20, 0x184, 0x58c };
                 LOAD_DIRECTION = new uint[] { 0x007a39fc, 0x4, 0x4, 0x278, 0xc8 };
+                FREE_CAMERA_MOVEMENT_SPEED = 0x00b455c8;
+
+                MG_PLAYER_SPEED      = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24,  0x98 };
+                MG_PLAYER_MINSPEED   = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x1d8 };
+                MG_PLAYER_MAXSPEED   = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x1dc };
+                MG_PLAYER_ACCEL      = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x1e0 };
+                MG_TUNNEL_LIMIT_POS  = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x1e4 };
+                MG_TUNNEL_LIMIT_NEG  = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x1f0 };
+
+                MG_PLAYER_OFFSET     = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x1c4 };
+                MG_PLAYER_OFFSET_X   = MG_PLAYER_OFFSET;
+                MG_PLAYER_OFFSET_Y   = MG_PLAYER_OFFSET; MG_PLAYER_OFFSET_Y[7] += 0x4;
+                MG_PLAYER_OFFSET_Z   = MG_PLAYER_OFFSET; MG_PLAYER_OFFSET_Z[7] += 0x8;
+
+                MG_PLAYER_POSITION   = new uint[] { 0x007a39fc, 0x4, 0x4, 0x18, 0x48, 0x264, 0x24, 0x234 };
+                MG_PLAYER_POSITION_X = MG_PLAYER_POSITION;
+                MG_PLAYER_POSITION_Y = MG_PLAYER_POSITION; MG_PLAYER_POSITION_Y[7] += 0x4;
+                MG_PLAYER_POSITION_Z = MG_PLAYER_POSITION; MG_PLAYER_POSITION_Z[7] += 0x8;
             }
             else if (version == 2)
             {
@@ -141,6 +175,16 @@ namespace WalkmeshVisualizerWpf.Helpers
                 LEADER_Z_POS = 0x00a13464;
                 CAMERA_ANGLE = new uint[] { };
                 LOAD_DIRECTION = new uint[] { 0x00a11c04, 0x4, 0x4, 0x278, 0xd0 };
+                FREE_CAMERA_MOVEMENT_SPEED = 0x00d86138;
+
+                MG_PLAYER_SPEED     = new uint[] { };
+                MG_PLAYER_MINSPEED  = new uint[] { };
+                MG_PLAYER_MAXSPEED  = new uint[] { };
+                MG_PLAYER_ACCEL     = new uint[] { };
+                MG_PLAYER_OFFSET    = new uint[] { };
+                MG_PLAYER_POSITION  = new uint[] { };
+                MG_TUNNEL_LIMIT_POS = new uint[] { };
+                MG_TUNNEL_LIMIT_NEG = new uint[] { };
             }
             else
             {
@@ -170,7 +214,17 @@ namespace WalkmeshVisualizerWpf.Helpers
             LEADER_X_POS = 0x00a7fe84;
             LEADER_Y_POS = 0x00a7fe88;
             LEADER_Z_POS = 0x00a7fe8c;
-            LOAD_DIRECTION = new uint[] { 0x00a1b4a4, 0x4, 0x4, 0x278, 0xd0 };
+            FREE_CAMERA_MOVEMENT_SPEED = 0x00d89ee0;
+            LOAD_DIRECTION      = new uint[] { 0x00a1b4a4, 0x4, 0x4, 0x278, 0xd0 };
+
+            MG_PLAYER_SPEED     = new uint[] { };
+            MG_PLAYER_MINSPEED  = new uint[] { };
+            MG_PLAYER_MAXSPEED  = new uint[] { };
+            MG_PLAYER_ACCEL     = new uint[] { };
+            MG_PLAYER_OFFSET    = new uint[] { };
+            MG_PLAYER_POSITION  = new uint[] { };
+            MG_TUNNEL_LIMIT_POS = new uint[] { };
+            MG_TUNNEL_LIMIT_NEG = new uint[] { };
         }
 
         public static uint GetGOAIndexFromServerID(uint id)
@@ -195,7 +249,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         uint client_internal;
         uint server_internal;
         uint server_game_object_array;
-        readonly int version;
+        public readonly int version;
 
         public KotorManager(int version = 1)
         {
@@ -478,6 +532,29 @@ namespace WalkmeshVisualizerWpf.Helpers
             return true;
         }
 
+        public bool SetFreeCamSpeed(float speed)
+        {
+            if (version == 1)
+                pr.WriteFloat(ka.FREE_CAMERA_MOVEMENT_SPEED, speed);
+            else
+                pr.WriteDouble(ka.FREE_CAMERA_MOVEMENT_SPEED, speed);
+            return !pr.hasFailed;
+        }
+
+        //public bool SetK1FreeCamSpeed(float speed)
+        //{
+        //    pr.WriteFloat(ka.FREE_CAMERA_MOVEMENT_SPEED, speed);
+        //    if (pr.hasFailed) return false;
+        //    return true;
+        //}
+
+        //public bool SetK2FreeCamSpeed(double speed)
+        //{
+        //    pr.WriteDouble(ka.FREE_CAMERA_MOVEMENT_SPEED, speed);
+        //    if (pr.hasFailed) return false;
+        //    return true;
+        //}
+
         public bool TestRead()
         {
             var readSuccess = pr.ReadInt(ka.ADDRESS_BASE, out int testRead);
@@ -588,7 +665,7 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public bool WriteUint(uint address, uint input)
         {
-            var buffer = new byte[] { (byte)input };
+            var buffer = BitConverter.GetBytes(input);
             if (WriteProcessMemory(h, new IntPtr(address), buffer, (uint)buffer.Length, out int wtf))
                 return true;
 
@@ -613,9 +690,15 @@ namespace WalkmeshVisualizerWpf.Helpers
             return false;
         }
 
+        public bool ReadFloat(uint[] addresses, out float output)
+        {
+            output = 0f;
+            return GetFinalPointerAddress(addresses, out uint address) && ReadFloat(address, out output);
+        }
+
         public bool ReadFloat(uint address, out float output)
         {
-            output = 0;
+            output = 0f;
             var buffer = new byte[sizeof(float)];
             int bytesRead = 0;
 
@@ -627,6 +710,54 @@ namespace WalkmeshVisualizerWpf.Helpers
 
             hasFailed = true;
             return false;
+        }
+
+        public bool WriteFloat(uint[] addresses, float input)
+            => GetFinalPointerAddress(addresses, out uint address) && WriteFloat(address, input);
+
+        public bool WriteFloat(uint address, float input)
+        {
+            var buffer = BitConverter.GetBytes(input);
+            if (WriteProcessMemory(h, new IntPtr(address), buffer, (uint)buffer.Length, out int wtf))
+                return true;
+
+            hasFailed = true;
+            return false;
+        }
+
+        public bool ReadDouble(uint address, out double output)
+        {
+            output = 0.0;
+            var buffer = new byte[sizeof(double)];
+            int bytesRead = 0;
+
+            if (ReadProcessMemory(h, new IntPtr(address), buffer, buffer.Length, ref bytesRead))
+            {
+                output = BitConverter.ToDouble(buffer, 0);
+                return true;
+            }
+
+            hasFailed = true;
+            return false;
+        }
+
+        public bool WriteDouble(uint[] addresses, double input)
+            => GetFinalPointerAddress(addresses, out uint address) && WriteDouble(address, input);
+
+        public bool WriteDouble(uint address, double input)
+        {
+            var buffer = BitConverter.GetBytes(input);
+            if (WriteProcessMemory(h, new IntPtr(address), buffer, (uint)buffer.Length, out int wtf))
+                return true;
+
+            hasFailed = true;
+            return false;
+        }
+
+        internal bool ReadVector(uint[] addresses, out GameVector output)
+        {
+            output = new GameVector();
+            return GetFinalPointerAddress(addresses, out uint address) && ReadVector(address, out output);
         }
 
         internal bool ReadVector(uint address, out GameVector output)

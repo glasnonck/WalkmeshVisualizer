@@ -1,12 +1,13 @@
 ﻿<Window x:Class="WalkmeshVisualizerWpf.Views.HelpTextWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Read me!" 
+    Title="Visualizer Help" 
     Height="360" 
     Width="450"
     WindowStyle="ToolWindow"
     ShowInTaskbar="False" 
     ShowActivated="False"
+    ResizeMode="NoResize"
     >
     <Window.Resources>
         <ResourceDictionary>

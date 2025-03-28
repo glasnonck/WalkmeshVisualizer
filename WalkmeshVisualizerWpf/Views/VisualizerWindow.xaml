@@ -89,7 +89,9 @@
                 <KeyGesture>Ctrl+F1</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
-        
+
+        <RoutedUICommand x:Key="Commands.SetColorPreferences" />
+
         <!--
         ToolBar related commands and keybinds.
         -->
@@ -126,6 +128,11 @@
         <RoutedUICommand x:Key="Commands.ShowDlzLines">
             <RoutedUICommand.InputGestures>
                 <KeyGesture>Ctrl+Z</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
+        <RoutedUICommand x:Key="Commands.ShowRimDataDlzLines">
+            <RoutedUICommand.InputGestures>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
@@ -245,7 +252,12 @@
             Executed="ViewHelpCommand_Executed"
             CanExecute="ViewHelpCommand_CanExecute"
             />
-        
+        <CommandBinding
+            Command="{StaticResource Commands.SetColorPreferences}"
+            Executed="SetColorPreferences_Executed"
+            CanExecute="SetColorPreferences_CanExecute"
+            />
+
         <!--
         ToolBar related command bindings.
         -->
@@ -276,7 +288,10 @@
         <CommandBinding
             Command="{StaticResource Commands.ShowLivePosition}"
             Executed="ShowLivePosition_Executed"
-            CanExecute="ShowLivePosition_CanExecute"
+            />
+        <CommandBinding
+            Command="{StaticResource Commands.ShowRimDataDlzLines}"
+            Executed="ShowRimDataDlzLines_Executed"
             />
         <CommandBinding
             Command="{StaticResource Commands.ShowAllOfRimData}"
@@ -334,6 +349,8 @@
                     <MenuItem Header="_Fill Page Zoom" Command="{StaticResource Commands.Fill}" />
                     <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
                     <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
+                    <Separator />
+                    <MenuItem Header="Set color preferences" Command="{StaticResource Commands.SetColorPreferences}"/>
                 </MenuItem>
 
                 <!--
@@ -420,7 +437,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
+                            <Image Source="../Resources/DlzIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -650,6 +667,8 @@
                         ToolTip="Show gather party regions. (Ctrl+Shift+G)"
                         IsChecked="{Binding ShowTransAbortRegions, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowTransAbortRegion}">
+                        <!-- Code for multiple module display with GP regions. -->
+                        <!--IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"-->
                         <ToggleButton.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                 <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -658,6 +677,14 @@
                         </ToggleButton.IsEnabled>
                         <Image Source="../Resources/GatherPartyRegionIcon.png" />
                     </ToggleButton>
+                    <!-- Code for multiple module display with GP regions. -->
+                    <!--<ComboBox ItemsSource="{Binding OnRims}"
+                              Width="90" IsEditable="False"
+                              SelectedItem="{Binding SelectedGatherPartyRim, Mode=TwoWay}"
+                              SelectionChanged="SelectedGatherPartyRim_Changed"
+                              Background="#FFF8F8FF"
+                              IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
+                              />-->
                     <Separator />
                     <ToggleButton
                         x:Name="MouseHoverToggleButton"
@@ -679,7 +706,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowDlzLines}"
                         >
-                        <Image Source="../Resources/DisplacedLoadingZoneIcon.png" />
+                        <Image Source="../Resources/DlzIcon.png" />
                     </ToggleButton>
                     <Separator />
                     <ToggleButton
@@ -900,6 +927,11 @@
                                   Click="DistancePanelButton_Click"
                                   Style="{StaticResource panelToggleButton}"
                                   />
+                    <ToggleButton Content="Live Tools"
+                                  IsChecked="{Binding ShowToolsPanel}"
+                                  Click="ToolsPanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
+                                  />
                 </StackPanel>
 
                 <!--
@@ -990,8 +1022,8 @@
                         </Button>
 
                         <!-- No point set text. -->
-                        <TextBlock Grid.Row="1" Margin="5,5,5,0" TextWrapping="Wrap" Width="290"
-                                       Text="Place a point by double clicking to begin matching walkmesh coordinates.">
+                        <TextBlock Grid.Row="1" Margin="5,5,5,0" TextWrapping="Wrap"
+                                   Text="Place a point by double clicking to begin matching walkmesh coordinates.">
                             <TextBlock.Visibility>
                                 <MultiBinding Converter="{StaticResource OrInverseBoolToVisibilityMultiConverter}"
                                               FallbackValue="Collapsed" TargetNullValue="Collapsed">
@@ -1224,10 +1256,33 @@
                                 <Setter Property="Stroke" Value="Black" />
                                 <Setter Property="StrokeThickness" Value="0.5" />
                             </Style>
+                            <Style TargetType="CheckBox" x:Key="cbRimDataAutoShow">
+                                <Setter Property="Margin" Value="0,2,4,2" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                                <Setter Property="ToolTip" Value="Automatically show this category of RIM trigger when a new walkmesh is added to the canvas." />
+                            </Style>
                             <Style TargetType="Button" x:Key="btnRimDataShowHide">
-                                <Setter Property="Padding" Value="3,1" />
-                                <Setter Property="Width" Value="36" />
+                                <Setter Property="Padding" Value="2,1" />
+                                <!--<Setter Property="Width" Value="22" />-->
                                 <Setter Property="FontSize" Value="11" />
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="ToggleButton" x:Key="btnRimDataDlz">
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                <Setter Property="Command" Value="{StaticResource Commands.ShowRimDataDlzLines}" />
+                                <Setter Property="ToolTip" Value="Show / hide DLZs for this category of RIM trigger." />
+                            </Style>
+                            <Style TargetType="Button" x:Key="btnRimDataShow" BasedOn="{StaticResource btnRimDataShowHide}">
+                                <Setter Property="Margin" Value="4,0,0,0" />
+                                <Setter Property="Command" Value="{StaticResource Commands.ShowAllOfRimData}" />
+                                <Setter Property="ToolTip" Value="Show all triggers in this category." />
+                            </Style>
+                            <Style TargetType="Button" x:Key="btnRimDataHide" BasedOn="{StaticResource btnRimDataShowHide}">
+                                <Setter Property="Margin" Value="4,0,0,0" />
+                                <Setter Property="Command" Value="{StaticResource Commands.HideAllOfRimData}" />
+                                <Setter Property="ToolTip" Value="Hide all triggers in this category." />
                             </Style>
                             <DataTemplate x:Key="dtRimDataInfo">
                                 <Grid Margin="-4">
@@ -1280,9 +1335,8 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Margin="0,0,0,2">
-                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                          IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}"
-                                          VerticalContentAlignment="Center">
+                                <CheckBox Style="{StaticResource cbRimDataAutoShow}"
+                                          IsChecked="{Binding ShowDoorsOnAddRim, Mode=TwoWay}">
                                     <TextBlock>
                                         <Run>Doors (</Run>
                                         <TextBlock Margin="-3,0" Text="{Binding RimDoors.Count, FallbackValue=0, TargetNullValue=0}" />
@@ -1291,15 +1345,24 @@
                                 </CheckBox>
                             </StackPanel>
 
-                            <StackPanel HorizontalAlignment="Right"
-                                        IsEnabled="{Binding RimDoors.Count,
-                                            Converter={StaticResource IntGreaterEqualConverter},
-                                            ConverterParameter=1}">
-                                <Button Content="Show" Margin="0" Tag="{Binding RimDoors}"
-                                        Style="{StaticResource btnRimDataShowHide}"
+                            <StackPanel HorizontalAlignment="Right">
+                                <ToggleButton Tag="{Binding RimDoors}"
+                                              IsChecked="{Binding ShowRimDataDoorsDlzLines, Mode=TwoWay}"
+                                              Style="{StaticResource btnRimDataDlz}"
+                                              Command="{StaticResource Commands.ShowRimDataDlzLines}">
+                                    <ToggleButton.Content>
+                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                    </ToggleButton.Content>
+                                </ToggleButton>
+                                <Button Tag="{Binding RimDoors}"
+                                        Style="{StaticResource btnRimDataShow}"
                                         Command="{StaticResource Commands.ShowAllOfRimData}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="RimDoors.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="HiddenRimDoors" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
                                             <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -1308,9 +1371,12 @@
                                         </MultiBinding>
                                     </Button.IsEnabled>
                                 </Button>
-                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimDoors}"
-                                        Style="{StaticResource btnRimDataShowHide}"
+                                <Button Tag="{Binding RimDoors}"
+                                        Style="{StaticResource btnRimDataHide}"
                                         Command="{StaticResource Commands.HideAllOfRimData}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                             <Binding Path="VisibleRimDoors" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
@@ -1363,9 +1429,8 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Margin="0,5,0,2">
-                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                          IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}"
-                                          VerticalContentAlignment="Center">
+                                <CheckBox Style="{StaticResource cbRimDataAutoShow}"
+                                          IsChecked="{Binding ShowTriggersOnAddRim, Mode=TwoWay}">
                                     <TextBlock>
                                         <Run>Triggers (</Run>
                                         <TextBlock Margin="-3,0" Text="{Binding RimTriggers.Count, FallbackValue=0, TargetNullValue=0}" />
@@ -1374,15 +1439,19 @@
                                 </CheckBox>
                             </StackPanel>
 
-                            <StackPanel HorizontalAlignment="Right"
-                                        IsEnabled="{Binding RimTriggers.Count,
-                                            Converter={StaticResource IntGreaterEqualConverter},
-                                            ConverterParameter=1}">
-                                <Button Content="Show" Margin="0" Tag="{Binding RimTriggers}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.ShowAllOfRimData}">
+                            <StackPanel HorizontalAlignment="Right">
+                                <ToggleButton IsChecked="{Binding ShowRimDataTriggersDlzLines, Mode=TwoWay}" Tag="{Binding RimTriggers}" Style="{StaticResource btnRimDataDlz}">
+                                    <ToggleButton.Content>
+                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                    </ToggleButton.Content>
+                                </ToggleButton>
+                                <Button Tag="{Binding RimTriggers}" Style="{StaticResource btnRimDataShow}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="RimTriggers.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="HiddenRimTriggers" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
                                             <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -1391,9 +1460,10 @@
                                         </MultiBinding>
                                     </Button.IsEnabled>
                                 </Button>
-                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimTriggers}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.HideAllOfRimData}">
+                                <Button Tag="{Binding RimTriggers}" Style="{StaticResource btnRimDataHide}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                             <Binding Path="VisibleRimTriggers" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
@@ -1446,9 +1516,8 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Margin="0,5,0,2">
-                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                          IsChecked="{Binding ShowTrapsOnAddRim, Mode=TwoWay}"
-                                          VerticalContentAlignment="Center">
+                                <CheckBox Style="{StaticResource cbRimDataAutoShow}"
+                                          IsChecked="{Binding ShowTrapsOnAddRim, Mode=TwoWay}">
                                     <TextBlock>
                                         <Run>Traps (</Run>
                                         <TextBlock Margin="-3,0" Text="{Binding RimTraps.Count, FallbackValue=0, TargetNullValue=0}" />
@@ -1457,15 +1526,19 @@
                                 </CheckBox>
                             </StackPanel>
 
-                            <StackPanel HorizontalAlignment="Right"
-                                        IsEnabled="{Binding RimTraps.Count,
-                                            Converter={StaticResource IntGreaterEqualConverter},
-                                            ConverterParameter=1}">
-                                <Button Content="Show" Margin="0" Tag="{Binding RimTraps}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.ShowAllOfRimData}">
+                            <StackPanel HorizontalAlignment="Right">
+                                <ToggleButton IsChecked="{Binding ShowRimDataTrapsDlzLines, Mode=TwoWay}" Tag="{Binding RimTraps}" Style="{StaticResource btnRimDataDlz}">
+                                    <ToggleButton.Content>
+                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                    </ToggleButton.Content>
+                                </ToggleButton>
+                                <Button Tag="{Binding RimTraps}" Style="{StaticResource btnRimDataShow}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="RimTraps.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="HiddenRimTraps" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
                                             <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -1474,9 +1547,10 @@
                                         </MultiBinding>
                                     </Button.IsEnabled>
                                 </Button>
-                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimTraps}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.HideAllOfRimData}">
+                                <Button Tag="{Binding RimTraps}" Style="{StaticResource btnRimDataHide}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                             <Binding Path="VisibleRimTraps" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
@@ -1529,9 +1603,8 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Margin="0,5,0,2">
-                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                          IsChecked="{Binding ShowZonesOnAddRim, Mode=TwoWay}"
-                                          VerticalContentAlignment="Center">
+                                <CheckBox Style="{StaticResource cbRimDataAutoShow}"
+                                          IsChecked="{Binding ShowZonesOnAddRim, Mode=TwoWay}">
                                     <TextBlock>
                                         <Run>Zones (</Run>
                                         <TextBlock Margin="-3,0" Text="{Binding RimZones.Count, FallbackValue=0, TargetNullValue=0}" />
@@ -1540,15 +1613,19 @@
                                 </CheckBox>
                             </StackPanel>
 
-                            <StackPanel HorizontalAlignment="Right"
-                                        IsEnabled="{Binding RimZones.Count,
-                                            Converter={StaticResource IntGreaterEqualConverter},
-                                            ConverterParameter=1}">
-                                <Button Content="Show" Margin="0" Tag="{Binding RimZones}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.ShowAllOfRimData}">
+                            <StackPanel HorizontalAlignment="Right">
+                                <ToggleButton IsChecked="{Binding ShowRimDataZonesDlzLines, Mode=TwoWay}" Tag="{Binding RimZones}" Style="{StaticResource btnRimDataDlz}">
+                                    <ToggleButton.Content>
+                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                    </ToggleButton.Content>
+                                </ToggleButton>
+                                <Button Tag="{Binding RimZones}" Style="{StaticResource btnRimDataShow}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="RimZones.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="HiddenRimZones" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
                                             <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -1557,9 +1634,10 @@
                                         </MultiBinding>
                                     </Button.IsEnabled>
                                 </Button>
-                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimZones}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.HideAllOfRimData}">
+                                <Button Tag="{Binding RimZones}" Style="{StaticResource btnRimDataHide}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                             <Binding Path="VisibleRimZones" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
@@ -1612,9 +1690,8 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Margin="0,5,0,2">
-                                <CheckBox Margin="0,2,4,2" VerticalAlignment="Center"
-                                          IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}"
-                                          VerticalContentAlignment="Center">
+                                <CheckBox Style="{StaticResource cbRimDataAutoShow}"
+                                          IsChecked="{Binding ShowEncountersOnAddRim, Mode=TwoWay}">
                                     <TextBlock>
                                         <Run>Encounters (</Run>
                                         <TextBlock Margin="-3,0" Text="{Binding RimEncounters.Count, FallbackValue=0, TargetNullValue=0}" />
@@ -1623,13 +1700,19 @@
                                 </CheckBox>
                             </StackPanel>
 
-                            <StackPanel HorizontalAlignment="Right"
-                                        IsEnabled="{Binding RimEncounters.Count, Converter={StaticResource IntGreaterEqualConverter}, ConverterParameter=1}">
-                                <Button Content="Show" Margin="0" Tag="{Binding RimEncounters}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.ShowAllOfRimData}">
+                            <StackPanel HorizontalAlignment="Right">
+                                <ToggleButton IsChecked="{Binding ShowRimDataEncountersDlzLines, Mode=TwoWay}" Tag="{Binding RimEncounters}" Style="{StaticResource btnRimDataDlz}">
+                                    <ToggleButton.Content>
+                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                    </ToggleButton.Content>
+                                </ToggleButton>
+                                <Button Tag="{Binding RimEncounters}" Style="{StaticResource btnRimDataShow}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                            <Binding Path="RimEncounters.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="HiddenRimEncounters" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
                                             <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
                                             <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
@@ -1638,9 +1721,10 @@
                                         </MultiBinding>
                                     </Button.IsEnabled>
                                 </Button>
-                                <Button Content="Hide" Margin="5,0,0,0" Tag="{Binding RimEncounters}"
-                                        Style="{StaticResource btnRimDataShowHide}"
-                                        Command="{StaticResource Commands.HideAllOfRimData}">
+                                <Button Tag="{Binding RimEncounters}" Style="{StaticResource btnRimDataHide}">
+                                    <Button.Content>
+                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                    </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                             <Binding Path="VisibleRimEncounters" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
@@ -1693,9 +1777,13 @@
                 <Grid x:Name="distancePanel" Grid.Column="1"
                       Visibility="{Binding ShowDistancePanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid Margin="4,0,0,0">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1704,38 +1792,57 @@
                         </Grid.RowDefinitions>
                         <Grid.Resources>
                             <Style TargetType="Ellipse">
-                                <Setter Property="Height" Value="12" />
-                                <Setter Property="Width" Value="12" />
                                 <Setter Property="Stroke" Value="Black" />
                                 <Setter Property="Margin" Value="0,0,0,0" />
+                                <Setter Property="Height" Value="8" />
+                                <Setter Property="Width" Value="8" />
                             </Style>
-                            <Style TargetType="Button" x:Key="styleClearPathButton">
-                                <Setter Property="Content" Value="X" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                                <Setter Property="FontSize" Value="8" />
-                                <Setter Property="Padding" Value="3,0" />
-                                <Setter Property="Margin" Value="0,0,8,0" />
-                                <Setter Property="Width" Value="13" />
-                                <EventSetter Event="Click" Handler="ClearPathButton_Click" />
-                            </Style>
-                            <Style TargetType="Button" x:Key="styleMinusPathButton">
-                                <Setter Property="Content" Value="–" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                                <Setter Property="FontSize" Value="10" />
-                                <Setter Property="Padding" Value="2,-3,2,1" />
-                                <Setter Property="Margin" Value="8,0,0,0" />
-                                <Setter Property="Width" Value="13" />
-                                <EventSetter Event="Click" Handler="MinusPathButton_Click" />
-                            </Style>
-                            <Style TargetType="Button" x:Key="styleAddToPathButton">
-                                <Setter Property="Content" Value="+" />
+                            
+                            <Style TargetType="Button" x:Key="stylePathButton">
                                 <Setter Property="VerticalAlignment" Value="Center" />
                                 <Setter Property="FontSize" Value="10" />
                                 <Setter Property="Padding" Value="2,-3,2,1" />
                                 <Setter Property="Margin" Value="4,0,0,0" />
                                 <Setter Property="Width" Value="13" />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleClearPathButton" BasedOn="{StaticResource stylePathButton}">
+                                <Setter Property="Content" Value="X" />
+                                <Setter Property="FontSize" Value="8" />
+                                <Setter Property="Padding" Value="3,0" />
+                                <Setter Property="Margin" Value="0,0,8,0" />
+                                <Setter Property="ToolTip" Value="Clear and hide segments in this path." />
+                                <EventSetter Event="Click" Handler="ClearPathButton_Click" />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleMinusPathButton" BasedOn="{StaticResource stylePathButton}">
+                                <Setter Property="Content" Value="–" />
+                                <Setter Property="ToolTip" Value="Remove the last segment added to this path." />
+                                <EventSetter Event="Click" Handler="MinusPathButton_Click" />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleAddToPathButton" BasedOn="{StaticResource stylePathButton}">
+                                <Setter Property="Content" Value="+" />
+                                <Setter Property="ToolTip" Value="Add the current black segment to this path." />
                                 <EventSetter Event="Click" Handler="AddToPathButton_Click" />
                             </Style>
+                            <Style TargetType="Button" x:Key="stylePointButton" BasedOn="{StaticResource stylePathButton}">
+                                <Setter Property="Height" Value="13" />
+                                <Setter Property="Width" Value="22" />
+                                <Setter Property="Margin" Value="4,0,0,0" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                                <Setter Property="ToolTip" Value="Create new segment from black and white points." />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleBlackPointButton" BasedOn="{StaticResource stylePointButton}">
+                                <Setter Property="Width" Value="13" />
+                                <Setter Property="ToolTip" Value="Create new segment from black and white points." />
+                                <EventSetter Event="Click" Handler="AddBlackPointToPathButton_Click" />
+                            </Style>
+                            <Style TargetType="Button" x:Key="styleWhitePointButton" BasedOn="{StaticResource stylePointButton}">
+                                <Setter Property="Width" Value="13" />
+                                <Setter Property="ToolTip" Value="Create new segment from black and white points." />
+                                <EventSetter Event="Click" Handler="AddWhitePointToPathButton_Click" />
+                            </Style>
+
                             <Style TargetType="Line" x:Key="styleSegmentIcon">
                                 <Setter Property="X1" Value="0" />
                                 <Setter Property="Y1" Value="0" />
@@ -1777,6 +1884,12 @@
                         <Border Grid.Row="1" Margin="0,4" Padding="4,2" BorderThickness="0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical" Margin="0">
                                 <StackPanel.Resources>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Stroke" Value="Black" />
+                                        <Setter Property="Margin" Value="0,0,0,0" />
+                                        <Setter Property="Height" Value="12" />
+                                        <Setter Property="Width" Value="12" />
+                                    </Style>
                                     <Style TargetType="StackPanel">
                                         <Setter Property="Orientation" Value="Horizontal" />
                                         <Setter Property="Margin" Value="0,0,0,4" />
@@ -1851,16 +1964,51 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
-                        
-                        <!-- Segment Distance -->
+
+                        <!-- Segment Settings -->
                         <Border Grid.Row="2" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                            <StackPanel>
+                                <!-- Title -->
+                                <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Center" Text="Segment Settings" Margin="0,0,0,4" />
+
+                                <!-- Sticky Range -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <CheckBox Grid.Row="1" Grid.Column="0" Content="Sticky Range:"
+                                              IsChecked="{Binding SegmentIsSticky, Mode=TwoWay}"
+                                              ToolTip="A newly drawn segment will stick to the start and end point of segments in paths within range." />
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Width="70" Height="18" Padding="0"
+                                              HorizontalContentAlignment="Right" IsEnabled="{Binding SegmentIsSticky}"
+                                              Text="{Binding SegmentStickyDistance, StringFormat=N1, Mode=TwoWay, FallbackValue=1.0}">
+                                        <ComboBoxItem>0.0</ComboBoxItem>
+                                        <ComboBoxItem>0.5</ComboBoxItem>
+                                        <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
+                                        <ComboBoxItem>1.5</ComboBoxItem>
+                                        <ComboBoxItem>2.0</ComboBoxItem>
+                                        <ComboBoxItem>2.5</ComboBoxItem>
+                                        <ComboBoxItem>3.0</ComboBoxItem>
+                                        <ComboBoxItem>3.5</ComboBoxItem>
+                                        <ComboBoxItem>4.0</ComboBoxItem>
+                                        <ComboBoxItem>4.5</ComboBoxItem>
+                                        <ComboBoxItem>5.0</ComboBoxItem>
+                                    </ComboBox>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Segment Distance -->
+                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical">
                                 <!-- Title -->
                                 <TextBlock HorizontalAlignment="Center" Text="Segment Distance" Margin="0,0,0,4" />
-
+                                
                                 <!-- Length of the segment -->
                                 <StackPanel Orientation="Horizontal" Margin="0">
-                                    <Button Style="{StaticResource styleClearPathButton}" Tag="Black" />
+                                    <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Black" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Black" />
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DistanceTempSegment, StringFormat=N2, FallbackValue=1.11}" />
@@ -1868,12 +2016,24 @@
                                     <TextBlock TextAlignment="Right" Width="50"
                                            Text="{Binding DurationTempSegment, StringFormat=N2, FallbackValue=333.33}" />
                                     <TextBlock Text="s" />
+                                    <Button Style="{StaticResource stylePointButton}" Click="BuildSegmentFromBlackWhitePoints_Click">
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="LeftClickPointVisible" />
+                                                <Binding Path="RightClickPointVisible" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Fill="Black" Margin="0,0,1,0" />
+                                            <Ellipse Fill="White" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
                         
                         <!-- Path Distances -->
-                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                        <Border Grid.Row="4" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical">
                                 <!-- Title -->
                                 <TextBlock HorizontalAlignment="Center" Text="Path Distances" Margin="0,0,0,4" />
@@ -1890,6 +2050,14 @@
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
                                     <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Blue" />
+                                    <!--<Button ToolTip="Create new segment from black and white points."
+                                            Style="{StaticResource styleBlackPointButton}">
+                                        <Ellipse Fill="Black" />
+                                    </Button>
+                                    <Button ToolTip="Create new segment from black and white points."
+                                            Style="{StaticResource styleWhitePointButton}">
+                                        <Ellipse Fill="White" />
+                                    </Button>-->
                                 </StackPanel>
                                 
                                 <!-- Length of red path -->
@@ -1925,6 +2093,226 @@
                 </Grid>
 
                 <!--
+                Left Panel: Live Tools Panel
+                -->
+                <ScrollViewer x:Name="toolsPanel" Grid.Column="1"
+                              Margin="0,0,-4,0" Padding="0,0,4,0"
+                              VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding ShowToolsPanel,
+                                  Converter={StaticResource BoolToVisibilityConverter},
+                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                    <Grid>
+                        <Grid.IsEnabled>
+                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                <Binding Path="ShowLivePosition" />
+                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                            </MultiBinding>
+                        </Grid.IsEnabled>
+                        
+                        <StackPanel Margin="4,2,0,0">
+                            <StackPanel.Resources>
+                                <Style TargetType="TextBlock" x:Key="tbHeader">
+                                    <Setter Property="Margin" Value="0,0,0,6" />
+                                    <Setter Property="TextAlignment" Value="Center" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Margin" Value="0,0,0,4" />
+                                    <Setter Property="Padding" Value="4,2" />
+                                </Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                    <Setter Property="BorderBrush" Value="#707070" />
+                                    <Setter Property="Margin" Value="0,0,0,6" />
+                                </Style>
+                            </StackPanel.Resources>
+
+                            <!--#region Momvement -->
+                            <TextBlock Text="Movement" Style="{StaticResource tbHeader}" />
+                            
+                            <!-- Teleport Leader -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Column="0" Text="Teleport Leader To:" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                <!-- To Left Click Point -->
+                                <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to left double-click (black) point.">
+                                    <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
+                                </Button>
+                                <!-- To Right Click Point -->
+                                <Button Grid.Column="3" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to right double-click (white) point.">
+                                    <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
+                                </Button>
+                                <!-- To Custom Coordinates -->
+                                <Button Grid.Column="4" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
+                                        ToolTip="Teleport player to custom coordinates.">
+                                </Button>
+                                <!-- Custom Coordinates -->
+                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Margin="50,2,4,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="4" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="X: " />
+                                    <TextBox   Grid.Column="1" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="3" Text="Y: " />
+                                    <TextBox   Grid.Column="4" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                </Grid>
+                            </Grid>
+
+                            <!-- Movement Speed -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Margin="0,0,2,0"
+                                           Text="Speed Multiplier:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="2" Width="110" Margin="4,0"
+                                          HorizontalContentAlignment="Right"
+                                          Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
+                                    <ComboBoxItem>0.5</ComboBoxItem>
+                                    <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
+                                    <ComboBoxItem>2.0</ComboBoxItem>
+                                    <ComboBoxItem>5.0</ComboBoxItem>
+                                    <ComboBoxItem>10.0</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
+                                        ToolTip="Multiply the default movement speed by the selected value.">
+                                    <Image Width="18" Height="18" Source="/Resources/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
+
+                            <!-- Warp to Module -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Margin="0,0,2,2"
+                                           Text="Warp To Module:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="2" Margin="4,0" Width="110" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
+                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="WarpCheat_Click"
+                                        ToolTip="Load the selected module using the warp cheat.">
+                                    <Image Width="18" Height="18" Source="/Resources/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
+                            
+                            <Border />
+                            <!--#endregion-->
+
+                            <!--#region Party Members -->
+                            <TextBlock Text="Party Members" Style="{StaticResource tbHeader}" />
+                            <Button Content="Heal Leader" Click="HealLeaderCheat_Click"
+                                    ToolTip="Run the cheat to heal the party leader." />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="GP Dialog" Tag="Dialog"
+                                        Click="StartGatherPartyDialog_Click"
+                                        ToolTip="Pop up the gather / revive party dialog."
+                                        />
+                                <Button Grid.Column="2" Content="GP Warp" Tag="Warp"
+                                        Click="StartGatherPartyDialog_Click"
+                                        ToolTip="Run the script that warps the leader to a gather / revive party point."
+                                        />
+                            </Grid>
+                            <Button Content="Unlock Full Party"
+                                    Click="UnlockFullParty_Click"
+                                    ToolTip="Unlock all standard party members."
+                                    />
+                            <Button Content="Swap to Target Creature"
+                                    Click="SwapToTargetCreature_Click"
+                                    ToolTip="Set target creature as party leader."
+                                    />
+                            <Border Margin="0,2,0,6" />
+                            <!--#endregion-->
+
+                            <!--#region FreeCam -->
+                            <TextBlock Text="FreeCam Mode" Style="{StaticResource tbHeader}" />
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="Turn On" Click="TurnOnFreeCam_Click" />
+                                <Button Grid.Column="2" Content="Turn Off" Click="TurnOffFreeCam_Click" />
+                            </Grid>
+                            <!--<Border />-->
+                            <!--#endregion-->
+
+                            <!-- TODO: Consider adding Set Attribute or Set Skill cheats.
+                                Invulnerability - Can we determine if this is currently active?
+                                Set Attributes To 99
+                                Set Skills To 99
+                                Set [Attribute](CB) to [Value](TB)
+                                Set [Skill](CB) to [Value](TB)
+                            -->
+
+                            <!--#region Affect Target (Disabled) -->
+                            <!--<TextBlock Text="Affect Target" Style="{StaticResource tbHeader}" />
+                            <Button Content="Delete Door"
+                                    Click="DeleteTargetDoor_Click"
+                                    />
+                            <Button Content="Kill Creature"
+                                    Click="KillTargetCreature_Click"
+                                    />
+                            <Button Content="Peek Container"
+                                    Click="PeekTargetContainer_Click"
+                                    />
+                            <Border />-->
+                            <!--#endregion-->
+
+                            <!--#region Models (Disabled) -->
+                            <!--<TextBlock Text="Add Models" Style="{StaticResource tbHeader}" />
+
+                            <ComboBox Margin="0,4" Padding="6,3,5,3">
+                                <ComboBoxItem IsSelected="True">Note</ComboBoxItem>
+                            </ComboBox>
+
+                            <Border />
+
+                            <TextBlock Text="Edit Models" Style="{StaticResource tbHeader}" />
+
+                            <ComboBox Margin="0,4" Padding="6,3,5,3">
+                                <ComboBoxItem IsSelected="True">Note 1</ComboBoxItem>
+                                <ComboBoxItem>Note 2</ComboBoxItem>
+                                <ComboBoxItem></ComboBoxItem>
+                            </ComboBox>
+
+                            <Button Content="Add Target to List" />
+
+                            <Border />-->
+                            <!--#endregion-->
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+                
+                <!--
                 Left Panel Grid Splitter
                 -->
                 <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Width="3" Background="#FF707070"
@@ -1936,6 +2324,7 @@
                             <Binding Path="ShowCoordinatePanel" />
                             <Binding Path="ShowRimDataPanel" />
                             <Binding Path="ShowDistancePanel" />
+                            <Binding Path="ShowToolsPanel" />
                         </MultiBinding>
                     </GridSplitter.Visibility>
                 </GridSplitter>

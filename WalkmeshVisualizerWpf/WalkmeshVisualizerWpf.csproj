@@ -36,6 +36,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KotorMessageInjector">
+      <HintPath>..\..\KotorMessageInjector\KotorMessageInjector\bin\Debug\netstandard2.0\KotorMessageInjector.dll</HintPath>
+    </Reference>
     <Reference Include="KotOR_IO, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\KotOR_IO\KotOR_IO\bin\Debug\KotOR_IO.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
@@ -84,6 +87,9 @@
     <Compile Include="Views\MatchingWindow.xaml.cs">
       <DependentUpon>MatchingWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SetColorPreferencesWindow.xaml.cs">
+      <DependentUpon>SetColorPreferencesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VisualizerWindow.xaml.cs">
       <DependentUpon>VisualizerWindow.xaml</DependentUpon>
     </Compile>
@@ -112,6 +118,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\MatchingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SetColorPreferencesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -148,6 +158,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\UndoIcon.png" />
     <Resource Include="Resources\GatherPartyRangeLeftClickIcon.png" />
     <Resource Include="Resources\GatherPartyRangeLockIcon.png" />
     <Resource Include="Resources\GatherPartyRangeIcon.png" />
@@ -162,6 +173,7 @@
     <Content Include="Resources\DlzData.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\DlzIcon.png" />
     <Content Include="Resources\GameData.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

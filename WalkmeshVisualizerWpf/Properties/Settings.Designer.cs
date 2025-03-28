@@ -12,7 +12,7 @@ namespace WalkmeshVisualizerWpf.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -344,6 +344,102 @@ namespace WalkmeshVisualizerWpf.Properties {
             }
             set {
                 this["ShowDistancePanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowToolsPanel {
+            get {
+                return ((bool)(this["ShowToolsPanel"]));
+            }
+            set {
+                this["ShowToolsPanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int SelectedBrushTheme {
+            get {
+                return ((int)(this["SelectedBrushTheme"]));
+            }
+            set {
+                this["SelectedBrushTheme"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRimDataDoors {
+            get {
+                return ((bool)(this["ShowRimDataDoors"]));
+            }
+            set {
+                this["ShowRimDataDoors"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRimDataTriggers {
+            get {
+                return ((bool)(this["ShowRimDataTriggers"]));
+            }
+            set {
+                this["ShowRimDataTriggers"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowRimDataTraps {
+            get {
+                return ((bool)(this["ShowRimDataTraps"]));
+            }
+            set {
+                this["ShowRimDataTraps"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowRimDataZones {
+            get {
+                return ((bool)(this["ShowRimDataZones"]));
+            }
+            set {
+                this["ShowRimDataZones"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowRimDataEncounters {
+            get {
+                return ((bool)(this["ShowRimDataEncounters"]));
+            }
+            set {
+                this["ShowRimDataEncounters"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int SelectedBackgroundColor {
+            get {
+                return ((int)(this["SelectedBackgroundColor"]));
+            }
+            set {
+                this["SelectedBackgroundColor"] = value;
             }
         }
     }
