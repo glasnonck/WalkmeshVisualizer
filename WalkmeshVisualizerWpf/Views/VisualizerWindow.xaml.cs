@@ -118,8 +118,12 @@ namespace WalkmeshVisualizerWpf.Views
             ShowToolsPanel = settings.ShowToolsPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
-            SelectedBrushTheme = (ColorTheme)settings.SelectedBrushTheme;
+
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
+            SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == settings.SelectedPaletteName);
+            if (SelectedPalette != null) SelectedPalette.IsSelected = true;
+            else SelectedPalette = PaletteManager.Instance.Palettes.First();
+
             ShowRimDataDoors = settings.ShowRimDataDoors;
             ShowRimDataTriggers = settings.ShowRimDataTriggers;
             ShowRimDataTraps = settings.ShowRimDataTraps;
@@ -127,7 +131,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataEncounters = settings.ShowRimDataEncounters;
 
             // Brush Theme
-            BrushToName = BrushThemes[SelectedBrushTheme].ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            BrushToName = PaletteManager.GetSelectedPalette().ToDictionary();
             foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
 
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
@@ -321,76 +325,7 @@ namespace WalkmeshVisualizerWpf.Views
             { BackgroundColor.Black,     Brushes.White },
         };
 
-        private ColorTheme SelectedBrushTheme { get; set; }
-
-        private Dictionary<ColorTheme, Dictionary<Brush, string>> BrushThemes { get; set; } = new Dictionary<ColorTheme, Dictionary<Brush, string>>
-        {
-            {
-                ColorTheme.Bright, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), "Cyan" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), "Magenta" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), "Yellow" },
-                }
-            },
-            {
-                ColorTheme.Muted, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0x33, G = 0xCC, B = 0x33, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xDD, G = 0x11, B = 0x11, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0x40, G = 0xE0, B = 0xD0, A = 0xFF }), "Cyan" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x69, B = 0xB4, A = 0xFF }), "Pink" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xD7, B = 0x00, A = 0xFF }), "Gold" },
-                }
-            },
-            {
-                ColorTheme.Rainbow, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0xff, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0xe2, G = 0x98, B = 0x18, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xff, G = 0xd7, B = 0x00, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xff, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0x4b, G = 0x00, B = 0x82, A = 0xFF }), "Indigo" },
-                    { new SolidColorBrush(new Color { R = 0xee, G = 0x82, B = 0xee, A = 0xFF }), "Violet" },
-                }
-            },
-            {
-                ColorTheme.Spring, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0x76, G = 0xBA, B = 0x71, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xED, G = 0xE6, B = 0x87, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0xF7, G = 0xB0, B = 0x5E, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xE6, G = 0x7A, B = 0x73, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0x99, G = 0x40, B = 0x8A, A = 0xFF }), "Violet" },
-                }
-            },
-            {
-                ColorTheme.Pastel, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0xC5, G = 0xA7, B = 0xCD, A = 0xFF }), "Purple" },
-                    { new SolidColorBrush(new Color { R = 0xB7, G = 0xD9, B = 0xE2, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0xDB, G = 0xE9, B = 0xC0, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xFB, G = 0xF3, B = 0xD4, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0xF1, G = 0xD8, B = 0xB8, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xEE, G = 0xBB, B = 0xDD, A = 0xFF }), "Pink" },
-                }
-            },
-            {
-                ColorTheme.Baby, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0xBA, G = 0xDD, B = 0xF4, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0xFE, G = 0xD9, B = 0xF9, A = 0xFF }), "Pink" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xFA, B = 0xDD, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0xFE, G = 0xE7, B = 0xD6, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xD2, G = 0xE5, B = 0xB6, A = 0xFF }), "Green" },
-                }
-            },
-        };
+        private Palette SelectedPalette { get; set; } = null;
 
         private Dictionary<Brush, string> BrushToName { get; set; } = new Dictionary<Brush, string>();
 
@@ -2428,7 +2363,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SetRimDataInfoMeshBrush(RimDataInfo rdi)
         {
-            rdi.ColorThemeUsed = SelectedBrushTheme;
+            rdi.PaletteUsed = SelectedPalette;
             var setColor = GetNextRimDataInfoBrush();
             if (setColor == RimToBrushUsed[rdi.Module]) setColor = GetNextRimDataInfoBrush();
             rdi.MeshColor = setColor;
@@ -2439,7 +2374,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (rdi.AreVisualsBuilt == false)
             {
                 rdi.AreVisualsBuilt = true;
-                rdi.ColorThemeUsed = SelectedBrushTheme;
+                rdi.PaletteUsed = SelectedPalette;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     rdi.LineCanvas = new Canvas
@@ -2636,8 +2571,8 @@ namespace WalkmeshVisualizerWpf.Views
                     .Concat(RimEncounters)
                     .Where(rdi => rdi.MeshVisible
                         && rdi.AreVisualsBuilt
-                        && rdi.ColorThemeUsed != ColorTheme.Unknown
-                        && rdi.ColorThemeUsed != SelectedBrushTheme)
+                        && rdi.PaletteUsed != null
+                        && rdi.PaletteUsed != SelectedPalette)
                     .ToList();
                 foreach (var rdi in needsUpdate) SetRimDataInfoMeshBrush(rdi);
 
@@ -3711,7 +3646,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.PrevRightPanelSize = ShowWalkmeshPanel
                 ?  columnRightPanel.ActualWidth
                 : prevRightPanelSize;
-            settings.SelectedBrushTheme = (int)SelectedBrushTheme;
+            settings.SelectedPaletteName = SelectedPalette.Name;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
             settings.ShowRimDataDoors = ShowRimDataDoors;
             settings.ShowRimDataTriggers = ShowRimDataTriggers;
@@ -3853,7 +3788,7 @@ namespace WalkmeshVisualizerWpf.Views
             }
             else
             {
-                var sctw = new SetColorPreferencesWindow(SelectedBrushTheme, SelectedBackgroundColor)
+                var sctw = new SetColorPreferencesWindow(SelectedPalette, SelectedBackgroundColor)
                 {
                     Owner = this
                 };
@@ -3861,7 +3796,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (sctw.ShowDialog() ?? false)
                 {
                     SetBackgroundColor(sctw.SelectedBackground);
-                    SetColorTheme(sctw.SelectedTheme);
+                    SetPalette(PaletteManager.GetSelectedPalette());
                 }
             }
         }
@@ -3877,13 +3812,11 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
-        private async void SetColorTheme(ColorTheme newTheme)
+        private async void SetPalette(Palette newPalette)
         {
-            if (newTheme == ColorTheme.Unknown || newTheme == SelectedBrushTheme) return;
-
-            // Set up new brush theme.
-            SelectedBrushTheme = newTheme;
-            BrushToName = BrushThemes[newTheme].ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            // Set up new brush palette.
+            SelectedPalette = newPalette;
+            BrushToName = SelectedPalette.ToDictionary();
             PolyBrushCount.Clear();
             foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
 
@@ -3920,6 +3853,7 @@ namespace WalkmeshVisualizerWpf.Views
                 .Where(rdi => rdi.MeshVisible);
             foreach (var info in rimInfos)
                 SetRimDataInfoMeshBrush(info);
+
         }
 
         private void SetColorPreferences_CanExecute(object sender, CanExecuteRoutedEventArgs e)

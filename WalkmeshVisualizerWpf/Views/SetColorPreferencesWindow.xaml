@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="clr-namespace:WalkmeshVisualizerWpf.Views"
+    xmlns:uc="clr-namespace:WalkmeshVisualizerWpf.UserControls"
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     mc:Ignorable="d"
     ResizeMode="NoResize"
@@ -15,19 +15,11 @@
     >
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="100" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -62,87 +54,51 @@
         </Grid.Resources>
 
         <!-- Canvas Background -->
-        <TextBlock Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="0"
-                   Padding="5,0,5,10" TextWrapping="Wrap" FontWeight="Bold"
+        <TextBlock Padding="5,0,5,10" TextWrapping="Wrap" FontWeight="Bold"
                    Text="Canvas Background" />
-        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="1" Content="White" IsChecked="{Binding IsWhiteBackgroundSelected}" />
-        <Rectangle   Grid.Column="1" Grid.Row="1" Fill="White" />
-        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="1" Foreground="Black" />
+        <Grid Grid.Column="0" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="0" Content="White" IsChecked="{Binding IsWhiteBackgroundSelected}" />
+            <Rectangle   Grid.Column="1" Grid.Row="0" Fill="White" />
+            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="0" Foreground="Black" />
         
-        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="2" Content="Light Gray" IsChecked="{Binding IsLightGrayBackgroundSelected}" />
-        <Rectangle   Grid.Column="1" Grid.Row="2" Fill="LightGray" />
-        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="2" Foreground="Black" />
+            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="1" Content="Light Gray" IsChecked="{Binding IsLightGrayBackgroundSelected}" />
+            <Rectangle   Grid.Column="1" Grid.Row="1" Fill="LightGray" />
+            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="1" Foreground="Black" />
         
-        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="3" Content="Dark Gray" IsChecked="{Binding IsDarkGrayBackgroundSelected}" />
-        <Rectangle   Grid.Column="1" Grid.Row="3" Fill="DimGray" />
-        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="3" Foreground="White" />
+            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="2" Content="Dark Gray" IsChecked="{Binding IsDarkGrayBackgroundSelected}" />
+            <Rectangle   Grid.Column="1" Grid.Row="2" Fill="DimGray" />
+            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="2" Foreground="White" />
         
-        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="4" Content="Black" IsChecked="{Binding IsBlackBackgroundSelected}" />
-        <Rectangle   Grid.Column="1" Grid.Row="4" Fill="Black" />
-        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="4" Foreground="White" />
+            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="3" Content="Black" IsChecked="{Binding IsBlackBackgroundSelected}" />
+            <Rectangle   Grid.Column="1" Grid.Row="3" Fill="Black" />
+            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="3" Foreground="White" />
+        </Grid>
 
-        <Border Grid.Column="2" Grid.RowSpan="7" Margin="5,0" BorderBrush="Black" BorderThickness="1,0,0,0"  />
+        <Border Grid.Column="1" Grid.RowSpan="2" Margin="5,0" BorderBrush="Black" BorderThickness="1,0,0,0"  />
 
-        <!-- Color Theme -->
-        <TextBlock Grid.ColumnSpan="2" Grid.Column="3" Grid.Row="0"
-                   Padding="5,0,5,10" TextWrapping="Wrap" FontWeight="Bold"
-                   Text="Color Theme" />
-        <RadioButton Grid.Column="3" Grid.Row="1" GroupName="theme" Content="Bright" IsChecked="{Binding IsBrightThemeSelected}" />
-        <StackPanel  Grid.Column="4" Grid.Row="1">
-            <Rectangle Fill="#0000FF" />
-            <Rectangle Fill="#00FF00" />
-            <Rectangle Fill="#FF0000" />
-            <Rectangle Fill="#00FFFF" />
-            <Rectangle Fill="#FF00FF" />
-            <Rectangle Fill="#FFFF00" />
-        </StackPanel>
-        <RadioButton Grid.Column="3" Grid.Row="2" GroupName="theme" Content="Muted" IsChecked="{Binding IsMutedThemeSelected}" />
-        <StackPanel  Grid.Column="4" Grid.Row="2">
-            <Rectangle Fill="#0000FF" />
-            <Rectangle Fill="#33CC33" />
-            <Rectangle Fill="#DD1111" />
-            <Rectangle Fill="#40E0D0" />
-            <Rectangle Fill="#FF69B4" />
-            <Rectangle Fill="#FFD700" />
-        </StackPanel>
-        <RadioButton Grid.Column="3" Grid.Row="3" GroupName="theme" Content="Rainbow" IsChecked="{Binding IsRainbowThemeSelected}" />
-        <StackPanel  Grid.Column="4" Grid.Row="3">
-            <Rectangle Fill="#FF0000" />
-            <Rectangle Fill="#E29818" />
-            <Rectangle Fill="#FFD700" />
-            <Rectangle Fill="#008000" />
-            <Rectangle Fill="#0000FF" />
-            <Rectangle Fill="#4B0082" />
-            <Rectangle Fill="#EE82EE" />
-        </StackPanel>
-        <RadioButton Grid.Column="3" Grid.Row="4" GroupName="theme" Content="Spring" IsChecked="{Binding IsSpringThemeSelected}" />
-        <StackPanel  Grid.Column="4" Grid.Row="4">
-            <Rectangle Fill="#76BA71" />
-            <Rectangle Fill="#EDE687" />
-            <Rectangle Fill="#F7B05E" />
-            <Rectangle Fill="#E67A73" />
-            <Rectangle Fill="#99408A" />
-        </StackPanel>
-        <RadioButton Grid.Column="3" Grid.Row="5" GroupName="theme" Content="Pastel" IsChecked="{Binding IsPastelThemeSelected}" />
-        <StackPanel  Grid.Column="4" Grid.Row="5">
-            <Rectangle Fill="#C5A7CD" />
-            <Rectangle Fill="#B7D9E2" />
-            <Rectangle Fill="#DBE9C0" />
-            <Rectangle Fill="#FBF3D4" />
-            <Rectangle Fill="#F1D8B8" />
-            <Rectangle Fill="#EEBBDD" />
-        </StackPanel>
-        <RadioButton Grid.Column="3" Grid.Row="6" GroupName="theme" Content="Baby" IsChecked="{Binding IsBabyThemeSelected}" />
-        <StackPanel  Grid.Column="4" Grid.Row="6">
-            <Rectangle Fill="#BADDF4" />
-            <Rectangle Fill="#FED9F9" />
-            <Rectangle Fill="#FFFADD" />
-            <Rectangle Fill="#FEE7D6" />
-            <Rectangle Fill="#D2E5B6" />
-        </StackPanel>
+        <!-- Color Palette -->
+        <TextBlock
+            Grid.Column="2" Grid.Row="0"
+            Padding="5,0,5,10" TextWrapping="Wrap" FontWeight="Bold"
+            Text="Color Theme" />
 
+        <uc:PaletteSelectUserControl Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
+        
         <!-- Select / Cancel -->
-        <StackPanel Grid.ColumnSpan="6" Grid.Row="7" HorizontalAlignment="Right" Margin="0,10,0,0">
+        <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Right" Margin="0,10,0,0">
             <StackPanel.Resources>
                 <Style TargetType="Button">
                     <Setter Property="Width" Value="60" />

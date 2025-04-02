@@ -86,8 +86,8 @@
     <Setting Name="ShowToolsPanel" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="SelectedBrushTheme" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">1</Value>
+    <Setting Name="SelectedPaletteName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Bright</Value>
     </Setting>
     <Setting Name="ShowRimDataDoors" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>

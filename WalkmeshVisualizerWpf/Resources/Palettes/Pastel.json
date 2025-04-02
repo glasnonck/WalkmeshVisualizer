@@ -1,0 +1,29 @@
+{
+  "Name": "Pastel",
+  "Colors": [
+    {
+      "ColorText": "#FFC5A7CD",
+      "Name": "Purple"
+    },
+    {
+      "ColorText": "#FFB7D9E2",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#FFDBE9C0",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FFFBF3D4",
+      "Name": "Yellow"
+    },
+    {
+      "ColorText": "#FFF1D8B8",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#FFEEBBDD",
+      "Name": "Pink"
+    }
+  ]
+}

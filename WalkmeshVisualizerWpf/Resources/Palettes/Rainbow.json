@@ -1,0 +1,33 @@
+{
+  "Name": "Rainbow",
+  "Colors": [
+    {
+      "ColorText": "#FFFF0000",
+      "Name": "Red"
+    },
+    {
+      "ColorText": "#FFE29818",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#FFFFD700",
+      "Name": "Yellow"
+    },
+    {
+      "ColorText": "#FF008000",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FF0000FF",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#FF4B0082",
+      "Name": "Indigo"
+    },
+    {
+      "ColorText": "#FFEE82EE",
+      "Name": "Violet"
+    }
+  ]
+}

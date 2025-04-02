@@ -15,7 +15,7 @@
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
     Closed="MainWindow_Closed"
-    Icon="../Resources/Icon.png"
+    Icon="../Resources/Icons/Icon.png"
     d:DataContext="{d:DesignInstance views:VisualizerWindow, IsDesignTimeCreatable=False}"
     ResizeMode="CanResizeWithGrip"
     x:Name="thisWindow"
@@ -365,7 +365,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/WalkIcon.png" />
+                            <Image Source="../Resources/Icons/WalkIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem
@@ -376,7 +376,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/NonWalkIcon.png" />
+                            <Image Source="../Resources/Icons/NonWalkIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
@@ -388,7 +388,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/DefaultSpawnPointIcon.png" />
+                            <Image Source="../Resources/Icons/DefaultSpawnPointIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem
@@ -399,7 +399,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/GatherPartyIcon.png" />
+                            <Image Source="../Resources/Icons/GatherPartyIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem
@@ -415,7 +415,7 @@
                             </MultiBinding>
                         </MenuItem.IsEnabled>
                         <MenuItem.Icon>
-                            <Image Source="../Resources/GatherPartyRegionIcon.png" />
+                            <Image Source="../Resources/Icons/GatherPartyRegionIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
@@ -426,7 +426,7 @@
                         IsChecked="{Binding ShowDlzLines, Mode=OneWay}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/MouseHoverIcon.png" />
+                            <Image Source="../Resources/Icons/MouseHoverIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem
@@ -437,7 +437,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         >
                         <MenuItem.Icon>
-                            <Image Source="../Resources/DlzIcon.png" />
+                            <Image Source="../Resources/Icons/DlzIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -450,13 +450,13 @@
                               IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
                               Command="{StaticResource Commands.ShowLivePosition}">
                         <MenuItem.Icon>
-                            <Image Source="../Resources/LivePositionIcon.png" />
+                            <Image Source="../Resources/Icons/LivePositionIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Follow Live Position" IsCheckable="True"
                               IsChecked="{Binding ViewFollowsLivePosition, Mode=TwoWay}">
                         <MenuItem.Icon>
-                            <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
+                            <Image Source="../Resources/Icons/ViewFollowsLivePositionIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Show Live Position _Coordinates" IsCheckable="True"
@@ -468,19 +468,19 @@
                     <MenuItem Header="_Show Current Live Module" IsCheckable="True"
                               IsChecked="{Binding ShowCurrentLiveModule, Mode=TwoWay}">
                         <MenuItem.Icon>
-                            <Image Source="../Resources/ShowCurrentModuleIcon.png" />
+                            <Image Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="_Hide Previous Live Module" IsCheckable="True"
                               IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
                         <MenuItem.Icon>
-                            <Image Source="../Resources/HidePreviousModuleIcon.png" />
+                            <Image Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Hotswap to _Live Game Data" IsCheckable="True"
                               IsChecked="{Binding HotswapToLiveGame, Mode=TwoWay}">
                         <MenuItem.Icon>
-                            <Image Source="../Resources/HotswapIcon.png" />
+                            <Image Source="../Resources/Icons/HotswapIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <!--<Separator />
@@ -632,7 +632,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowWalkable}"
                         >
-                        <Image Source="../Resources/WalkIcon.png" />
+                        <Image Source="../Resources/Icons/WalkIcon.png" />
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
@@ -641,7 +641,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowNonWalkable}"
                         >
-                        <Image Source="../Resources/NonWalkIcon.png" />
+                        <Image Source="../Resources/Icons/NonWalkIcon.png" />
                     </ToggleButton>
                     <Separator />
                     <ToggleButton
@@ -651,7 +651,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowDefaultSpawnPoints}"
                         >
-                        <Image Source="../Resources/DefaultSpawnPointIcon.png" />
+                        <Image Source="../Resources/Icons/DefaultSpawnPointIcon.png" />
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
@@ -660,7 +660,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowTransAbort}"
                         >
-                        <Image Source="../Resources/GatherPartyIcon.png" />
+                        <Image Source="../Resources/Icons/GatherPartyIcon.png" />
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
@@ -675,7 +675,7 @@
                                 <Binding Path="OnRims.Count" Converter="{StaticResource IntLessEqualConverter}" ConverterParameter="1" />
                             </MultiBinding>
                         </ToggleButton.IsEnabled>
-                        <Image Source="../Resources/GatherPartyRegionIcon.png" />
+                        <Image Source="../Resources/Icons/GatherPartyRegionIcon.png" />
                     </ToggleButton>
                     <!-- Code for multiple module display with GP regions. -->
                     <!--<ComboBox ItemsSource="{Binding OnRims}"
@@ -693,11 +693,11 @@
                         IsChecked="{Binding ShowRimDataUnderMouse, Mode=OneWay}"
                         Command="{StaticResource Commands.RunMouseHoverWorker}"
                         >
-                        <Image Source="../Resources/MouseHoverIcon.png" />
+                        <Image Source="../Resources/Icons/MouseHoverIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show gather party range around left click point."
                                   IsChecked="{Binding ShowLeftClickGatherPartyRange, Mode=TwoWay}">
-                        <Image Source="../Resources/GatherPartyRangeLeftClickIcon.png" />
+                        <Image Source="../Resources/Icons/GatherPartyRangeLeftClickIcon.png" />
                     </ToggleButton>
                     <ToggleButton
                         Margin="2,0"
@@ -706,7 +706,7 @@
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                         Command="{StaticResource Commands.ShowDlzLines}"
                         >
-                        <Image Source="../Resources/DlzIcon.png" />
+                        <Image Source="../Resources/Icons/DlzIcon.png" />
                     </ToggleButton>
                     <Separator />
                     <ToggleButton
@@ -716,27 +716,27 @@
                         IsChecked="{Binding ShowLivePosition, Mode=TwoWay}"
                         Command="{StaticResource Commands.ShowLivePosition}"
                         >
-                        <Image Source="../Resources/LivePositionIcon.png" />
+                        <Image Source="../Resources/Icons/LivePositionIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="View follows live position."
                                   IsChecked="{Binding ViewFollowsLivePosition, Mode=TwoWay}">
-                        <Image Source="../Resources/ViewFollowsLivePositionIcon.png" />
+                        <Image Source="../Resources/Icons/ViewFollowsLivePositionIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show current live module."
                                   IsChecked="{Binding ShowCurrentLiveModule, Mode=TwoWay}">
-                        <Image Source="../Resources/ShowCurrentModuleIcon.png" />
+                        <Image Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Hide previous live module."
                                   IsChecked="{Binding HidePreviousLiveModule, Mode=TwoWay}">
-                        <Image Source="../Resources/HidePreviousModuleIcon.png" />
+                        <Image Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show gather party range."
                                   IsChecked="{Binding ShowGatherPartyRange, Mode=TwoWay}">
-                        <Image Source="../Resources/GatherPartyRangeIcon.png" />
+                        <Image Source="../Resources/Icons/GatherPartyRangeIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Lock gather party range in place."
                                   IsChecked="{Binding LockGatherPartyRange, Mode=TwoWay}">
-                        <Image Source="../Resources/GatherPartyRangeLockIcon.png" />
+                        <Image Source="../Resources/Icons/GatherPartyRangeLockIcon.png" />
                     </ToggleButton>
                     <ToggleButton Margin="2,0" ToolTip="Show live coordinates on canvas."
                                   IsChecked="{Binding ShowLivePositionCoordinates, Mode=TwoWay}">
@@ -1351,14 +1351,14 @@
                                               Style="{StaticResource btnRimDataDlz}"
                                               Command="{StaticResource Commands.ShowRimDataDlzLines}">
                                     <ToggleButton.Content>
-                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/DlzIcon.png" />
                                     </ToggleButton.Content>
                                 </ToggleButton>
                                 <Button Tag="{Binding RimDoors}"
                                         Style="{StaticResource btnRimDataShow}"
                                         Command="{StaticResource Commands.ShowAllOfRimData}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1375,7 +1375,7 @@
                                         Style="{StaticResource btnRimDataHide}"
                                         Command="{StaticResource Commands.HideAllOfRimData}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1442,12 +1442,12 @@
                             <StackPanel HorizontalAlignment="Right">
                                 <ToggleButton IsChecked="{Binding ShowRimDataTriggersDlzLines, Mode=TwoWay}" Tag="{Binding RimTriggers}" Style="{StaticResource btnRimDataDlz}">
                                     <ToggleButton.Content>
-                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/DlzIcon.png" />
                                     </ToggleButton.Content>
                                 </ToggleButton>
                                 <Button Tag="{Binding RimTriggers}" Style="{StaticResource btnRimDataShow}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1462,7 +1462,7 @@
                                 </Button>
                                 <Button Tag="{Binding RimTriggers}" Style="{StaticResource btnRimDataHide}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1529,12 +1529,12 @@
                             <StackPanel HorizontalAlignment="Right">
                                 <ToggleButton IsChecked="{Binding ShowRimDataTrapsDlzLines, Mode=TwoWay}" Tag="{Binding RimTraps}" Style="{StaticResource btnRimDataDlz}">
                                     <ToggleButton.Content>
-                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/DlzIcon.png" />
                                     </ToggleButton.Content>
                                 </ToggleButton>
                                 <Button Tag="{Binding RimTraps}" Style="{StaticResource btnRimDataShow}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1549,7 +1549,7 @@
                                 </Button>
                                 <Button Tag="{Binding RimTraps}" Style="{StaticResource btnRimDataHide}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1616,12 +1616,12 @@
                             <StackPanel HorizontalAlignment="Right">
                                 <ToggleButton IsChecked="{Binding ShowRimDataZonesDlzLines, Mode=TwoWay}" Tag="{Binding RimZones}" Style="{StaticResource btnRimDataDlz}">
                                     <ToggleButton.Content>
-                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/DlzIcon.png" />
                                     </ToggleButton.Content>
                                 </ToggleButton>
                                 <Button Tag="{Binding RimZones}" Style="{StaticResource btnRimDataShow}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1636,7 +1636,7 @@
                                 </Button>
                                 <Button Tag="{Binding RimZones}" Style="{StaticResource btnRimDataHide}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1703,12 +1703,12 @@
                             <StackPanel HorizontalAlignment="Right">
                                 <ToggleButton IsChecked="{Binding ShowRimDataEncountersDlzLines, Mode=TwoWay}" Tag="{Binding RimEncounters}" Style="{StaticResource btnRimDataDlz}">
                                     <ToggleButton.Content>
-                                        <Image Width="15" Source="../Resources/DlzIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/DlzIcon.png" />
                                     </ToggleButton.Content>
                                 </ToggleButton>
                                 <Button Tag="{Binding RimEncounters}" Style="{StaticResource btnRimDataShow}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/ShowCurrentModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -1723,7 +1723,7 @@
                                 </Button>
                                 <Button Tag="{Binding RimEncounters}" Style="{StaticResource btnRimDataHide}">
                                     <Button.Content>
-                                        <Image Width="15" Source="../Resources/HidePreviousModuleIcon.png" />
+                                        <Image Width="15" Source="../Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button.Content>
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -2197,7 +2197,7 @@
                                 </ComboBox>
                                 <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
                                         ToolTip="Multiply the default movement speed by the selected value.">
-                                    <Image Width="18" Height="18" Source="/Resources/LivePositionIcon.png" />
+                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
 
@@ -2214,7 +2214,7 @@
                                 <ComboBox Grid.Column="2" Margin="4,0" Width="110" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
                                 <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="WarpCheat_Click"
                                         ToolTip="Load the selected module using the warp cheat.">
-                                    <Image Width="18" Height="18" Source="/Resources/LivePositionIcon.png" />
+                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
                             

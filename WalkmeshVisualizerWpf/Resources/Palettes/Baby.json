@@ -1,0 +1,25 @@
+{
+  "Name": "Baby",
+  "Colors": [
+    {
+      "ColorText": "#FFBADDF4",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#FFFED9F9",
+      "Name": "Pink"
+    },
+    {
+      "ColorText": "#FFFFFADD",
+      "Name": "Yellow"
+    },
+    {
+      "ColorText": "#FFFEE7D6",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#FFD2E5B6",
+      "Name": "Green"
+    }
+  ]
+}
