@@ -5,8 +5,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:WalkmeshVisualizerWpf.UserControls"
+    xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     mc:Ignorable="d"
+    d:Width="400"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterOwner"
@@ -17,9 +19,10 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -51,11 +54,12 @@
                 <Setter Property="Grid.Column" Value="0" />
                 <Setter Property="GroupName" Value="background" />
             </Style>
+            <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         </Grid.Resources>
 
         <!-- Canvas Background -->
-        <TextBlock Padding="5,0,5,10" TextWrapping="Wrap" FontWeight="Bold"
-                   Text="Canvas Background" />
+        <TextBlock Padding="5,0,5,10" FontWeight="Bold"
+                   TextAlignment="Center" Text="Canvas Background" />
         <Grid Grid.Column="0" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="100" />
@@ -92,10 +96,18 @@
         <!-- Color Palette -->
         <TextBlock
             Grid.Column="2" Grid.Row="0"
-            Padding="5,0,5,10" TextWrapping="Wrap" FontWeight="Bold"
-            Text="Color Theme" />
+            Padding="5,0,5,10"
+            TextAlignment="Center"
+            FontWeight="Bold"
+            Text="Color Palette" />
 
         <uc:PaletteSelectUserControl Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
+        
+        <!-- Show Errors -->
+        <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Left" Margin="0,10,0,0"
+                    Visibility="{Binding PM.ErrorsFound, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Expander Header="Show Parsing Errors" IsExpanded="{Binding IsErrorPanelExpanded}" />
+        </StackPanel>
         
         <!-- Select / Cancel -->
         <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Right" Margin="0,10,0,0">
@@ -107,5 +119,12 @@
             <Button Content="Select" IsDefault="True" Click="SelectButton_Click" Margin="0,0,10,0" />
             <Button Content="Cancel" IsCancel="True" />
         </StackPanel>
+
+        <Border Name="bErrors" Grid.ColumnSpan="3" Grid.Row="3" Padding="0" Margin="0,10,0,0" BorderBrush="Black" BorderThickness="1" CornerRadius="2"
+                Visibility="{Binding IsErrorPanelExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+            <TextBox IsReadOnly="True" TextWrapping="Wrap" MinLines="6" MaxLines="6" BorderThickness="0" Padding="2"
+                     HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                     Text="{Binding PM.ErrorMessages, Mode=OneWay, FallbackValue=Testing}" />
+        </Border>
     </Grid>
 </Window>

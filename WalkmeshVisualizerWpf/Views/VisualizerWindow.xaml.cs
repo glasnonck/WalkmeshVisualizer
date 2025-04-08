@@ -121,8 +121,8 @@ namespace WalkmeshVisualizerWpf.Views
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
             SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == settings.SelectedPaletteName);
-            if (SelectedPalette != null) SelectedPalette.IsSelected = true;
-            else SelectedPalette = PaletteManager.Instance.Palettes.First();
+            if (SelectedPalette == null) SelectedPalette = PaletteManager.Instance.Palettes.First();
+            SelectedPalette.IsSelected = true;
 
             ShowRimDataDoors = settings.ShowRimDataDoors;
             ShowRimDataTriggers = settings.ShowRimDataTriggers;
@@ -130,7 +130,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataZones = settings.ShowRimDataZones;
             ShowRimDataEncounters = settings.ShowRimDataEncounters;
 
-            // Brush Theme
+            // Palette
             BrushToName = PaletteManager.GetSelectedPalette().ToDictionary();
             foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
 
@@ -3793,10 +3793,26 @@ namespace WalkmeshVisualizerWpf.Views
                     Owner = this
                 };
 
+                // Show dialog. If "Ok" is selected...
                 if (sctw.ShowDialog() ?? false)
                 {
                     SetBackgroundColor(sctw.SelectedBackground);
-                    SetPalette(PaletteManager.GetSelectedPalette());
+
+                    // If no palette is selected anymore, reset to previously selected palette.
+                    var pal = PaletteManager.GetSelectedPalette();
+                    if (pal == null)
+                    {
+                        pal = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == SelectedPalette.Name);
+                        if (pal != null) pal.IsSelected = true;
+                    }
+                    // Otherwise, set the new palette.
+                    else SetPalette(pal);
+                }
+                // If "Cancel" is selected and no palette is selected, reset to previously selected palette.
+                else if (!PaletteManager.Instance.Palettes.Any(p => p.IsSelected))
+                {
+                    var pal = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == SelectedPalette.Name);
+                    if (pal != null) pal.IsSelected = true;
                 }
             }
         }

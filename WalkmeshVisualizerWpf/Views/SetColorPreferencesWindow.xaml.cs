@@ -44,6 +44,13 @@ namespace WalkmeshVisualizerWpf.Views
         private Palette _initialPalette = null;
         private BackgroundColor _initialBackground = BackgroundColor.Unknown;
 
+        public bool IsErrorPanelExpanded
+        {
+            get => _isErrorPanelExpanded;
+            set => SetField(ref _isErrorPanelExpanded, value);
+        }
+        private bool _isErrorPanelExpanded = false;
+
         public BackgroundColor SelectedBackground
         {
             get => _selectedBackground;
