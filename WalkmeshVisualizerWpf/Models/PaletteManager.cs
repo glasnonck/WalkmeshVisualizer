@@ -12,7 +12,7 @@ namespace WalkmeshVisualizerWpf.Models
     public class PaletteManager
     {
         private const string DEFAULT_PALETTE_STRING = "{\"Name\":\"Bright\",\"Colors\":[{\"ColorText\":\"#FF0000FF\",\"Name\":\"Blue\"},{\"ColorText\":\"#FF00FF00\",\"Name\":\"Green\"},{\"ColorText\":\"#FFFF0000\",\"Name\":\"Red\"},{\"ColorText\":\"#FF00FFFF\",\"Name\":\"Cyan\"},{\"ColorText\":\"#FFFF00FF\",\"Name\":\"Magenta\"},{\"ColorText\":\"#FFFFFF00\",\"Name\":\"Yellow\"}]}";
-        private const string DEFAULT_PALETTE_NAME = "Bright";
+        public const string DEFAULT_PALETTE_NAME = "Bright";
         private const string PALETTES_ERROR_MESSAGE = "Errors have been identified in some of your palette JSON files. Please review the expected format at \"https://github.com/glasnonck/WalkmeshVisualizer?tab=readme-ov-file#palettes\"";
         private const string RELATIVE_PALETTE_DIRECTORY = "Resources\\Palettes";
 
@@ -68,6 +68,9 @@ namespace WalkmeshVisualizerWpf.Models
                 // Remove invalid palettes.
                 foreach (var invalidPalette in invalidPalettes)
                     Palettes.Remove(invalidPalette);
+
+                // Sort palettes by display name.
+                Palettes = new ObservableCollection<Palette>(Palettes.OrderBy(p => p.Name.ToLower()));
             }
         }
 

@@ -8,8 +8,8 @@
     xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     mc:Ignorable="d"
-    d:Width="400"
-    MaxWidth="394"
+    d:Width="416"
+    MaxWidth="416"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterOwner"
@@ -107,11 +107,13 @@
             VerticalAlignment="Top"
             Margin="0,-2,0,0" Padding="2,0,3,0"
             Click="OpenPalettesFolder_Click"
+            ToolTip="Open palette directory"
             >
             <Image Height="18" Width="18" Source="/Resources/Icons/FolderIcon.png" />
         </Button>
 
-        <uc:PaletteSelectUserControl Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
+        <!-- MaxHeight = 8 lines * 18 px/line = 144 px -->
+        <uc:PaletteSelectUserControl MaxHeight="144" Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
         
         <!-- Show Errors -->
         <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Left" Margin="0,10,0,0"

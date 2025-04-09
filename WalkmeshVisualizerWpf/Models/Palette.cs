@@ -40,7 +40,7 @@ namespace WalkmeshVisualizerWpf.Models
         public void WriteToFile(string filename = null)
         {
             if (string.IsNullOrWhiteSpace(filename)) filename = FileName;
-            if (string.IsNullOrWhiteSpace(filename)) filename = Name + ".json";
+            if (string.IsNullOrWhiteSpace(filename)) filename = FileName = Name + ".json";
 
             var path = Path.Combine(
                 PaletteManager.PALETTE_DIRECTORY,

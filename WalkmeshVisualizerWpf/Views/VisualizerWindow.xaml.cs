@@ -120,7 +120,8 @@ namespace WalkmeshVisualizerWpf.Views
             prevRightPanelSize = settings.PrevRightPanelSize;
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
-            SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == settings.SelectedPaletteName);
+            SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
+            if (SelectedPalette == null) SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == PaletteManager.DEFAULT_PALETTE_NAME);
             if (SelectedPalette == null) SelectedPalette = PaletteManager.Instance.Palettes.First();
             SelectedPalette.IsSelected = true;
 
@@ -3646,7 +3647,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.PrevRightPanelSize = ShowWalkmeshPanel
                 ?  columnRightPanel.ActualWidth
                 : prevRightPanelSize;
-            settings.SelectedPaletteName = SelectedPalette.Name;
+            settings.SelectedPaletteName = SelectedPalette.FileName;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
             settings.ShowRimDataDoors = ShowRimDataDoors;
             settings.ShowRimDataTriggers = ShowRimDataTriggers;
