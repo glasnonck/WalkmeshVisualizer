@@ -127,3 +127,42 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
     </td>
   </tr>
 </table>
+
+## Palettes
+Walkmeshes can be displayed in a variety of color palettes. These palette files are stored locally in the directory "./Resources/Palettes/". The expected JSON file format is described below with an example. If you want to create a custom palette, duplicate and modify an existing palette file. The visualizer needs to be refreshed before any new palettes can be recognized.
+
+- Name: This is the display name for the Palette or the Color, depending on where it is placed.
+- Colors: This is a required property that defines the collection of Colors in the Palette.
+- ColorText: This is the hex code of the desired color. The expected format is #AARRGGBB or #RRGGBB. The '#' character is required.
+
+```
+{
+  "Name": "Bright",
+  "Colors": [
+    {
+      "ColorText": "#FF0000FF",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#FF00FF00",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FFFF0000",
+      "Name": "Red"
+    },
+    {
+      "ColorText": "#FF00FFFF",
+      "Name": "Cyan"
+    },
+    {
+      "ColorText": "#FFFF00FF",
+      "Name": "Magenta"
+    },
+    {
+      "ColorText": "#FFFFFF00",
+      "Name": "Yellow"
+    }
+  ]
+}
+```

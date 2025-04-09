@@ -106,5 +106,8 @@ namespace WalkmeshVisualizerWpf.Views
             DialogResult = _initialPalette != PaletteManager.GetSelectedPalette()
                 || _initialBackground != SelectedBackground;
         }
+
+        private void OpenPalettesFolder_Click(object sender, RoutedEventArgs e)
+            => PaletteManager.ShowPalettesDirectory();
     }
 }

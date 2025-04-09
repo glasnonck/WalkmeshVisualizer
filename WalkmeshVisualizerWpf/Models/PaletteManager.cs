@@ -12,7 +12,8 @@ namespace WalkmeshVisualizerWpf.Models
     public class PaletteManager
     {
         private const string DEFAULT_PALETTE_STRING = "{\"Name\":\"Bright\",\"Colors\":[{\"ColorText\":\"#FF0000FF\",\"Name\":\"Blue\"},{\"ColorText\":\"#FF00FF00\",\"Name\":\"Green\"},{\"ColorText\":\"#FFFF0000\",\"Name\":\"Red\"},{\"ColorText\":\"#FF00FFFF\",\"Name\":\"Cyan\"},{\"ColorText\":\"#FFFF00FF\",\"Name\":\"Magenta\"},{\"ColorText\":\"#FFFFFF00\",\"Name\":\"Yellow\"}]}";
-        //private const string DEFAULT_PALETTE_NAME = "Bright";
+        private const string DEFAULT_PALETTE_NAME = "Bright";
+        private const string PALETTES_ERROR_MESSAGE = "Errors have been identified in some of your palette JSON files. Please review the expected format at \"https://github.com/glasnonck/WalkmeshVisualizer?tab=readme-ov-file#palettes\"";
         private const string RELATIVE_PALETTE_DIRECTORY = "Resources\\Palettes";
 
         public static string PALETTE_DIRECTORY => Path.Combine(Environment.CurrentDirectory, RELATIVE_PALETTE_DIRECTORY);
@@ -49,7 +50,7 @@ namespace WalkmeshVisualizerWpf.Models
             {
                 foreach (var fi in di.GetFiles("*.json", SearchOption.TopDirectoryOnly))
                 {
-                    var pal = Palette.ReadJsonFromFile(fi.FullName);
+                    var pal = Palette.DeserializeJsonFromFile(fi.FullName);
                     // Invalid files return null -- ignore them.
                     if (pal != null) Palettes.Add(pal);
                 }
@@ -59,8 +60,9 @@ namespace WalkmeshVisualizerWpf.Models
                 if (invalidPalettes.Any())
                 {
                     ErrorsFound = true;
-                    ErrorMessages = string.Join(Environment.NewLine + Environment.NewLine,  // separate files with two lines for readability
-                        invalidPalettes.Select(p => string.Join(Environment.NewLine, p.Errors)));
+                    var messages = new List<string> { PALETTES_ERROR_MESSAGE };
+                    messages.AddRange(invalidPalettes.Select(p => string.Join(Environment.NewLine, p.Errors)));
+                    ErrorMessages = string.Join(Environment.NewLine + Environment.NewLine, messages);   // separate files with two lines for readability
                 }
 
                 // Remove invalid palettes.
@@ -73,7 +75,7 @@ namespace WalkmeshVisualizerWpf.Models
         {
             var di = new DirectoryInfo(PALETTE_DIRECTORY);
             if (!di.Exists) di.Create();
-            var defaultPalette = Palette.DeserializeJson(DEFAULT_PALETTE_STRING);
+            var defaultPalette = Palette.DeserializeJsonString(DEFAULT_PALETTE_STRING);
             defaultPalette.IsSelected = true;
             defaultPalette.WriteToFile();
             _instance.Palettes.Add(defaultPalette);

@@ -31,6 +31,11 @@ namespace WalkmeshVisualizerWpf.Models
 
         public override string ToString() => $"\"{Name}\": {Colors.Count} color(s)";
 
+        public Dictionary<Brush, string> ToDictionary()
+        {
+            return Colors.ToDictionary(c => c.Color, c => c.Name);
+        }
+
         #region Serialization
         public void WriteToFile(string filename = null)
         {
@@ -46,72 +51,70 @@ namespace WalkmeshVisualizerWpf.Models
             File.WriteAllText(path, text);
         }
 
-        public static Palette ReadJsonFromFile(string path)
+        public static Palette DeserializeJsonFromFile(string path)
         {
-            var palette = DeserializeJson(path);
-            if (palette == null) return null;
+            var filename = Path.GetFileName(path);
+            Palette palette;
 
-            palette.FileName = Path.GetFileName(path);
+            // Attempt deserialization.
+            try { palette = DeserializeJsonString(File.ReadAllText(path)); }
+            catch (Exception e)
+            {
+                // If deserialization failed, create blank palette with error message.
+                palette = new Palette
+                {
+                    FileName = filename,
+                    IsInvalid = true,
+                    Errors = new List<string> {
+                        $"{filename}: File is not in valid JSON format. {e.Message}"
+                    }
+                };
+                return palette;
+            }
+
+            if (palette == null) return null;   // Ignore any additional errors.
+            palette.FileName = filename;        // Set palette filename.
+
+            // Check for a valid palette name.
+            if (string.IsNullOrWhiteSpace(palette.Name))
+            {
+                palette.IsInvalid = true;
+                palette.Errors.Insert(0, $"{filename}: File is missing the \"Name\" element.");
+            }
 
             // Check for a valid number of colors.
             if (palette.Colors.Count == 0)
             {
                 palette.IsInvalid = true;
-                palette.Errors.Insert(0, $"{palette.FileName}: File has no defined colors.");
+                palette.Errors.Insert(0, $"{filename}: File has no defined colors.");
             }
-            // Check for a valid palette name.
-            if (string.IsNullOrWhiteSpace(palette.Name))
+
+            // Check for valid colors.
+            for (int i = 0; i < palette.Colors.Count; i++)
             {
-                palette.IsInvalid = true;
-                palette.Errors.Insert(0, $"{palette.FileName}: File is missing the \"Name\" element.");
+                // Color must have a "Name"
+                if (string.IsNullOrWhiteSpace(palette.Colors[i].Name))
+                {
+                    palette.IsInvalid = true;
+                    palette.Errors.Add($"{filename}: Color #{i+1} is missing a valid \"Name\" element.");
+                }
+
+                // Color must have a "Color"
+                if (palette.Colors[i].Color == null)
+                {
+                    palette.IsInvalid = true;
+                    palette.Errors.Add($"{filename}: Color #{i+1} is missing a valid \"Color\" element.");
+                }
             }
 
             return palette;
         }
 
-        public static Palette DeserializeJson(string path)
-        {
-            var filename = Path.GetFileName(path);
-            var toDeserialize = File.ReadAllText(path);
-            try
-            {
-                var pal = JsonConvert.DeserializeObject<Palette>(toDeserialize);
-                if (pal == null) return null;
-
-                // Check for valid colors.
-                for (int i = 0; i < pal.Colors.Count; i++)
-                {
-                    // Color must have a "Name"
-                    if (string.IsNullOrWhiteSpace(pal.Colors[i].Name))
-                    {
-                        pal.IsInvalid = true;
-                        pal.Errors.Add($"{filename}: Color #{i+1} is missing a valid \"Name\" element.");
-                    }
-
-                    // Color must have a "Color"
-                    if (pal.Colors[i].Color == null)
-                    {
-                        pal.IsInvalid = true;
-                        pal.Errors.Add($"{filename}: Color #{i+1} is missing a valid \"Color\" element.");
-                    }
-                }
-
-                return pal;
-            }
-            catch (Exception)
-            {
-                // Ignore exceptions.
-                return null;
-            }
-        }
+        public static Palette DeserializeJsonString(string json)
+            => JsonConvert.DeserializeObject<Palette>(json);
 
         public string SerializeJson()
             => JsonConvert.SerializeObject(this);
-
-        internal Dictionary<Brush, string> ToDictionary()
-        {
-            return Colors.ToDictionary(c => c.Color, c => c.Name);
-        }
         #endregion
     }
 }

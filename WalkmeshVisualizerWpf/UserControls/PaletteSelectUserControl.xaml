@@ -34,14 +34,13 @@
             <Grid d:Background="White">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <RadioButton Style="{StaticResource rbPaletteSelection}" Content="{Binding Name}" IsChecked="{Binding IsSelected}" d:Content="Testing" />
                 <ItemsControl Grid.Column="1" ItemsSource="{Binding Colors}" ItemTemplate="{StaticResource dtPaletteColor}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
+                            <WrapPanel Orientation="Horizontal" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
@@ -49,7 +48,5 @@
         </DataTemplate>
     </UserControl.Resources>
     
-    <Grid d:Background="White">
-        <ItemsControl ItemsSource="{Binding Palettes}" ItemTemplate="{StaticResource dtPalette}" />
-    </Grid>
+    <ItemsControl d:Background="White" ItemsSource="{Binding Palettes}" ItemTemplate="{StaticResource dtPalette}" />
 </UserControl>
