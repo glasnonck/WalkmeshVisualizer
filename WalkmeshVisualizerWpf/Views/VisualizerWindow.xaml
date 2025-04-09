@@ -141,6 +141,11 @@
         <RoutedUICommand x:Key="Commands.HideAllOfRimData" />
 
         <RoutedUICommand x:Key="Commands.RunMouseHoverWorker" />
+        
+        <!--
+        Brushes.
+        -->
+        <SolidColorBrush x:Key="brushRed" Color="Red" />
 
         <!--
         Converters.
@@ -166,6 +171,7 @@
         <help:PointToTextConverter x:Key="PointToTextConverter" />
         <help:IsNonZeroToVisibilityConverter x:Key="IsNonZeroToVisibilityConverter" />
         <help:IsZeroToVisibilityConverter x:Key="IsZeroToVisibilityConverter" />
+        <help:BlackIfTransparentConverter x:Key="BlackIfTransparentConverter" />
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />
@@ -1305,15 +1311,13 @@
                                             <Rectangle.Style>
                                                 <Style TargetType="Rectangle">
                                                     <Style.Triggers>
-                                                        <!--<MultiDataTrigger>
-                                                            <MultiDataTrigger.Conditions>
-                                                                <Condition Binding="{Binding Path=Fill, Converter={StaticResource IsNotTransparentConverter}}" Value="True" />
-                                                                <Condition Property="IsMouseOver" Value="True" />
-                                                            </MultiDataTrigger.Conditions>
-                                                            <Setter Property="Stroke" Value="Red" />
-                                                        </MultiDataTrigger>-->
                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Stroke" Value="Red" />
+                                                            <Setter Property="Stroke"
+                                                                    Value="{Binding MeshColor,
+                                                                        Converter={StaticResource BlackIfTransparentConverter},
+                                                                        ConverterParameter={StaticResource brushRed},
+                                                                        FallbackValue=Black, TargetNullValue=Black}"
+                                                                    />
                                                         </Trigger>
                                                         <Trigger Property="IsMouseOver" Value="False">
                                                             <Setter Property="Stroke" Value="Black" />

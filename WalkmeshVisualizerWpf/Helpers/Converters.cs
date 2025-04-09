@@ -117,6 +117,15 @@ namespace WalkmeshVisualizerWpf.Helpers
         }
     }
 
+    public class BlackIfTransparentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => ((SolidColorBrush)value).Color.A == 0 ? Brushes.Black : parameter;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();     // one way by design
+    }
+
     public class BoolToVisibilityMultiConverter : IMultiValueConverter
     {
         enum Operator { Unknown = 0, And = 1, Or = 2, }
