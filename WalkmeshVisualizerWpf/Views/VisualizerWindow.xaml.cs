@@ -27,7 +27,6 @@ using kmih = KotorMessageInjector.KotorHelpers;
 using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -158,8 +157,14 @@ namespace WalkmeshVisualizerWpf.Views
             SetRimDataTypePanelVisibility(ShowRimDataEncounters, "Encounter");
 
             // Right Panel
-            if (ShowWalkmeshPanel)
-                columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+
+            // Set up RIM data panel filters
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimDoor.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimTrigger.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimTrap.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimZone.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimEncounter.ItemsSource)).Filter = RimDataFilter;
         }
 
         #endregion // END REGION Constructors
@@ -477,6 +482,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         public RimDataSet RimDataSet { get; set; } = new RimDataSet();
+
+        public RimModel RimDataFilter_SelectedItem
+        {
+            get => _rimDataFilter_SelectedItem;
+            set => SetField(ref _rimDataFilter_SelectedItem, value);
+        }
+        private RimModel _rimDataFilter_SelectedItem = null;
 
         private ObservableCollection<RimDataInfo> _rimDoors = new ObservableCollection<RimDataInfo>();
         public ObservableCollection<RimDataInfo> RimDoors
@@ -957,6 +969,13 @@ namespace WalkmeshVisualizerWpf.Views
         private SolidColorBrush gprStrokeRed   = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0xFF });
         private SolidColorBrush gprFillGreen   = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0x22 });
         private SolidColorBrush gprFillRed     = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0x22 });
+
+        public bool DoRimDataFilter
+        {
+            get => _doRimDataFilter;
+            set => SetField(ref _doRimDataFilter, value);
+        }
+        private bool _doRimDataFilter = false;
 
         public bool ShowDoorsOnAddRim
         {
@@ -2449,6 +2468,27 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        /// <summary>
+        /// Filter for RimDataInfo listview containers.
+        /// </summary>
+        /// <param name="item"><see cref="RimDataInfo"/> object</param>
+        /// <returns>Returns true if filter is off, the filter box is empty, or the Module strings match (ignoring case).</returns>
+        private bool RimDataFilter(object item) => !DoRimDataFilter || RimDataFilter_SelectedItem == null
+            || (item as RimDataInfo).Module.Equals(RimDataFilter_SelectedItem.FileName, StringComparison.OrdinalIgnoreCase);
+
+        private void RefreshRimDataFilters()
+        {
+            CollectionViewSource.GetDefaultView(lvRimDoor.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimTrigger.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimTrap.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimZone.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimEncounter.ItemsSource).Refresh();
+        }
+
+        private void RimDataFilter_ToggleChanged(object sender, RoutedEventArgs e) => RefreshRimDataFilters();
+
+        private void RimDataFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshRimDataFilters();
+
         #endregion
 
         #region Add Methods
@@ -2503,25 +2543,11 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Add RIM data collections.
                 var rdiModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
-                var rdiSort = RimDoors.Concat(rdiModule.Doors).ToList();
-                rdiSort.Sort();
-                RimDoors = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimTriggers.Concat(rdiModule.Triggers).ToList();
-                rdiSort.Sort();
-                RimTriggers = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimTraps.Concat(rdiModule.Traps).ToList();
-                rdiSort.Sort();
-                RimTraps = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimZones.Concat(rdiModule.Zones).ToList();
-                rdiSort.Sort();
-                RimZones = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimEncounters.Concat(rdiModule.Encounters).ToList();
-                rdiSort.Sort();
-                RimEncounters = new ObservableCollection<RimDataInfo>(rdiSort);
+                RimDoors.AddRangeAndSort(rdiModule.Doors);
+                RimTriggers.AddRangeAndSort(rdiModule.Triggers);
+                RimTraps.AddRangeAndSort(rdiModule.Traps);
+                RimZones.AddRangeAndSort(rdiModule.Zones);
+                RimEncounters.AddRangeAndSort(rdiModule.Encounters);
 
                 // Start worker to add polygons to the canvas.
                 _ = content.Focus();

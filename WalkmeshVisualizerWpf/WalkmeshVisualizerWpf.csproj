@@ -195,6 +195,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\Icons\OptionsIcon.png" />
     <Resource Include="Resources\Icons\FolderIcon.png" />
     <Resource Include="Resources\Icons\UndoIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLeftClickIcon.png" />

@@ -2,8 +2,10 @@
 using KotOR_IO.GffFile;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using WalkmeshVisualizerWpf.Models;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
@@ -37,6 +39,16 @@ namespace WalkmeshVisualizerWpf.Helpers
         public static IEnumerable<List<Point>> ToPolys(this WOK wok)
         {
             return wok.Faces.Select(f => f.ToPoints());
+        }
+
+        public static void AddRangeAndSort(this ObservableCollection<RimDataInfo> data, List<RimDataInfo> list)
+        {
+            list = list.ToList();
+            list.AddRange(data);
+            list.Sort();
+            data.Clear();
+            foreach (var item in list)
+                data.Add(item);
         }
     }
 }
