@@ -2441,6 +2441,7 @@
                                 To maintain these data bindings, they will be saved in case the canvas is cleared.
                                 If a module is added or removed, both will be hidden using the PointClicked boolean.
                                 -->
+                                <!-- Left Click -->
                                 <Ellipse
                                     x:Name="leftClickEllipse" Fill="Black" Stroke="White"
                                     Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
@@ -2473,6 +2474,7 @@
                                     </Ellipse>
                                 </Grid>
 
+                                <!-- Right Click -->
                                 <Ellipse
                                     x:Name="rightClickEllipse" Fill="White" Stroke="Black"
                                     Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
@@ -2572,8 +2574,8 @@
                                         </Grid.Visibility>
                                         <Ellipse Stroke="Black" Fill="#FA7300" Style="{StaticResource CoordPoint}" />
                                         <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
-                                             Stroke="Black" Fill="#4E6BDF"
-                                             StrokeLineJoin="Round" StrokeThickness=".1">
+                                                 Stroke="Black" Fill="#4E6BDF"
+                                                 StrokeLineJoin="Round" StrokeThickness=".1">
                                             <Polygon.RenderTransform>
                                                 <TransformGroup>
                                                     <RotateTransform Angle="{Binding LiveBearingPC1}" />
@@ -2598,8 +2600,8 @@
                                         </Grid.Visibility>
                                         <Ellipse Stroke="Black" Fill="#FA7300" Style="{StaticResource CoordPoint}" />
                                         <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
-                                             Stroke="Black" Fill="#4E6BDF"
-                                             StrokeLineJoin="Round" StrokeThickness=".1">
+                                                 Stroke="Black" Fill="#4E6BDF"
+                                                 StrokeLineJoin="Round" StrokeThickness=".1">
                                             <Polygon.RenderTransform>
                                                 <TransformGroup>
                                                     <RotateTransform Angle="{Binding LiveBearingPC2}" />
@@ -2611,6 +2613,7 @@
                                     </Grid>
                                 </Grid>
 
+                                <!-- Leader Position -->
                                 <Border x:Name="livePositionCoords"
                                         Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
                                         Canvas.Left="{Binding LivePositionEllipsePoint.X}"
@@ -2624,12 +2627,14 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Temp Segment -->
                                 <Path x:Name="tempSegment" Stroke="Black" Visibility="{Binding TempSegmentVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <Path.Data>
                                         <LineGeometry StartPoint="{Binding TempSegmentStart}" EndPoint="{Binding TempSegmentEnd, Mode=TwoWay}" />
                                     </Path.Data>
                                 </Path>
 
+                                <!-- Color Paths -->
                                 <Grid x:Name="BluePathGrid" Visibility="{Binding BluePathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <Grid.Resources>
                                         <Style TargetType="Line" BasedOn="{StaticResource baseLine}">

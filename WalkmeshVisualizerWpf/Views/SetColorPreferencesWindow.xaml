@@ -8,28 +8,27 @@
     xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     mc:Ignorable="d"
-    d:Width="416"
-    MaxWidth="416"
+    d:Width="500"
+    MaxWidth="422"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterOwner"
     Title="Set Color Preferences"
     d:DataContext="{d:DesignInstance views:SetColorPreferencesWindow, IsDesignTimeCreatable=True}"
     >
-    <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <Window.Resources>
+        <SolidColorBrush x:Key="scbBlue" Color="#4E6BDF" />
+        <SolidColorBrush x:Key="scbTeal" Color="#42BFA4" />
+        <SolidColorBrush x:Key="scbOrange" Color="#FA7300" />
+    </Window.Resources>
+    <Grid Margin="0">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" /> <!-- TabControl -->
+            <RowDefinition Height="Auto" /> <!-- OK / Cancel -->
+            <RowDefinition Height="Auto" /> <!-- Parsing Errors -->
         </Grid.RowDefinitions>
         <Grid.Resources>
-            <Style TargetType="RadioButton">
+            <Style TargetType="RadioButton" x:Key="rbBase">
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style>
@@ -49,94 +48,506 @@
                 <Setter Property="Text" Value="Aa" />
                 <Setter Property="Grid.Column" Value="1" />
             </Style>
-            <Style TargetType="RadioButton" x:Key="rbBackground">
+            <Style TargetType="RadioButton" x:Key="rbBackground" BasedOn="{StaticResource rbBase}">
+                <Setter Property="GroupName" Value="background" />
+            </Style>
+            <Style TargetType="RadioButton" x:Key="rbLiveShape" BasedOn="{StaticResource rbBase}">
+                <Setter Property="Margin" Value="0,1.5" />
+                <Setter Property="GroupName" Value="liveShape" />
+            </Style>
+            <Style TargetType="CheckBox" x:Key="cbLiveShape">
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="Grid.Column" Value="0" />
-                <Setter Property="GroupName" Value="background" />
+                <Setter Property="Margin" Value="0,1.5" />
             </Style>
             <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         </Grid.Resources>
-
-        <!-- Canvas Background -->
-        <TextBlock Padding="5,0,5,10" FontWeight="Bold"
-                   TextAlignment="Center" Text="Canvas Background" />
-        <Grid Grid.Column="0" Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            
-            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="0" Content="White" IsChecked="{Binding IsWhiteBackgroundSelected}" />
-            <Rectangle   Grid.Column="1" Grid.Row="0" Fill="White" />
-            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="0" Foreground="Black" />
         
-            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="1" Content="Light Gray" IsChecked="{Binding IsLightGrayBackgroundSelected}" />
-            <Rectangle   Grid.Column="1" Grid.Row="1" Fill="LightGray" />
-            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="1" Foreground="Black" />
-        
-            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="2" Content="Dark Gray" IsChecked="{Binding IsDarkGrayBackgroundSelected}" />
-            <Rectangle   Grid.Column="1" Grid.Row="2" Fill="DimGray" />
-            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="2" Foreground="White" />
-        
-            <RadioButton Style="{StaticResource rbBackground}" Grid.Row="3" Content="Black" IsChecked="{Binding IsBlackBackgroundSelected}" />
-            <Rectangle   Grid.Column="1" Grid.Row="3" Fill="Black" />
-            <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="3" Foreground="White" />
-        </Grid>
+        <TabControl Grid.Row="0" Margin="5">
+            <TabItem Header="Canvas">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />   <!-- Background -->
+                        <ColumnDefinition Width="Auto" />   <!-- Separator -->
+                        <ColumnDefinition Width="*" />      <!-- Palette -->
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />     <!-- Header -->
+                        <RowDefinition Height="Auto" />     <!-- Options -->
+                    </Grid.RowDefinitions>
 
-        <Border Grid.Column="1" Grid.RowSpan="2" Margin="5,0" BorderBrush="Black" BorderThickness="1,0,0,0"  />
+                    <!-- Canvas Background -->
+                    <TextBlock Padding="5,0" Margin="5" FontWeight="Bold"
+                               TextAlignment="Center" Text="Canvas Background" />
+                    <Grid Grid.Column="0" Grid.Row="1" Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-        <!-- Color Palette -->
-        <TextBlock
-            Grid.Column="2" Grid.Row="0"
-            Padding="5,0,5,10"
-            TextAlignment="Center"
-            FontWeight="Bold"
-            Text="Color Palette" />
-        <Button
-            Grid.Column="2" Grid.Row="0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="0,-2,0,0" Padding="2,0,3,0"
-            Click="OpenPalettesFolder_Click"
-            ToolTip="Open palette directory"
-            >
-            <Image Height="18" Width="18" Source="/Resources/Icons/FolderIcon.png" />
-        </Button>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-        <!-- MaxHeight = 8 lines * 18 px/line = 144 px -->
-        <uc:PaletteSelectUserControl MaxHeight="144" Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
-        
+                        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="0" Content="White" IsChecked="{Binding IsWhiteBackgroundSelected}" />
+                        <Rectangle   Grid.Column="1" Grid.Row="0" Fill="White" />
+                        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="0" Foreground="Black" />
+
+                        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="1" Content="Light Gray" IsChecked="{Binding IsLightGrayBackgroundSelected}" />
+                        <Rectangle   Grid.Column="1" Grid.Row="1" Fill="LightGray" />
+                        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="1" Foreground="Black" />
+
+                        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="2" Content="Dark Gray" IsChecked="{Binding IsDarkGrayBackgroundSelected}" />
+                        <Rectangle   Grid.Column="1" Grid.Row="2" Fill="DimGray" />
+                        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="2" Foreground="White" />
+
+                        <RadioButton Style="{StaticResource rbBackground}" Grid.Row="3" Content="Black" IsChecked="{Binding IsBlackBackgroundSelected}" />
+                        <Rectangle   Grid.Column="1" Grid.Row="3" Fill="Black" />
+                        <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="3" Foreground="White" />
+                    </Grid>
+
+                    <!-- Vertical Separator -->
+                    <Border Grid.Column="1" Grid.RowSpan="2" Margin="0,2,0,5" BorderBrush="Black" BorderThickness="1,0,0,0"  />
+
+                    <!-- Color Palette and Directory Button -->
+                    <TextBlock
+                        Grid.Column="2" Grid.Row="0"
+                        Padding="5,0,5,0" Margin="5"
+                        TextAlignment="Center"
+                        FontWeight="Bold"
+                        Text="Color Palette" />
+                    <Button
+                        Grid.Column="2" Grid.Row="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Margin="0,0,5,0" Padding="2,0,3,0"
+                        Click="OpenPalettesFolder_Click"
+                        ToolTip="Open palette directory"
+                        >
+                        <Image Height="18" Width="18" Source="/Resources/Icons/FolderIcon.png" />
+                    </Button>
+
+                    <!-- MaxHeight = 8 lines * 18 px/line = 144 px -->
+                    <uc:PaletteSelectUserControl MaxHeight="144" Margin="5" Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Live Position">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />   <!-- Color -->
+                        <ColumnDefinition Width="Auto" />   <!-- Separator -->
+                        <ColumnDefinition Width="Auto" />   <!-- Shape -->
+                        <ColumnDefinition Width="*" />      <!-- Excess Space -->
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />     <!-- Heading -->
+                        <RowDefinition Height="Auto" />     <!-- Options -->
+                        <RowDefinition Height="Auto" />     <!-- Preview Heading -->
+                        <RowDefinition Height="Auto" />     <!-- Preview -->
+                    </Grid.RowDefinitions>
+
+                    <!--
+                    Live Position Color
+                    -->
+                    <TextBlock Padding="5,0" Margin="5" FontWeight="Bold" TextAlignment="Center" Text="Color" />
+                    <ScrollViewer Grid.Column="0" Grid.Row="1" Margin="5,0,5,5" MaxHeight="144">
+                        <Grid Margin="0,0,5,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.Resources>
+                                <Style TargetType="RadioButton" x:Key="liveColorLeader" BasedOn="{StaticResource rbBase}">
+                                    <Setter Property="GroupName" Value="liveColorLeader" />
+                                    <Setter Property="Margin" Value="0,0,5,0" />
+                                    <Setter Property="Grid.Column" Value="1" />
+                                    <Setter Property="Content" Value="L" />
+                                    <Setter Property="ToolTip" Value="Leader color" />
+                                </Style>
+                                <Style TargetType="RadioButton" x:Key="rbLiveColorFollower1" BasedOn="{StaticResource rbBase}">
+                                    <Setter Property="GroupName" Value="liveColorFollower1" />
+                                    <Setter Property="Margin" Value="0,0,5,0" />
+                                    <Setter Property="Grid.Column" Value="2" />
+                                    <Setter Property="Content" Value="F1" />
+                                    <Setter Property="ToolTip" Value="Follower 1 color" />
+                                </Style>
+                                <Style TargetType="RadioButton" x:Key="rbLiveColorFollower2" BasedOn="{StaticResource rbBase}">
+                                    <Setter Property="GroupName" Value="liveColorFollower2" />
+                                    <Setter Property="Margin" Value="0,0,5,0" />
+                                    <Setter Property="Grid.Column" Value="3" />
+                                    <Setter Property="Content" Value="F2" />
+                                    <Setter Property="ToolTip" Value="Follower 2 color" />
+                                </Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Orientation" Value="Horizontal" />
+                                    <Setter Property="Grid.Column" Value="4" />
+                                </Style>
+                            </Grid.Resources>
+
+                            <!--<TextBlock Grid.Column="1" Grid.Row="0" TextAlignment="Center" FontStyle="Italic" Text="Leader" />
+                            <TextBlock Grid.Column="3" Grid.Row="0" TextAlignment="Center" FontStyle="Italic" Text="Follower" />-->
+
+                            <TextBlock   Grid.Row="1" Text="K1 Leader" />
+                            <RadioButton Grid.Row="1" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="1" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="1" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="1">
+                                <Rectangle Fill="{StaticResource scbBlue}" />
+                                <Rectangle Fill="{StaticResource scbTeal}" />
+                                <Rectangle Fill="{StaticResource scbBlue}" />
+                            </StackPanel>
+                        
+                            <TextBlock   Grid.Row="2" Text="K1 Follower" />
+                            <RadioButton Grid.Row="2" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="2" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="2" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="2">
+                                <Rectangle Fill="{StaticResource scbOrange}" />
+                                <Rectangle Fill="{StaticResource scbBlue}" />
+                                <Rectangle Fill="{StaticResource scbOrange}" />
+                            </StackPanel>
+
+                            <TextBlock   Grid.Row="3" Text="K2 Leader" />
+                            <RadioButton Grid.Row="3" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="3" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="3" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="3">
+                                <Rectangle Fill="{StaticResource scbTeal}" />
+                                <Rectangle Fill="{StaticResource scbBlue}" />
+                                <Rectangle Fill="{StaticResource scbTeal}" />
+                            </StackPanel>
+
+                            <TextBlock   Grid.Row="4" Text="K2 Follower" />
+                            <RadioButton Grid.Row="4" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="4" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="4" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="4">
+                                <Rectangle Fill="{StaticResource scbOrange}" />
+                                <Rectangle Fill="{StaticResource scbTeal}" />
+                                <Rectangle Fill="{StaticResource scbOrange}" />
+                            </StackPanel>
+
+                            <TextBlock   Grid.Row="5" Text="Mono A" />
+                            <RadioButton Grid.Row="5" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="5" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="5" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="5">
+                                <Rectangle Fill="Black" />
+                                <Rectangle Fill="White" />
+                                <Rectangle Fill="Black" />
+                            </StackPanel>
+                        
+                            <TextBlock   Grid.Row="6" Text="Mono B" />
+                            <RadioButton Grid.Row="6" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="6" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="6" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="6">
+                                <Rectangle Fill="White" />
+                                <Rectangle Fill="Black" />
+                                <Rectangle Fill="White" />
+                            </StackPanel>
+
+                            <TextBlock   Grid.Row="7" Text="High-Vis A" />
+                            <RadioButton Grid.Row="7" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="7" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="7" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="7">
+                                <Rectangle Fill="Black" />
+                                <Rectangle Fill="Red" />
+                                <Rectangle Fill="Yellow" />
+                            </StackPanel>
+
+                            <TextBlock   Grid.Row="8" Text="High-Vis B" />
+                            <RadioButton Grid.Row="8" Style="{StaticResource liveColorLeader}" />
+                            <RadioButton Grid.Row="8" Style="{StaticResource rbLiveColorFollower1}" />
+                            <RadioButton Grid.Row="8" Style="{StaticResource rbLiveColorFollower2}" />
+                            <StackPanel  Grid.Row="8">
+                                <Rectangle Fill="Yellow" />
+                                <Rectangle Fill="Red" />
+                                <Rectangle Fill="Black" />
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                    
+                    <!--
+                    Vertical Separator
+                    -->
+                    <Border Grid.Column="1" Grid.RowSpan="2" Margin="0,2,0,5" BorderBrush="Black" BorderThickness="1,0,0,0"  />
+
+                    <!--
+                    Live Position Shape
+                    -->
+                    <TextBlock Grid.Column="2" Margin="5" FontWeight="Bold" TextAlignment="Center" Text="Shape" />
+                    <Grid Grid.Column="2" Grid.Row="1" Margin="5,0,5,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.Resources>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Stroke" Value="Black" />
+                                <Setter Property="StrokeThickness" Value=".5" />
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="Polygon">
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                <Setter Property="VerticalAlignment" Value="Top" />
+                                <Setter Property="Stroke" Value="Black" />
+                                <Setter Property="StrokeLineJoin" Value="Round" />
+                                <Setter Property="StrokeThickness" Value=".5" />
+                            </Style>
+                        </Grid.Resources>
+
+                        <!-- Base Layer Text -->
+                        <TextBlock Grid.ColumnSpan="4" Grid.Row="0" Text="Base Layer" HorizontalAlignment="Center" FontStyle="Italic" TextDecorations="Underline" />
+                        <RadioButton Style="{StaticResource rbLiveShape}" Grid.Row="1" Content="None" />
+
+                        <!-- Circle -->
+                        <RadioButton Style="{StaticResource rbLiveShape}" Grid.Row="2" Content="Circle" />
+                        <Grid Grid.Column="1" Grid.Row="2" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Ellipse Fill="#4E6BDF" Width="15" Height="15" />
+                        </Grid>
+                        <Grid Grid.Column="2" Grid.Row="2" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Ellipse Fill="#FA7300" Width="15" Height="15" />
+                        </Grid>
+
+                        <!-- Octagon -->
+                        <RadioButton Style="{StaticResource rbLiveShape}" Grid.Row="3" Content="Octagon" />
+                        <Grid Grid.Column="1" Grid.Row="3" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Polygon Stroke="Black" Fill="#4E6BDF" StrokeThickness=".6"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338
+                                             15,10.60662 10.60662,15 4.39338,15 0,10.60662">
+                                <Polygon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                        <TranslateTransform X="2" Y="2" />
+                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+                                    </TransformGroup>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+                        </Grid>
+                        <Grid Grid.Column="2" Grid.Row="3" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Polygon Stroke="Black" Fill="#FA7300" StrokeThickness=".6"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338
+                                             15,10.60662 10.60662,15 4.39338,15 0,10.60662">
+                                <Polygon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                        <TranslateTransform X="2" Y="2" />
+                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+                                    </TransformGroup>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+                        </Grid>
+
+                        <!-- Extra Layers Text -->
+                        <TextBlock Grid.ColumnSpan="4" Grid.Row="4" Text="Extra Layers" HorizontalAlignment="Center" FontStyle="Italic" TextDecorations="Underline" />
+
+                        <!-- Chevron -->
+                        <CheckBox Style="{StaticResource cbLiveShape}" Grid.Row="5" Content="Chevron" />
+                        <Grid Grid.Column="1" Grid.Row="5" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Polygon Grid.Column="1" Grid.Row="0" Fill="#42BFA4" Points="7.5,7.5 15,11.25 7.5,0 0,11.25"/>
+                        </Grid>
+                        <Grid Grid.Column="2" Grid.Row="5" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Polygon Grid.Column="1" Grid.Row="0" Fill="#4E6BDF" Points="7.5,7.5 15,11.25 7.5,0 0,11.25"/>
+                        </Grid>
+
+                        <!-- Point -->
+                        <CheckBox Style="{StaticResource cbLiveShape}" Grid.Row="6" Content="Point" />
+                        <Grid Grid.Column="1" Grid.Row="6" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Ellipse Fill="#4E6BDF" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" StrokeThickness=".2" />
+                        </Grid>
+                        <Grid Grid.Column="2" Grid.Row="6" Height="16" Width="20" HorizontalAlignment="Left">
+                            <Ellipse Fill="#FA7300" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" StrokeThickness=".2" />
+                        </Grid>
+
+                        <!--<Polygon Stroke="Black" Fill="#4E6BDF" StrokeThickness=".4"
+                                     VerticalAlignment="Center" HorizontalAlignment="Center"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338
+                                             15,10.60662 10.60662,15 4.39338,15 0,10.60662">
+                            <Polygon.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                    <TranslateTransform X="2" Y="2" />
+                                    <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+                                </TransformGroup>
+                            </Polygon.RenderTransform>
+                        </Polygon>
+                        <Ellipse Fill="#42BFA4" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Polygon Stroke="Black" Fill="#FA7300" StrokeThickness=".4"
+                                     VerticalAlignment="Center" HorizontalAlignment="Center"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338
+                                             15,10.60662 10.60662,15 4.39338,15 0,10.60662">
+                            <Polygon.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                    <TranslateTransform X="2" Y="2" />
+                                    <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+                                </TransformGroup>
+                            </Polygon.RenderTransform>
+                        </Polygon>
+                        <Ellipse Fill="#4E6BDF" Width="2" Height="2" HorizontalAlignment="Center" VerticalAlignment="Center" />-->
+                    </Grid>
+
+                    <!--
+                    Vertical Separator
+                    --><!--
+                    <Border Grid.Column="3" Grid.RowSpan="2" Margin="0,2,0,5" BorderBrush="Black" BorderThickness="1,0,0,0"  />-->
+                    
+                    <!--
+                    Live Position Preview
+                    -->
+                    <TextBlock Grid.ColumnSpan="3" Grid.Row="2" Margin="5" FontWeight="Bold" TextAlignment="Center" Text="Preview" />
+                    <Grid Grid.ColumnSpan="3" Grid.Row="3" Margin="5,0,5,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Resources>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Width" Value="64" />
+                                <Setter Property="Height" Value="64" />
+                                <Setter Property="Stroke" Value="Black" />
+                                <Setter Property="StrokeThickness" Value="1" />
+                            </Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextAlignment" Value="Center" />
+                                <Setter Property="FontStyle" Value="Italic" />
+                                <Setter Property="TextDecorations" Value="Underline" />
+                            </Style>
+                            <Style TargetType="Polygon">
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                <Setter Property="VerticalAlignment" Value="Top" />
+                                <Setter Property="Stroke" Value="Black" />
+                                <Setter Property="StrokeLineJoin" Value="Round" />
+                            </Style>
+                        </Grid.Resources>
+                        
+                        <!-- Leader Preview -->
+                        <TextBlock Grid.Column="1" Grid.Row="0" Text="Leader" />
+                        <Grid Grid.Column="1" Grid.Row="1" Margin="5,0">
+                            <Ellipse Fill="{StaticResource scbBlue}" />
+                            <Polygon Stroke="Black" Fill="{StaticResource scbBlue}" StrokeThickness=".25" HorizontalAlignment="Left"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338 15,10.60662 10.60662,15 4.39338,15 0,10.60662"
+                                     Visibility="Collapsed">
+                                <Polygon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                        <TranslateTransform X="0.5" Y="0.5" />
+                                        <ScaleTransform ScaleX="4" ScaleY="4" />
+                                    </TransformGroup>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+                            <Polygon Fill="{StaticResource scbTeal}" Points="30,32 60,45 30,0 0,45" StrokeThickness="1" />
+                            <Ellipse Fill="{StaticResource scbBlue}" Width="4" Height="4" StrokeThickness=".5" />
+                        </Grid>
+                        
+                        <!-- Follower 1 Preview -->
+                        <TextBlock Grid.Column="2" Grid.Row="0" Text="Follower 1" />
+                        <Grid Grid.Column="2" Grid.Row="1" Margin="5,0">
+                            <Ellipse Fill="{StaticResource scbOrange}" />
+                            <Polygon Stroke="Black" Fill="{StaticResource scbOrange}" StrokeThickness=".25" HorizontalAlignment="Left"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338 15,10.60662 10.60662,15 4.39338,15 0,10.60662"
+                                     Visibility="Collapsed">
+                                <Polygon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                        <TranslateTransform X="0.5" Y="0.5" />
+                                        <ScaleTransform ScaleX="4" ScaleY="4" />
+                                    </TransformGroup>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+                            <Polygon Fill="{StaticResource scbBlue}" Points="30,32 60,45 30,0 0,45" StrokeThickness="1" />
+                            <Ellipse Fill="{StaticResource scbOrange}" Width="4" Height="4" StrokeThickness=".5" />
+                        </Grid>
+                        
+                        <!-- Follower 2 Preview -->
+                        <TextBlock Grid.Column="3" Grid.Row="0" Text="Follower 2" />
+                        <Grid Grid.Column="3" Grid.Row="1" Margin="5,0">
+                            <Ellipse Fill="{StaticResource scbOrange}" />
+                            <Polygon Stroke="Black" Fill="{StaticResource scbOrange}" StrokeThickness=".25" HorizontalAlignment="Left"
+                                     Points="0,4.39338 4.39338,0 10.60662,0 15,4.39338 15,10.60662 10.60662,15 4.39338,15 0,10.60662"
+                                     Visibility="Collapsed">
+                                <Polygon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="22.5" CenterX="7.5" CenterY="7.5" />
+                                        <TranslateTransform X="0.5" Y="0.5" />
+                                        <ScaleTransform ScaleX="4" ScaleY="4" />
+                                    </TransformGroup>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+                            <Polygon Fill="{StaticResource scbBlue}" Points="30,32 60,45 30,0 0,45" StrokeThickness="1" />
+                            <Ellipse Fill="{StaticResource scbOrange}" Width="4" Height="4" StrokeThickness=".5" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
         <!-- Show Errors -->
-        <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Left" Margin="0,10,0,0"
-                    Visibility="{Binding PM.ErrorsFound, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+        <StackPanel Grid.ColumnSpan="3" Grid.Row="1" HorizontalAlignment="Left" Margin="5"
+                                Visibility="{Binding PM.ErrorsFound, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
             <Expander Header="Show Parsing Errors" IsExpanded="{Binding IsErrorPanelExpanded}" />
         </StackPanel>
-        
-        <!-- Select / Cancel -->
-        <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Right" Margin="0,10,0,0">
+
+        <!-- Ok / Cancel -->
+        <StackPanel Grid.ColumnSpan="3" Grid.Row="1" HorizontalAlignment="Right" Margin="5">
             <StackPanel.Resources>
                 <Style TargetType="Button">
                     <Setter Property="Width" Value="60" />
                 </Style>
             </StackPanel.Resources>
-            <Button Content="Select" IsDefault="True" Click="SelectButton_Click" Margin="0,0,10,0" />
+            <Button Content="OK" IsDefault="True" Click="OkButton_Click" Margin="0,0,10,0" />
             <Button Content="Cancel" IsCancel="True" />
         </StackPanel>
 
-        <Border Name="bErrors" Grid.ColumnSpan="3" Grid.Row="3" Padding="0" Margin="0,10,0,0" BorderBrush="Black" BorderThickness="1" CornerRadius="2"
-                Visibility="{Binding IsErrorPanelExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+        <!-- Palette Parsing Errors -->
+        <Border Name="bErrors" Grid.ColumnSpan="3" Grid.Row="3" Padding="0" Margin="5" BorderBrush="Black" BorderThickness="1" CornerRadius="2"
+                            Visibility="{Binding IsErrorPanelExpanded, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}">
             <TextBox IsReadOnly="True" TextWrapping="Wrap" MinLines="8" MaxLines="8" BorderThickness="0" Padding="2"
-                     HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                     Text="{Binding PM.ErrorMessages, Mode=OneWay, FallbackValue=Testing}" />
+                                 HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                 Text="{Binding PM.ErrorMessages, Mode=OneWay, FallbackValue=Testing}" />
         </Border>
     </Grid>
 </Window>
