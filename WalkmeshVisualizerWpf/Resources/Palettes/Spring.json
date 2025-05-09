@@ -1,0 +1,25 @@
+{
+  "Name": "Spring",
+  "Colors": [
+    {
+      "ColorText": "#FF76BA71",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FFEDE687",
+      "Name": "Yellow"
+    },
+    {
+      "ColorText": "#FFF7B05E",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#FFE67A73",
+      "Name": "Red"
+    },
+    {
+      "ColorText": "#FF99408A",
+      "Name": "Violet"
+    }
+  ]
+}

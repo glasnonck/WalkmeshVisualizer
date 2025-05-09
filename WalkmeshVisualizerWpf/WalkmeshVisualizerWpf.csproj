@@ -69,6 +69,10 @@
     </ApplicationDefinition>
     <Compile Include="Helpers\ExtensionMethods.cs" />
     <Compile Include="Helpers\KotorAddresses.cs" />
+    <Compile Include="Helpers\Validators.cs" />
+    <Compile Include="Models\Palette.cs" />
+    <Compile Include="Models\PaletteColor.cs" />
+    <Compile Include="Models\PaletteManager.cs" />
     <Compile Include="Models\RimDataSet.cs" />
     <Compile Include="Models\GameData.cs" />
     <Compile Include="Models\GeneralLineEquation.cs" />
@@ -76,6 +80,9 @@
     <Compile Include="Models\XmlGameData.cs" />
     <Compile Include="Models\ModuleWalkmesh.cs" />
     <Compile Include="Models\RimModel.cs" />
+    <Compile Include="UserControls\PaletteSelectUserControl.xaml.cs">
+      <DependentUpon>PaletteSelectUserControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CoordinateInputDialog.xaml.cs">
       <DependentUpon>CoordinateInputDialog.xaml</DependentUpon>
     </Compile>
@@ -93,6 +100,10 @@
     <Compile Include="Views\VisualizerWindow.xaml.cs">
       <DependentUpon>VisualizerWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="UserControls\PaletteSelectUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CoordinateInputDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -149,42 +160,71 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="packages.config" />
+    <None Include="Resources\Palettes\Baby.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\Bright.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\ElectroPunk.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\ExtraBright.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\Muted.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\Pastel.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\Rainbow.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\Palettes\Spring.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Resources\Palettes\TreeLights.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\UndoIcon.png" />
-    <Resource Include="Resources\GatherPartyRangeLeftClickIcon.png" />
-    <Resource Include="Resources\GatherPartyRangeLockIcon.png" />
-    <Resource Include="Resources\GatherPartyRangeIcon.png" />
-    <Resource Include="Resources\MouseHoverIcon.png" />
-    <Resource Include="Resources\HotswapIcon.png" />
-    <Resource Include="Resources\ViewFollowsLivePositionIcon.png" />
-    <Resource Include="Resources\HidePreviousModuleIcon.png" />
-    <Resource Include="Resources\ShowCurrentModuleIcon.png" />
-    <Resource Include="Resources\LivePositionIcon.png" />
-    <Resource Include="Resources\DefaultSpawnPointIcon.png" />
-    <Resource Include="Resources\DisplacedLoadingZoneIcon.png" />
-    <Content Include="Resources\DlzData.txt">
+    <Resource Include="Resources\Icons\OptionsIcon.png" />
+    <Resource Include="Resources\Icons\FolderIcon.png" />
+    <Resource Include="Resources\Icons\UndoIcon.png" />
+    <Resource Include="Resources\Icons\GatherPartyRangeLeftClickIcon.png" />
+    <Resource Include="Resources\Icons\GatherPartyRangeLockIcon.png" />
+    <Resource Include="Resources\Icons\GatherPartyRangeIcon.png" />
+    <Resource Include="Resources\Icons\MouseHoverIcon.png" />
+    <Resource Include="Resources\Icons\HotswapIcon.png" />
+    <Resource Include="Resources\Icons\ViewFollowsLivePositionIcon.png" />
+    <Resource Include="Resources\Icons\HidePreviousModuleIcon.png" />
+    <Resource Include="Resources\Icons\ShowCurrentModuleIcon.png" />
+    <Resource Include="Resources\Icons\LivePositionIcon.png" />
+    <Resource Include="Resources\Icons\DefaultSpawnPointIcon.png" />
+    <Resource Include="Resources\Icons\DisplacedLoadingZoneIcon.png" />
+    <Content Include="Resources\Data\DlzData.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Resource Include="Resources\DlzIcon.png" />
-    <Content Include="Resources\GameData.xml">
+    <Resource Include="Resources\Icons\DlzIcon.png" />
+    <Content Include="Resources\Data\GameData.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Resource Include="Resources\GatherPartyRegionIcon.png" />
-    <Resource Include="Resources\NonWalkIcon.png" />
-    <Resource Include="Resources\WalkIcon.png" />
-    <Resource Include="Resources\GatherPartyIcon.png" />
-    <Resource Include="Resources\TransAbortsAlpha.png" />
+    <Resource Include="Resources\Icons\GatherPartyRegionIcon.png" />
+    <Resource Include="Resources\Icons\NonWalkIcon.png" />
+    <Resource Include="Resources\Icons\WalkIcon.png" />
+    <Resource Include="Resources\Icons\GatherPartyIcon.png" />
+    <Resource Include="Resources\Icons\TransAbortsAlpha.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Icon.png" />
+    <Resource Include="Resources\Icons\Icon.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ZoomAndPan\ZoomAndPan.csproj">

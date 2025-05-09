@@ -23,7 +23,7 @@ namespace WalkmeshVisualizerWpf.Models
 
         public static void Initialize()
         {
-            var path = Path.Combine(Environment.CurrentDirectory, @"Resources\GameData.xml");
+            var path = Path.Combine(Environment.CurrentDirectory, @"Resources\Data\GameData.xml");
             if (!File.Exists(path))
             {
                 throw new FileNotFoundException($"XmlGameData parsing error: Unable to find file at {path}.");

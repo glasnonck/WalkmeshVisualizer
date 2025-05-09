@@ -11,7 +11,7 @@
     Height="600"
     Width="800"
     Loaded="MainWindow_Loaded"
-    Icon="/Resources/Icon.png"
+    Icon="/Resources/Icons/Icon.png"
     x:Name="mainWindow"
     >
 

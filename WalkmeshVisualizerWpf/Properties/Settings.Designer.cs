@@ -361,13 +361,13 @@ namespace WalkmeshVisualizerWpf.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public int SelectedBrushTheme {
+        [global::System.Configuration.DefaultSettingValueAttribute("Bright")]
+        public string SelectedPaletteName {
             get {
-                return ((int)(this["SelectedBrushTheme"]));
+                return ((string)(this["SelectedPaletteName"]));
             }
             set {
-                this["SelectedBrushTheme"] = value;
+                this["SelectedPaletteName"] = value;
             }
         }
         

@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using WalkmeshVisualizerWpf.Models;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -23,17 +13,6 @@ namespace WalkmeshVisualizerWpf.Views
         LightGray,
         DarkGray,
         Black,
-    }
-
-    public enum ColorTheme : int
-    {
-        Unknown = 0,
-        Bright = 1,
-        Muted,
-        Rainbow,
-        Spring,
-        Pastel,
-        Baby,
     }
 
     /// <summary>
@@ -60,60 +39,17 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION INotifyPropertyChanged Implementation
 
-        private ColorTheme _initialTheme = ColorTheme.Unknown;
+        public PaletteManager PM => PaletteManager.Instance;
+
+        private Palette _initialPalette = null;
         private BackgroundColor _initialBackground = BackgroundColor.Unknown;
 
-        public ColorTheme SelectedTheme
+        public bool IsErrorPanelExpanded
         {
-            get => _selectedTheme;
-            set
-            {
-                SetField(ref _selectedTheme, value);
-                NotifyPropertyChanged(nameof(IsBrightThemeSelected));
-                NotifyPropertyChanged(nameof(IsMutedThemeSelected));
-                NotifyPropertyChanged(nameof(IsRainbowThemeSelected));
-                NotifyPropertyChanged(nameof(IsSpringThemeSelected));
-                NotifyPropertyChanged(nameof(IsPastelThemeSelected));
-                NotifyPropertyChanged(nameof(IsBabyThemeSelected));
-            }
+            get => _isErrorPanelExpanded;
+            set => SetField(ref _isErrorPanelExpanded, value);
         }
-        private ColorTheme _selectedTheme = ColorTheme.Unknown;
-
-        public bool IsBrightThemeSelected
-        {
-            get => SelectedTheme == ColorTheme.Bright;
-            set => SelectedTheme = ColorTheme.Bright;
-        }
-
-        public bool IsMutedThemeSelected
-        {
-            get => SelectedTheme == ColorTheme.Muted;
-            set => SelectedTheme = ColorTheme.Muted;
-        }
-
-        public bool IsRainbowThemeSelected
-        {
-            get => SelectedTheme == ColorTheme.Rainbow;
-            set => SelectedTheme = ColorTheme.Rainbow;
-        }
-
-        public bool IsSpringThemeSelected
-        {
-            get => SelectedTheme == ColorTheme.Spring;
-            set => SelectedTheme = ColorTheme.Spring;
-        }
-
-        public bool IsPastelThemeSelected
-        {
-            get => SelectedTheme == ColorTheme.Pastel;
-            set => SelectedTheme = ColorTheme.Pastel;
-        }
-
-        public bool IsBabyThemeSelected
-        {
-            get => SelectedTheme == ColorTheme.Baby;
-            set => SelectedTheme = ColorTheme.Baby;
-        }
+        private bool _isErrorPanelExpanded = false;
 
         public BackgroundColor SelectedBackground
         {
@@ -153,12 +89,11 @@ namespace WalkmeshVisualizerWpf.Views
             set => SelectedBackground = BackgroundColor.Black;
         }
 
-        public SetColorPreferencesWindow(ColorTheme initialTheme, BackgroundColor initialBackground)
+        public SetColorPreferencesWindow(Palette initialPalette, BackgroundColor initialBackground)
         {
             InitializeComponent();
 
-            _initialTheme = initialTheme;
-            SelectedTheme = initialTheme;
+            _initialPalette = initialPalette;
 
             _initialBackground = initialBackground;
             SelectedBackground = initialBackground;
@@ -168,8 +103,11 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = _initialTheme != SelectedTheme
+            DialogResult = _initialPalette != PaletteManager.GetSelectedPalette()
                 || _initialBackground != SelectedBackground;
         }
+
+        private void OpenPalettesFolder_Click(object sender, RoutedEventArgs e)
+            => PaletteManager.ShowPalettesDirectory();
     }
 }

@@ -1,0 +1,29 @@
+{
+  "Name": "Muted",
+  "Colors": [
+    {
+      "ColorText": "#FF0000FF",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#FF33CC33",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FFDD1111",
+      "Name": "Red"
+    },
+    {
+      "ColorText": "#FF40E0D0",
+      "Name": "Cyan"
+    },
+    {
+      "ColorText": "#FFFF69B4",
+      "Name": "Pink"
+    },
+    {
+      "ColorText": "#FFFFD700",
+      "Name": "Gold"
+    }
+  ]
+}

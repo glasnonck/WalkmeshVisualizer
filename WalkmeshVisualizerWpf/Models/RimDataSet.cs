@@ -78,7 +78,7 @@ namespace WalkmeshVisualizerWpf.Models
 
         public void LoadDlzDataFile()
         {
-            var dataFilePath = @"Resources\DlzData.txt";
+            var dataFilePath = @"Resources\Data\DlzData.txt";
             using (var r = new StreamReader(dataFilePath))
             {
                 var json = r.ReadToEnd();
@@ -485,7 +485,7 @@ namespace WalkmeshVisualizerWpf.Models
     public class RimDataInfo : INotifyPropertyChanged, IComparable<RimDataInfo>
     {
         public bool AreVisualsBuilt { get; set; } = false;
-        public ColorTheme ColorThemeUsed { get; set; } = ColorTheme.Unknown;
+        public Palette PaletteUsed { get; set; } = null;
 
         public RimDataType RimDataType { get; set; }
         public string Module { get; set; }

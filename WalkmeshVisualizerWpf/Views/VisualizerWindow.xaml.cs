@@ -27,7 +27,6 @@ using kmih = KotorMessageInjector.KotorHelpers;
 using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -118,16 +117,21 @@ namespace WalkmeshVisualizerWpf.Views
             ShowToolsPanel = settings.ShowToolsPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
-            SelectedBrushTheme = (ColorTheme)settings.SelectedBrushTheme;
+
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
+            SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
+            if (SelectedPalette == null) SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == PaletteManager.DEFAULT_PALETTE_NAME);
+            if (SelectedPalette == null) SelectedPalette = PaletteManager.Instance.Palettes.First();
+            SelectedPalette.IsSelected = true;
+
             ShowRimDataDoors = settings.ShowRimDataDoors;
             ShowRimDataTriggers = settings.ShowRimDataTriggers;
             ShowRimDataTraps = settings.ShowRimDataTraps;
             ShowRimDataZones = settings.ShowRimDataZones;
             ShowRimDataEncounters = settings.ShowRimDataEncounters;
 
-            // Brush Theme
-            BrushToName = BrushThemes[SelectedBrushTheme].ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            // Palette
+            BrushToName = PaletteManager.GetSelectedPalette().ToDictionary();
             foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
 
             BrushCycle = new List<Brush>(PolyBrushCount.Keys);
@@ -153,8 +157,14 @@ namespace WalkmeshVisualizerWpf.Views
             SetRimDataTypePanelVisibility(ShowRimDataEncounters, "Encounter");
 
             // Right Panel
-            if (ShowWalkmeshPanel)
-                columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+            if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+
+            // Set up RIM data panel filters
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimDoor.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimTrigger.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimTrap.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimZone.ItemsSource)).Filter = RimDataFilter;
+            ((CollectionView)CollectionViewSource.GetDefaultView(lvRimEncounter.ItemsSource)).Filter = RimDataFilter;
         }
 
         #endregion // END REGION Constructors
@@ -321,76 +331,7 @@ namespace WalkmeshVisualizerWpf.Views
             { BackgroundColor.Black,     Brushes.White },
         };
 
-        private ColorTheme SelectedBrushTheme { get; set; }
-
-        private Dictionary<ColorTheme, Dictionary<Brush, string>> BrushThemes { get; set; } = new Dictionary<ColorTheme, Dictionary<Brush, string>>
-        {
-            {
-                ColorTheme.Bright, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0x00, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0xFF, B = 0xFF, A = 0xFF }), "Cyan" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x00, B = 0xFF, A = 0xFF }), "Magenta" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xFF, B = 0x00, A = 0xFF }), "Yellow" },
-                }
-            },
-            {
-                ColorTheme.Muted, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xFF, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0x33, G = 0xCC, B = 0x33, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xDD, G = 0x11, B = 0x11, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0x40, G = 0xE0, B = 0xD0, A = 0xFF }), "Cyan" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0x69, B = 0xB4, A = 0xFF }), "Pink" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xD7, B = 0x00, A = 0xFF }), "Gold" },
-                }
-            },
-            {
-                ColorTheme.Rainbow, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0xff, G = 0x00, B = 0x00, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0xe2, G = 0x98, B = 0x18, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xff, G = 0xd7, B = 0x00, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0x00, G = 0x00, B = 0xff, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0x4b, G = 0x00, B = 0x82, A = 0xFF }), "Indigo" },
-                    { new SolidColorBrush(new Color { R = 0xee, G = 0x82, B = 0xee, A = 0xFF }), "Violet" },
-                }
-            },
-            {
-                ColorTheme.Spring, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0x76, G = 0xBA, B = 0x71, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xED, G = 0xE6, B = 0x87, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0xF7, G = 0xB0, B = 0x5E, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xE6, G = 0x7A, B = 0x73, A = 0xFF }), "Red" },
-                    { new SolidColorBrush(new Color { R = 0x99, G = 0x40, B = 0x8A, A = 0xFF }), "Violet" },
-                }
-            },
-            {
-                ColorTheme.Pastel, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0xC5, G = 0xA7, B = 0xCD, A = 0xFF }), "Purple" },
-                    { new SolidColorBrush(new Color { R = 0xB7, G = 0xD9, B = 0xE2, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0xDB, G = 0xE9, B = 0xC0, A = 0xFF }), "Green" },
-                    { new SolidColorBrush(new Color { R = 0xFB, G = 0xF3, B = 0xD4, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0xF1, G = 0xD8, B = 0xB8, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xEE, G = 0xBB, B = 0xDD, A = 0xFF }), "Pink" },
-                }
-            },
-            {
-                ColorTheme.Baby, new Dictionary<Brush, string>
-                {
-                    { new SolidColorBrush(new Color { R = 0xBA, G = 0xDD, B = 0xF4, A = 0xFF }), "Blue" },
-                    { new SolidColorBrush(new Color { R = 0xFE, G = 0xD9, B = 0xF9, A = 0xFF }), "Pink" },
-                    { new SolidColorBrush(new Color { R = 0xFF, G = 0xFA, B = 0xDD, A = 0xFF }), "Yellow" },
-                    { new SolidColorBrush(new Color { R = 0xFE, G = 0xE7, B = 0xD6, A = 0xFF }), "Orange" },
-                    { new SolidColorBrush(new Color { R = 0xD2, G = 0xE5, B = 0xB6, A = 0xFF }), "Green" },
-                }
-            },
-        };
+        private Palette SelectedPalette { get; set; } = null;
 
         private Dictionary<Brush, string> BrushToName { get; set; } = new Dictionary<Brush, string>();
 
@@ -541,6 +482,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         public RimDataSet RimDataSet { get; set; } = new RimDataSet();
+
+        public RimModel RimDataFilter_SelectedItem
+        {
+            get => _rimDataFilter_SelectedItem;
+            set => SetField(ref _rimDataFilter_SelectedItem, value);
+        }
+        private RimModel _rimDataFilter_SelectedItem = null;
 
         private ObservableCollection<RimDataInfo> _rimDoors = new ObservableCollection<RimDataInfo>();
         public ObservableCollection<RimDataInfo> RimDoors
@@ -1022,6 +970,13 @@ namespace WalkmeshVisualizerWpf.Views
         private SolidColorBrush gprFillGreen   = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0x22 });
         private SolidColorBrush gprFillRed     = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0x22 });
 
+        public bool DoRimDataFilter
+        {
+            get => _doRimDataFilter;
+            set => SetField(ref _doRimDataFilter, value);
+        }
+        private bool _doRimDataFilter = false;
+
         public bool ShowDoorsOnAddRim
         {
             get => _showDoorsOnAddRim;
@@ -1291,7 +1246,44 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion
 
-        #endregion // END REGION DataBinding Members
+        #region Live Tools: Abilities
+
+        private const string ALL_ABILITIES = "ALL";
+        public int ValueInAttributeBox { get; set; } = 10;
+        public int ValueInSkillBox { get; set; } = 0;
+
+
+        public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.ATTRIBUTES))).ToList();
+
+        public List<string> KotorSkills => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.SKILLS))).ToList();
+
+        public List<string> Kotor1Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.FEATS)).Cast<ushort>().ToList()
+            .Where(f => f < kmih.FIRST_KOTOR_2_FEAT).Cast<kmih.FEATS>().Select(f => f.ToString()).OrderBy(f => f)).ToList();
+
+        public List<string> Kotor2Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.FEATS)).OrderBy(f => f)).ToList();
+
+        public List<string> KotorFeats
+        {
+            get => _kotorFeats;
+            set => SetField(ref _kotorFeats, value);
+        }
+        private List<string> _kotorFeats = new List<string>();
+
+        //public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.POWERS)).Cast<ushort>().ToList()
+        //    .Where(f => f < kmih.FIRST_KOTOR_2_POWER).Cast<kmih.POWERS>().Select(f => f.ToString()).OrderBy(f => f)).ToList();
+
+        //public List<string> Kotor2Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.POWERS)).OrderBy(f => f)).ToList();
+
+        //public List<string> KotorPowers
+        //{
+        //    get => _kotorPowers;
+        //    set => SetField(ref _kotorPowers, value);
+        //}
+        //private List<string> _kotorPowers = new List<string>();
+
+        #endregion // ENDREGION Live Tools: Abilities
+
+        #endregion // ENDREGION DataBinding Members
 
         #region ZoomAndPanControl
 
@@ -2076,6 +2068,8 @@ namespace WalkmeshVisualizerWpf.Views
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
                 AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
+                KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
+                //KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
 
                 SelectedGame = e.Argument?.ToString() ?? DEFAULT;
 
@@ -2428,7 +2422,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SetRimDataInfoMeshBrush(RimDataInfo rdi)
         {
-            rdi.ColorThemeUsed = SelectedBrushTheme;
+            rdi.PaletteUsed = SelectedPalette;
             var setColor = GetNextRimDataInfoBrush();
             if (setColor == RimToBrushUsed[rdi.Module]) setColor = GetNextRimDataInfoBrush();
             rdi.MeshColor = setColor;
@@ -2439,7 +2433,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (rdi.AreVisualsBuilt == false)
             {
                 rdi.AreVisualsBuilt = true;
-                rdi.ColorThemeUsed = SelectedBrushTheme;
+                rdi.PaletteUsed = SelectedPalette;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     rdi.LineCanvas = new Canvas
@@ -2513,6 +2507,27 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        /// <summary>
+        /// Filter for RimDataInfo listview containers.
+        /// </summary>
+        /// <param name="item"><see cref="RimDataInfo"/> object</param>
+        /// <returns>Returns true if filter is off, the filter box is empty, or the Module strings match (ignoring case).</returns>
+        private bool RimDataFilter(object item) => !DoRimDataFilter || RimDataFilter_SelectedItem == null
+            || (item as RimDataInfo).Module.Equals(RimDataFilter_SelectedItem.FileName, StringComparison.OrdinalIgnoreCase);
+
+        private void RefreshRimDataFilters()
+        {
+            CollectionViewSource.GetDefaultView(lvRimDoor.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimTrigger.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimTrap.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimZone.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvRimEncounter.ItemsSource).Refresh();
+        }
+
+        private void RimDataFilter_ToggleChanged(object sender, RoutedEventArgs e) => RefreshRimDataFilters();
+
+        private void RimDataFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshRimDataFilters();
+
         #endregion
 
         #region Add Methods
@@ -2567,25 +2582,11 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Add RIM data collections.
                 var rdiModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
-                var rdiSort = RimDoors.Concat(rdiModule.Doors).ToList();
-                rdiSort.Sort();
-                RimDoors = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimTriggers.Concat(rdiModule.Triggers).ToList();
-                rdiSort.Sort();
-                RimTriggers = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimTraps.Concat(rdiModule.Traps).ToList();
-                rdiSort.Sort();
-                RimTraps = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimZones.Concat(rdiModule.Zones).ToList();
-                rdiSort.Sort();
-                RimZones = new ObservableCollection<RimDataInfo>(rdiSort);
-
-                rdiSort = RimEncounters.Concat(rdiModule.Encounters).ToList();
-                rdiSort.Sort();
-                RimEncounters = new ObservableCollection<RimDataInfo>(rdiSort);
+                RimDoors.AddRangeAndSort(rdiModule.Doors);
+                RimTriggers.AddRangeAndSort(rdiModule.Triggers);
+                RimTraps.AddRangeAndSort(rdiModule.Traps);
+                RimZones.AddRangeAndSort(rdiModule.Zones);
+                RimEncounters.AddRangeAndSort(rdiModule.Encounters);
 
                 // Start worker to add polygons to the canvas.
                 _ = content.Focus();
@@ -2636,8 +2637,8 @@ namespace WalkmeshVisualizerWpf.Views
                     .Concat(RimEncounters)
                     .Where(rdi => rdi.MeshVisible
                         && rdi.AreVisualsBuilt
-                        && rdi.ColorThemeUsed != ColorTheme.Unknown
-                        && rdi.ColorThemeUsed != SelectedBrushTheme)
+                        && rdi.PaletteUsed != null
+                        && rdi.PaletteUsed != SelectedPalette)
                     .ToList();
                 foreach (var rdi in needsUpdate) SetRimDataInfoMeshBrush(rdi);
 
@@ -3711,7 +3712,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.PrevRightPanelSize = ShowWalkmeshPanel
                 ?  columnRightPanel.ActualWidth
                 : prevRightPanelSize;
-            settings.SelectedBrushTheme = (int)SelectedBrushTheme;
+            settings.SelectedPaletteName = SelectedPalette.FileName;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
             settings.ShowRimDataDoors = ShowRimDataDoors;
             settings.ShowRimDataTriggers = ShowRimDataTriggers;
@@ -3853,15 +3854,31 @@ namespace WalkmeshVisualizerWpf.Views
             }
             else
             {
-                var sctw = new SetColorPreferencesWindow(SelectedBrushTheme, SelectedBackgroundColor)
+                var sctw = new SetColorPreferencesWindow(SelectedPalette, SelectedBackgroundColor)
                 {
                     Owner = this
                 };
 
+                // Show dialog. If "Ok" is selected...
                 if (sctw.ShowDialog() ?? false)
                 {
                     SetBackgroundColor(sctw.SelectedBackground);
-                    SetColorTheme(sctw.SelectedTheme);
+
+                    // If no palette is selected anymore, reset to previously selected palette.
+                    var pal = PaletteManager.GetSelectedPalette();
+                    if (pal == null)
+                    {
+                        pal = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == SelectedPalette.Name);
+                        if (pal != null) pal.IsSelected = true;
+                    }
+                    // Otherwise, set the new palette.
+                    else SetPalette(pal);
+                }
+                // If "Cancel" is selected and no palette is selected, reset to previously selected palette.
+                else if (!PaletteManager.Instance.Palettes.Any(p => p.IsSelected))
+                {
+                    var pal = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.Name == SelectedPalette.Name);
+                    if (pal != null) pal.IsSelected = true;
                 }
             }
         }
@@ -3877,13 +3894,11 @@ namespace WalkmeshVisualizerWpf.Views
             });
         }
 
-        private async void SetColorTheme(ColorTheme newTheme)
+        private async void SetPalette(Palette newPalette)
         {
-            if (newTheme == ColorTheme.Unknown || newTheme == SelectedBrushTheme) return;
-
-            // Set up new brush theme.
-            SelectedBrushTheme = newTheme;
-            BrushToName = BrushThemes[newTheme].ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            // Set up new brush palette.
+            SelectedPalette = newPalette;
+            BrushToName = SelectedPalette.ToDictionary();
             PolyBrushCount.Clear();
             foreach (var kvp in BrushToName) PolyBrushCount.Add(kvp.Key, 0);
 
@@ -3920,6 +3935,7 @@ namespace WalkmeshVisualizerWpf.Views
                 .Where(rdi => rdi.MeshVisible);
             foreach (var info in rimInfos)
                 SetRimDataInfoMeshBrush(info);
+
         }
 
         private void SetColorPreferences_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -4302,6 +4318,7 @@ namespace WalkmeshVisualizerWpf.Views
             var sw = new Stopwatch();
             sw.Start();
             var bw = sender as BackgroundWorker;
+            int lastVersion = 0;
             int version = 0;
             KotorManager km = null;
             var thisModuleName = string.Empty;
@@ -4317,6 +4334,13 @@ namespace WalkmeshVisualizerWpf.Views
                         version = GetRunningKotor();
                         if (version != 0)
                         {
+                            if (version != lastVersion) Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                KotorFeats = version == 1 ? Kotor1Feats : Kotor2Feats;
+                                //KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
+                            });
+                            lastVersion = version;
+
                             km = new KotorManager(version);
                             if (!km.TestRead())
                             {
@@ -4977,6 +5001,128 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /*
+         * Attributes, Skills, Feats, and Powers (Abilities)
+         */
+
+        private void MaximumAbilities_Click(object sender, RoutedEventArgs e)
+        {
+            cbAttribute.SelectedItem = KotorAttributes.FirstOrDefault();
+            tbAttributeValue.Text = "255";
+            cbSkill.SelectedItem = KotorAttributes.FirstOrDefault();
+            tbSkillValue.Text = "127";
+            cbFeat.SelectedItem = KotorFeats.FirstOrDefault();
+        }
+
+        private void AllAbilities_Click(object sender, RoutedEventArgs e)
+        {
+            SetAttribute_Click(sender, e);
+            SetSkill_Click(sender, e);
+            AddFeat_Click(sender, e);
+        }
+
+        private void SetAttribute_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbAttribute.Text == string.Empty) return;           // Exit if no attribute selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get attributes to set
+            var attrs = new List<string>();
+            if (cbAttribute.Text == ALL_ABILITIES)
+                attrs = KotorAttributes.ToList();
+            else
+                attrs.Add(cbAttribute.Text);
+
+            // Set attributes
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var attr in attrs)
+            {
+                if (attr == ALL_ABILITIES) continue;
+                kmia.SetCreatureAttribute(
+                    km.pr.h, player,
+                    attr.ToEnum<kmih.ATTRIBUTES>(),
+                    (byte)ValueInAttributeBox);
+                km.RefreshAddresses();
+            }
+        }
+
+        private void SetSkill_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbSkill.Text == string.Empty) return;               // Exit if no skill selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get skills to set
+            var skills = new List<string>();
+            if (cbSkill.Text == ALL_ABILITIES)
+                skills = KotorSkills.ToList();
+            else skills.Add(cbSkill.Text);
+
+            // Get skill value
+            byte value;
+            if (ValueInSkillBox >= 0)
+                value = (byte)ValueInSkillBox;
+            else value = (byte)(ValueInSkillBox + 256);             // Convert signed to unsigned
+
+            // Set skills
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var skill in skills)
+            {
+                if (skill == ALL_ABILITIES) continue;
+                kmia.SetCreatureSkill(km.pr.h, player, skill.ToEnum<kmih.SKILLS>(), value);
+                km.RefreshAddresses();
+            }
+        }
+
+        private void AddFeat_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbFeat.Text == string.Empty) return;                // Exit if no feat selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get feats to add
+            var feats = new List<string>();
+            if (cbFeat.Text == ALL_ABILITIES)
+                feats = KotorFeats.ToList();
+            else feats.Add(cbFeat.Text);
+
+            // Add feats
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var feat in feats)
+            {
+                if (feat == ALL_ABILITIES) continue;
+                kmia.AddCreatureFeat(km.pr.h, player, feat.ToEnum<kmih.FEATS>());
+                km.RefreshAddresses();
+            }
+        }
+
+        //private void AddPower_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (cbPower.Text == string.Empty) return;                // Exit if no power selected
+        //    var km = new KotorManager(GetRunningKotor());
+        //    if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+        //    // Get powers to add
+        //    var powers = new List<string>();
+        //    if (cbPower.Text == ALL_ABILITIES)
+        //        powers = KotorPowers.ToList();
+        //    else powers.Add(cbPower.Text);
+
+        //    // Add powers
+        //    var player = kmia.GetPlayerServerObject(km.pr.h);
+        //    km.RefreshAddresses();
+        //    foreach (var power in powers)
+        //    {
+        //        if (power == ALL_ABILITIES) continue;
+        //        kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
+        //        km.RefreshAddresses();
+        //    }
+        //}
+
+        /*
          * Free Camera
          */
         private void TurnOnFreeCam_Click(object sender, RoutedEventArgs e)
@@ -5049,6 +5195,6 @@ namespace WalkmeshVisualizerWpf.Views
             kmia.SendMessage(km.pr.h, kmia.Invulnerability());
         }
 
-        #endregion
+        #endregion // Live Tools Panel Methods
     }
 }

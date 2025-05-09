@@ -1,0 +1,25 @@
+{
+  "Name": "Tree Lights",
+  "Colors": [
+    {
+      "ColorText": "#197EDF",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#EF8C18",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#F8F05B",
+      "Name": "Yellow"
+    },
+    {
+      "ColorText": "#39C642",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#684AB3",
+      "Name": "Purple"
+    }
+  ]
+}

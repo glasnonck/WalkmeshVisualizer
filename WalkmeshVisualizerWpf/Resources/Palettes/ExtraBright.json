@@ -1,0 +1,29 @@
+﻿{
+  "Name": "Extra Bright",
+  "Colors": [
+    {
+      "ColorText": "#6F00FF",
+      "Name": "Purple"
+    },
+    {
+      "ColorText": "#01FF02",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FFC400",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#E5FF00",
+      "Name": "Yellow"
+    },
+    {
+      "ColorText": "#00DDFF",
+      "Name": "Cyan"
+    },
+    {
+      "ColorText": "#FF00CC",
+      "Name": "Pink"
+    }
+  ]
+}

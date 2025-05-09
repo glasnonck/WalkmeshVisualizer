@@ -1,0 +1,29 @@
+{
+  "Name": "Bright",
+  "Colors": [
+    {
+      "ColorText": "#FF0000FF",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#FF00FF00",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#FFFF0000",
+      "Name": "Red"
+    },
+    {
+      "ColorText": "#FF00FFFF",
+      "Name": "Cyan"
+    },
+    {
+      "ColorText": "#FFFF00FF",
+      "Name": "Magenta"
+    },
+    {
+      "ColorText": "#FFFFFF00",
+      "Name": "Yellow"
+    }
+  ]
+}

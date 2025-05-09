@@ -1,0 +1,29 @@
+﻿{
+  "Name": "Electro Punk",
+  "Colors": [
+    {
+      "ColorText": "#E14210",
+      "Name": "Red"
+    },
+    {
+      "ColorText": "#E78A11",
+      "Name": "Orange"
+    },
+    {
+      "ColorText": "#70CF6F",
+      "Name": "Green"
+    },
+    {
+      "ColorText": "#295EBE",
+      "Name": "Blue"
+    },
+    {
+      "ColorText": "#5A328E",
+      "Name": "Purple"
+    },
+    {
+      "ColorText": "#C33AA8",
+      "Name": "Pink"
+    }
+  ]
+}

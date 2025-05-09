@@ -7,9 +7,12 @@ using WalkmeshVisualizerWpf.Models;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Collections.Generic;
+using System.Windows.Controls;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
+    #region Single Converters
+
     /// <summary>
     /// Used in MainWindow.xaml to converts a scale value to a percentage.
     /// It is used to display the 50%, 100%, etc that appears underneath the zoom and pan control.
@@ -65,7 +68,6 @@ namespace WalkmeshVisualizerWpf.Helpers
             => throw new NotImplementedException();
     }
 
-
     public class StringEqualsConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -116,6 +118,184 @@ namespace WalkmeshVisualizerWpf.Helpers
             throw new NotImplementedException();
         }
     }
+
+    public class BlackIfTransparentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => ((SolidColorBrush)value).Color.A == 0 ? Brushes.Black : parameter;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();     // one way by design
+    }
+
+    public class PointToTextConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is Point p ? $"({p.X:N2}, {p.Y:N2})" : throw new InvalidOperationException("The value must be of type Point.");
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(bool), typeof(Visibility))]
+    public class BoolToVisibilityConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+
+            return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be a boolean.");
+
+            return (Visibility)value == Visibility.Visible;
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(Visibility), typeof(bool))]
+    public class VisibilityToBoolConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (Visibility)value == Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(bool), typeof(Visibility))]
+    public class InverseBoolToVisibilityConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+
+            return (bool)value ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be a boolean.");
+
+            return (Visibility)value == Visibility.Collapsed;
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(RimDataInfo), typeof(bool))]
+    public class AnyHiddenRdiConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value as IEnumerable<RimDataInfo>)?.Any(rdi => !rdi.MeshVisible) ?? false;
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    //[ValueConversion(typeof(RimDataInfo), typeof(bool))]
+    public class AnyVisibleRdiConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value as IEnumerable<RimDataInfo>)?.Any(rdi => rdi.MeshVisible) ?? false;
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    //[ValueConversion(typeof(bool), typeof(bool))]
+    public class InverseBooleanConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !(bool)value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !(bool)value;
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(int), typeof(Visibility))]
+    public class IsNonZeroToVisibilityConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+
+            return (int)value != 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(int)) throw new InvalidOperationException("The target must be a int.");
+
+            return (Visibility)value == Visibility.Visible ? 1 : 0;
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(int), typeof(Visibility))]
+    public class IsZeroToVisibilityConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
+
+            return (int)value == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(int)) throw new InvalidOperationException("The target must be a int.");
+
+            return (Visibility)value == Visibility.Visible ? 0 : 1;
+        }
+        #endregion
+    }
+
+    //[ValueConversion(typeof(Brush), typeof(bool))]
+    public class IsNotTransparentConverter : IValueConverter
+    {
+        #region IValueConverter Members
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be of type bool.");
+
+            return (Brush)value != Brushes.Transparent;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(Brush)) throw new InvalidOperationException("The target must be a Brush.");
+
+            return (bool)value ? Brushes.Black : Brushes.Transparent;
+        }
+        #endregion
+    }
+
+    #endregion // Single Converters
+
+    #region Multi Converters
 
     public class BoolToVisibilityMultiConverter : IMultiValueConverter
     {
@@ -240,168 +420,6 @@ namespace WalkmeshVisualizerWpf.Helpers
         #endregion
     }
 
-    public class PointToTextConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value is Point p ? $"({p.X:N2}, {p.Y:N2})" : throw new InvalidOperationException("The value must be of type Point.");
-        }
+    #endregion // Multi Converters
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(bool), typeof(Visibility))]
-    public class BoolToVisibilityConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
-
-            return (bool)value ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be a boolean.");
-
-            return (Visibility)value == Visibility.Visible;
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(Visibility), typeof(bool))]
-    public class VisibilityToBoolConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return (Visibility)value == Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return (bool)value ? Visibility.Visible : Visibility.Collapsed;
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(bool), typeof(Visibility))]
-    public class InverseBoolToVisibilityConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
-
-            return (bool)value ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be a boolean.");
-
-            return (Visibility)value == Visibility.Collapsed;
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(RimDataInfo), typeof(bool))]
-    public class AnyHiddenRdiConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => (value as IEnumerable<RimDataInfo>)?.Any(rdi => !rdi.MeshVisible) ?? false;
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
-    }
-
-    [ValueConversion(typeof(RimDataInfo), typeof(bool))]
-    public class AnyVisibleRdiConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => (value as IEnumerable<RimDataInfo>)?.Any(rdi => rdi.MeshVisible) ?? false;
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
-    }
-
-    [ValueConversion(typeof(bool), typeof(bool))]
-    public class InverseBooleanConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value;
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(int), typeof(Visibility))]
-    public class IsNonZeroToVisibilityConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
-
-            return (int)value != 0 ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(int)) throw new InvalidOperationException("The target must be a int.");
-
-            return (Visibility)value == Visibility.Visible ? 1 : 0;
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(int), typeof(Visibility))]
-    public class IsZeroToVisibilityConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
-
-            return (int)value == 0 ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(int)) throw new InvalidOperationException("The target must be a int.");
-
-            return (Visibility)value == Visibility.Visible ? 0 : 1;
-        }
-        #endregion
-    }
-
-    [ValueConversion(typeof(Brush), typeof(bool))]
-    public class IsNotTransparentConverter : IValueConverter
-    {
-        #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be of type bool.");
-
-            return (Brush)value != Brushes.Transparent;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (targetType != typeof(Brush)) throw new InvalidOperationException("The target must be a Brush.");
-
-            return (bool)value ? Brushes.Black : Brushes.Transparent;
-        }
-        #endregion
-    }
 }
