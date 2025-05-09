@@ -25,12 +25,12 @@
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Zoom In = plus key, mouse wheel up
+                    Zoom In = ctrl + plus key, mouse wheel up
                 </Paragraph>
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Zoom Out = minus key, mouse wheel down
+                    Zoom Out = ctrl + minus key, mouse wheel down
                 </Paragraph>
             </ListItem>
             <ListItem>
@@ -40,7 +40,7 @@
             </ListItem>
             <ListItem>
                 <Paragraph>
-                    Previous Zoom = backspace
+                    Previous Zoom = ctrl + backspace
                 </Paragraph>
             </ListItem>
             <ListItem>

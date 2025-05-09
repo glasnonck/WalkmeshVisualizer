@@ -24,17 +24,17 @@
         <!-- UI commands. -->
         <RoutedUICommand x:Key="Commands.ZoomOut">
             <RoutedUICommand.InputGestures>
-                <KeyGesture>Minus</KeyGesture>
+                <KeyGesture>Ctrl+Minus</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
         <RoutedUICommand x:Key="Commands.ZoomIn">
             <RoutedUICommand.InputGestures>
-                <KeyGesture>Plus</KeyGesture>
+                <KeyGesture>Ctrl+Plus</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
         <RoutedUICommand x:Key="Commands.JumpBackToPrevZoom">
             <RoutedUICommand.InputGestures>
-                <KeyGesture>Backspace</KeyGesture>
+                <KeyGesture>Ctrl+Backspace</KeyGesture>
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
         <RoutedUICommand x:Key="Commands.Fill">
@@ -2279,10 +2279,9 @@
                             <Grid>
                                 <TextBlock Text="Abilities" Style="{StaticResource tbHeader}" />
                                 <Button HorizontalAlignment="Right" Content="Max" Margin="0,-2,26,0" FontSize="10" VerticalAlignment="Top" Width="32" Padding="0,1" Height="18"
-                                        VerticalContentAlignment="Center" Click="MaximumAbilities_Click"/>
+                                        VerticalContentAlignment="Center" Click="MaximumAbilities_Click" ToolTip="Assign maximum values to the ability functions." />
                                 <Button Grid.Column="3" Width="22" Height="18" Margin="0,-2,0,0" Padding="0,0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                        Click="AllAbilities_Click"
-                                        ToolTip="Load the selected module using the warp cheat.">
+                                        Click="AllAbilities_Click" ToolTip="Run all three functions: attribute, skill, and feat.">
                                     <Image Width="14" Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
