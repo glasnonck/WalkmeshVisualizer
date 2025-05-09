@@ -2,12 +2,12 @@
   "Name": "Extra Bright",
   "Colors": [
     {
-      "ColorText": "#01FF02",
-      "Name": "Green"
-    },
-    {
       "ColorText": "#6F00FF",
       "Name": "Purple"
+    },
+    {
+      "ColorText": "#01FF02",
+      "Name": "Green"
     },
     {
       "ColorText": "#FFC400",

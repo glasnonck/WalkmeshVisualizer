@@ -610,7 +610,6 @@ namespace WalkmeshVisualizerWpf.Helpers
             p = Process.GetProcessesByName(processName).FirstOrDefault();
             if (p == null) throw new NullReferenceException($"Process {processName} does not exist.");
             h = OpenProcess(ProcessAccessFlags.All, false, p.Id);
-            //h = OpenProcess(PROCESS_WM_READ, false, p.Id);
         }
 
         public int GetModuleSize() => p.MainModule.ModuleMemorySize;

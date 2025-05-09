@@ -50,5 +50,10 @@ namespace WalkmeshVisualizerWpf.Helpers
             foreach (var item in list)
                 data.Add(item);
         }
+
+        public static T ToEnum<T>(this string value) where T : Enum
+        {
+            return (T) Enum.Parse(typeof(T), value);
+        }
     }
 }

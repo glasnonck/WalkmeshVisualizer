@@ -1246,7 +1246,44 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion
 
-        #endregion // END REGION DataBinding Members
+        #region Live Tools: Abilities
+
+        private const string ALL_ABILITIES = "ALL";
+        public int ValueInAttributeBox { get; set; } = 10;
+        public int ValueInSkillBox { get; set; } = 0;
+
+
+        public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.ATTRIBUTES))).ToList();
+
+        public List<string> KotorSkills => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.SKILLS))).ToList();
+
+        public List<string> Kotor1Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.FEATS)).Cast<ushort>().ToList()
+            .Where(f => f < kmih.FIRST_KOTOR_2_FEAT).Cast<kmih.FEATS>().Select(f => f.ToString()).OrderBy(f => f)).ToList();
+
+        public List<string> Kotor2Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.FEATS)).OrderBy(f => f)).ToList();
+
+        public List<string> KotorFeats
+        {
+            get => _kotorFeats;
+            set => SetField(ref _kotorFeats, value);
+        }
+        private List<string> _kotorFeats = new List<string>();
+
+        //public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.POWERS)).Cast<ushort>().ToList()
+        //    .Where(f => f < kmih.FIRST_KOTOR_2_POWER).Cast<kmih.POWERS>().Select(f => f.ToString()).OrderBy(f => f)).ToList();
+
+        //public List<string> Kotor2Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.POWERS)).OrderBy(f => f)).ToList();
+
+        //public List<string> KotorPowers
+        //{
+        //    get => _kotorPowers;
+        //    set => SetField(ref _kotorPowers, value);
+        //}
+        //private List<string> _kotorPowers = new List<string>();
+
+        #endregion // ENDREGION Live Tools: Abilities
+
+        #endregion // ENDREGION DataBinding Members
 
         #region ZoomAndPanControl
 
@@ -2031,6 +2068,8 @@ namespace WalkmeshVisualizerWpf.Views
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
                 AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
+                KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
+                //KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
 
                 SelectedGame = e.Argument?.ToString() ?? DEFAULT;
 
@@ -4279,6 +4318,7 @@ namespace WalkmeshVisualizerWpf.Views
             var sw = new Stopwatch();
             sw.Start();
             var bw = sender as BackgroundWorker;
+            int lastVersion = 0;
             int version = 0;
             KotorManager km = null;
             var thisModuleName = string.Empty;
@@ -4294,6 +4334,13 @@ namespace WalkmeshVisualizerWpf.Views
                         version = GetRunningKotor();
                         if (version != 0)
                         {
+                            if (version != lastVersion) Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                KotorFeats = version == 1 ? Kotor1Feats : Kotor2Feats;
+                                //KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
+                            });
+                            lastVersion = version;
+
                             km = new KotorManager(version);
                             if (!km.TestRead())
                             {
@@ -4954,6 +5001,128 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /*
+         * Attributes, Skills, Feats, and Powers (Abilities)
+         */
+
+        private void MaximumAbilities_Click(object sender, RoutedEventArgs e)
+        {
+            cbAttribute.SelectedItem = KotorAttributes.FirstOrDefault();
+            tbAttributeValue.Text = "255";
+            cbSkill.SelectedItem = KotorAttributes.FirstOrDefault();
+            tbSkillValue.Text = "127";
+            cbFeat.SelectedItem = KotorFeats.FirstOrDefault();
+        }
+
+        private void AllAbilities_Click(object sender, RoutedEventArgs e)
+        {
+            SetAttribute_Click(sender, e);
+            SetSkill_Click(sender, e);
+            AddFeat_Click(sender, e);
+        }
+
+        private void SetAttribute_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbAttribute.Text == string.Empty) return;           // Exit if no attribute selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get attributes to set
+            var attrs = new List<string>();
+            if (cbAttribute.Text == ALL_ABILITIES)
+                attrs = KotorAttributes.ToList();
+            else
+                attrs.Add(cbAttribute.Text);
+
+            // Set attributes
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var attr in attrs)
+            {
+                if (attr == ALL_ABILITIES) continue;
+                kmia.SetCreatureAttribute(
+                    km.pr.h, player,
+                    attr.ToEnum<kmih.ATTRIBUTES>(),
+                    (byte)ValueInAttributeBox);
+                km.RefreshAddresses();
+            }
+        }
+
+        private void SetSkill_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbSkill.Text == string.Empty) return;               // Exit if no skill selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get skills to set
+            var skills = new List<string>();
+            if (cbSkill.Text == ALL_ABILITIES)
+                skills = KotorSkills.ToList();
+            else skills.Add(cbSkill.Text);
+
+            // Get skill value
+            byte value;
+            if (ValueInSkillBox >= 0)
+                value = (byte)ValueInSkillBox;
+            else value = (byte)(ValueInSkillBox + 256);             // Convert signed to unsigned
+
+            // Set skills
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var skill in skills)
+            {
+                if (skill == ALL_ABILITIES) continue;
+                kmia.SetCreatureSkill(km.pr.h, player, skill.ToEnum<kmih.SKILLS>(), value);
+                km.RefreshAddresses();
+            }
+        }
+
+        private void AddFeat_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbFeat.Text == string.Empty) return;                // Exit if no feat selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get feats to add
+            var feats = new List<string>();
+            if (cbFeat.Text == ALL_ABILITIES)
+                feats = KotorFeats.ToList();
+            else feats.Add(cbFeat.Text);
+
+            // Add feats
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var feat in feats)
+            {
+                if (feat == ALL_ABILITIES) continue;
+                kmia.AddCreatureFeat(km.pr.h, player, feat.ToEnum<kmih.FEATS>());
+                km.RefreshAddresses();
+            }
+        }
+
+        //private void AddPower_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (cbPower.Text == string.Empty) return;                // Exit if no power selected
+        //    var km = new KotorManager(GetRunningKotor());
+        //    if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+        //    // Get powers to add
+        //    var powers = new List<string>();
+        //    if (cbPower.Text == ALL_ABILITIES)
+        //        powers = KotorPowers.ToList();
+        //    else powers.Add(cbPower.Text);
+
+        //    // Add powers
+        //    var player = kmia.GetPlayerServerObject(km.pr.h);
+        //    km.RefreshAddresses();
+        //    foreach (var power in powers)
+        //    {
+        //        if (power == ALL_ABILITIES) continue;
+        //        kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
+        //        km.RefreshAddresses();
+        //    }
+        //}
+
+        /*
          * Free Camera
          */
         private void TurnOnFreeCam_Click(object sender, RoutedEventArgs e)
@@ -5026,6 +5195,6 @@ namespace WalkmeshVisualizerWpf.Views
             kmia.SendMessage(km.pr.h, kmia.Invulnerability());
         }
 
-        #endregion
+        #endregion // Live Tools Panel Methods
     }
 }
