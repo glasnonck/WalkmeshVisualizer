@@ -369,7 +369,6 @@ namespace WalkmeshVisualizerWpf.Views
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
         private const string K2_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR2";
-        private const string MOUSE_OVER_DEFAULT_STRING = "Mouse is above these items:";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
@@ -1068,12 +1067,12 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _currentMousePosition = new Point();
 
-        public string RimDataUnderMouse
+        public List<RimDataInfo> RimDataUnderMouse
         {
             get => _rimDataUnderMouse;
             set => SetField(ref _rimDataUnderMouse, value);
         }
-        private string _rimDataUnderMouse = MOUSE_OVER_DEFAULT_STRING;
+        private List<RimDataInfo> _rimDataUnderMouse = new List<RimDataInfo>();
 
         public int MouseHoverUpdateDelay
         {
@@ -4636,7 +4635,6 @@ namespace WalkmeshVisualizerWpf.Views
             var mousePosition = new Point();
             IEnumerable<RimDataInfo> visibleRimData = new List<RimDataInfo>();
             var bw = sender as BackgroundWorker;
-            var message = string.Empty;
 
             while (true)
             {
@@ -4652,15 +4650,11 @@ namespace WalkmeshVisualizerWpf.Views
                         .Concat(RimTraps)
                         .Concat(RimZones)
                         .Concat(RimEncounters)
-                        .Where(r => r.MeshVisible);
-                    message = string.Join(Environment.NewLine, visibleRimData
-                        .Where(r => r.IsTouching(mousePosition))
-                        .Select(r => $"{r.RimDataType,-12}\t{GetBrushName(r.MeshColor),-7}\t      {r.ResRef}")
-                        //.Select(r => $"{r.RimDataType,-12}\t{BrushToName[r.MeshColor],-7}\t      {r.ResRef}")
-                        .ToArray());
+                        .Where(r => r.MeshVisible)
+                        .Where(r => r.IsTouching(mousePosition));
                 });
 
-                RimDataUnderMouse = $"Mouse is above these items:{Environment.NewLine}{message}".TrimEnd();
+                RimDataUnderMouse = visibleRimData.ToList();
                 Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
                 sw.Restart();
             }
@@ -4671,7 +4665,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void MouseHoverWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ShowRimDataUnderMouse = false;
-            RimDataUnderMouse = MOUSE_OVER_DEFAULT_STRING;
+            RimDataUnderMouse = new List<RimDataInfo>();
             MouseHoverToggleButton.IsEnabled = true;
         }
 

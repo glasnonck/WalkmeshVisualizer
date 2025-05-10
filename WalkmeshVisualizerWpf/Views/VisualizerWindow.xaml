@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
+    xmlns:uc="clr-namespace:WalkmeshVisualizerWpf.UserControls"
     xmlns:ZoomAndPan="clr-namespace:ZoomAndPan;assembly=ZoomAndPan"
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
@@ -2785,22 +2786,11 @@
                 <!--
                 Mouse Hover Information Grid
                 -->
-                <Grid Grid.Column="3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Border Margin="10" Padding="10" Background="LightGray"
-                            BorderThickness="1" BorderBrush="Black"
-                            Visibility="{Binding ShowRimDataUnderMouse, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}"
-                            CornerRadius="4" Opacity=".85">
-                        <TextBlock Text="{Binding RimDataUnderMouse}" />
-                    </Border>
-                </Grid>
+                <uc:MouseHoverDisplayControl
+                    x:Name="mouseHoverDisplay"
+                    Grid.Column="3"
+                    ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse}"
+                    RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}" />
                 
                 <!--
                 Right Panel Grid Splitter
