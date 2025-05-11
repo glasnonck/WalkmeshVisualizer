@@ -27,6 +27,7 @@ using kmih = KotorMessageInjector.KotorHelpers;
 using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -81,6 +82,7 @@ namespace WalkmeshVisualizerWpf.Views
             MouseHoverWorker.RunWorkerCompleted += MouseHoverWorker_RunWorkerCompleted;
             MouseHoverWorker.DoWork += MouseHoverWorker_DoWork;
 
+            KotorClassLookup = KotorClassDescriptionLookup.ToDictionary((c) => c.Value, (c) => c.Key);
             DataContext = this;
         }
 
@@ -1251,6 +1253,45 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInAttributeBox { get; set; } = 10;
         public int ValueInSkillBox { get; set; } = 0;
 
+        // Kotor 1 MAX =   250,000
+        // Kotor 2 MAX = 1,250,000
+        public int ValueInExperienceBox { get; set; } = 1000;
+        public int ValueInSetCreditsBox { get; set; } = 10000;
+
+        private Dictionary<kmih.CLASSES, string> KotorClassDescriptionLookup = new Dictionary<kmih.CLASSES, string>()
+        {
+            { kmih.CLASSES.SOLDIER,           "Soldier" },
+            { kmih.CLASSES.SCOUT,             "Scout" },
+            { kmih.CLASSES.SCOUNDREL,         "Scoundrel" },
+            { kmih.CLASSES.JEDI_GUARDIAN,     "Jedi Guardian" },
+            { kmih.CLASSES.JEDI_CONSULAR,     "Jedi Consular" },
+            { kmih.CLASSES.JEDI_SENTINEL,     "Jedi Sentinel" },
+            { kmih.CLASSES.COMBAT_DROID,      "Combat Droid" },
+            { kmih.CLASSES.EXPERT_DROID,      "Expert Droid" },
+            { kmih.CLASSES.MINION,            "Minion" },
+            { kmih.CLASSES.TECH_SPECIALIST,   "Tech Specialist" },
+            { kmih.CLASSES.BOUNTY_HUNTER,     "Bounty Hunter" },
+            { kmih.CLASSES.JEDI_WEAPONMASTER, "Jedi Weaponmaster" },
+            { kmih.CLASSES.JEDI_MASTER,       "Jedi Master" },
+            { kmih.CLASSES.JEDI_WATCHMAN,     "Jedi Watchman" },
+            { kmih.CLASSES.SITH_MARAUDER,     "Sith Marauder" },
+            { kmih.CLASSES.SITH_LORD,         "Sith Lord" },
+            { kmih.CLASSES.SITH_ASSASSIN,     "Sith Assassin" },
+        };
+
+        private Dictionary<string, kmih.CLASSES> KotorClassLookup;
+
+        public List<string> Kotor1Classes => Enum.GetValues(typeof(kmih.CLASSES)).Cast<kmih.CLASSES>()
+            .Where(c => (byte)c < kmih.FIRST_KOTOR_2_CLASS).Select(c => KotorClassDescriptionLookup[c]).ToList();
+
+        public List<string> Kotor2Classes => Enum.GetValues(typeof(kmih.CLASSES)).Cast<kmih.CLASSES>().Select(c => KotorClassDescriptionLookup[c]).ToList();
+
+        public List<string> KotorClasses
+        {
+            get => _kotorClasses;
+            set => SetField(ref _kotorClasses, value);
+        }
+        private List<string> _kotorClasses = new List<string>();
 
         public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.ATTRIBUTES))).ToList();
 
@@ -2067,6 +2108,7 @@ namespace WalkmeshVisualizerWpf.Views
 
                 OffRims = new ObservableCollection<RimModel>(rimModels);
                 AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
+                KotorClasses = Game == K1_NAME ? Kotor1Classes : Kotor2Classes;
                 KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
                 //KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
 
@@ -4335,6 +4377,7 @@ namespace WalkmeshVisualizerWpf.Views
                         {
                             if (version != lastVersion) Application.Current.Dispatcher.Invoke(() =>
                             {
+                                KotorClasses = version == 1 ? Kotor1Classes : Kotor2Classes;
                                 KotorFeats = version == 1 ? Kotor1Feats : Kotor2Feats;
                                 //KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
                             });
@@ -4997,14 +5040,49 @@ namespace WalkmeshVisualizerWpf.Views
         /*
          * Attributes, Skills, Feats, and Powers (Abilities)
          */
+        private void tbPreviewIntegerInput(object sender, TextCompositionEventArgs e)
+        {
+            // TODO: Consider implementing paste handling for any text box that should be limited.
+            //DataObject.AddPastingHandler
+            var r = new Regex(@"^-$|^-?[0-9]+$");
+            if (!r.IsMatch(e.Text))
+                e.Handled = true;
+        }
+
+        private void tbPreviewIntegerKeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Space) e.Handled = true; }
+
+        private void AddClass_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbClass.Text == string.Empty) return;           // Exit if no attribute selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Set class
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.AddCreatureClass(km.pr.h, player, KotorClassLookup[cbClass.Text]);
+        }
+
+        private void AddExperience_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Add experience
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.AddCreatureExp(km.pr.h, player, (uint)ValueInExperienceBox);
+        }
 
         private void MaximumAbilities_Click(object sender, RoutedEventArgs e)
         {
+            tbExperienceValue.Text = SelectedGame == K1_NAME ? "250000" : "1250000";
             cbAttribute.SelectedItem = KotorAttributes.FirstOrDefault();
             tbAttributeValue.Text = "255";
             cbSkill.SelectedItem = KotorAttributes.FirstOrDefault();
             tbSkillValue.Text = "127";
             cbFeat.SelectedItem = KotorFeats.FirstOrDefault();
+            //cbPower.SelectedItem = KotorPowers.FirstOrDefault();
         }
 
         private void AllAbilities_Click(object sender, RoutedEventArgs e)
@@ -5093,28 +5171,46 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        //private void AddPower_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (cbPower.Text == string.Empty) return;                // Exit if no power selected
-        //    var km = new KotorManager(GetRunningKotor());
-        //    if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+        private void AddPower_Click(object sender, RoutedEventArgs e)
+        {
+            //if (cbPower.Text == string.Empty) return;                // Exit if no power selected
+            //var km = new KotorManager(GetRunningKotor());
+            //if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
 
-        //    // Get powers to add
-        //    var powers = new List<string>();
-        //    if (cbPower.Text == ALL_ABILITIES)
-        //        powers = KotorPowers.ToList();
-        //    else powers.Add(cbPower.Text);
+            //// Get powers to add
+            //var powers = new List<string>();
+            //if (cbPower.Text == ALL_ABILITIES)
+            //    powers = KotorPowers.ToList();
+            //else powers.Add(cbPower.Text);
 
-        //    // Add powers
-        //    var player = kmia.GetPlayerServerObject(km.pr.h);
-        //    km.RefreshAddresses();
-        //    foreach (var power in powers)
-        //    {
-        //        if (power == ALL_ABILITIES) continue;
-        //        kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
-        //        km.RefreshAddresses();
-        //    }
-        //}
+            //// Add powers
+            //var player = kmia.GetPlayerServerObject(km.pr.h);
+            //km.RefreshAddresses();
+            //foreach (var power in powers)
+            //{
+            //    if (power == ALL_ABILITIES) continue;
+            //    kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
+            //    km.RefreshAddresses();
+            //}
+        }
+
+        /*
+         * Inventory
+         */
+        private void SetCredits_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.SetCreatureCredits(km.pr.h, player, ValueInSetCreditsBox);
+        }
+
+        private void GiveItem_Click(object sender, RoutedEventArgs e)
+        {
+            // 
+        }
 
         /*
          * Free Camera

@@ -6,8 +6,8 @@ namespace WalkmeshVisualizerWpf.Helpers
 {
     public class IntRangeRule : ValidationRule
     {
-        public int Min { get; set; }
-        public int Max { get; set; }
+        public int Min { get; set; } = int.MinValue;
+        public int Max { get; set; } = int.MaxValue;
 
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {

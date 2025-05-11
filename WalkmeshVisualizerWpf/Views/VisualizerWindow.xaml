@@ -2281,11 +2281,139 @@
                                 <TextBlock Text="Abilities" Style="{StaticResource tbHeader}" />
                                 <Button HorizontalAlignment="Right" Content="Max" Margin="0,-2,26,0" FontSize="10" VerticalAlignment="Top" Width="32" Padding="0,1" Height="18"
                                         VerticalContentAlignment="Center" Click="MaximumAbilities_Click" ToolTip="Assign maximum values to the ability functions." />
-                                <Button Grid.Column="3" Width="22" Height="18" Margin="0,-2,0,0" Padding="0,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                <Button Visibility="Collapsed" Grid.Column="3" Width="22" Height="18" Margin="0,-2,0,0" Padding="0,0" HorizontalAlignment="Right" VerticalAlignment="Top"
                                         Click="AllAbilities_Click" ToolTip="Run all three functions: attribute, skill, and feat.">
                                     <Image Width="14" Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.Resources>
+                                    <ControlTemplate x:Key="TextBoxErrorTemplate">
+                                        <StackPanel>
+                                            <AdornedElementPlaceholder x:Name="Holder" />
+                                            <Label Foreground="Red" Content="{Binding ElementName=Holder,
+                                                   Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="0,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Margin" Value="4,0,0,0" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Height" Value="22" />
+                                        <Setter Property="Width" Value="22" />
+                                    </Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Height" Value="18" />
+                                        <Setter Property="Width" Value="18" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <!-- Add Class -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Add Class:" />
+                                <ComboBox Grid.Row="0" Grid.Column="1" Name="cbClass" Grid.ColumnSpan="2" ItemsSource="{Binding KotorClasses}" />
+                                <Button Grid.Row="0" Grid.Column="3" Click="AddClass_Click" ToolTip="Add the selected class to the leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Level Up -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Add XP:" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Name="tbExperienceValue"
+                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInExperienceBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="0" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="1" Grid.Column="3" Click="AddExperience_Click" ToolTip="Set the leader's skill value from -127 to 127."
+                                        IsEnabled="{Binding ElementName=tbExperienceValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Set Attributes -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Set Attribute:" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Name="cbAttribute" ItemsSource="{Binding KotorAttributes}" />
+                                <TextBox Grid.Row="2" Grid.Column="2" Name="tbAttributeValue"
+                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInAttributeBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="0" Max="255" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetAttribute_Click" ToolTip="Set the leader's attribute value from 0 to 255."
+                                        IsEnabled="{Binding ElementName=tbAttributeValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Set Skills -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Set Skill:" />
+                                <ComboBox Grid.Row="3" Grid.Column="1" Name="cbSkill" ItemsSource="{Binding KotorSkills}" />
+                                <TextBox Grid.Row="3" Grid.Column="2" Name="tbSkillValue"
+                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInSkillBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="-128" Max="127" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="3" Grid.Column="3" Click="SetSkill_Click" ToolTip="Set the leader's skill value from -127 to 127."
+                                        IsEnabled="{Binding ElementName=tbSkillValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Add Feats -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Add Feat:" />
+                                <ComboBox Grid.Row="4" Grid.Column="1" Name="cbFeat" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
+                                <Button Grid.Row="4" Grid.Column="3" Click="AddFeat_Click" ToolTip="Add the selected feat to the leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Add Powers -->
+                                <!--<TextBlock Grid.Row="5" Grid.Column="0" Text="Add Power:" />
+                                <ComboBox Grid.Row="5" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
+                                <Button Grid.Row="5" Grid.Column="3" Click="AddPower_Click" ToolTip="Add the selected force power to the leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>-->
+                            </Grid>
+                            
+                            <Border />
+                            <!--#endregion-->
+                            
+                            <!--#region Inventory -->
+                            <TextBlock Text="Inventory" Style="{StaticResource tbHeader}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -2331,56 +2459,36 @@
                                         <Setter Property="Width" Value="18" />
                                     </Style>
                                 </Grid.Resources>
-                                
-                                <!-- Set Attributes -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Set Attribute:" />
-                                <ComboBox Grid.Row="0" Grid.Column="1" Name="cbAttribute" ItemsSource="{Binding KotorAttributes}" />
-                                <TextBox Grid.Row="0" Grid.Column="2" Name="tbAttributeValue">
+
+                                <!-- Set Credits -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Set Credits:" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Name="tbSetCreditsValue"
+                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
                                     <TextBox.Text>
-                                        <Binding Path="ValueInAttributeBox" UpdateSourceTrigger="PropertyChanged">
+                                        <Binding Path="ValueInSetCreditsBox" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
-                                                <help:IntRangeRule Min="0" Max="255" />
+                                                <help:IntRangeRule Max="999999999" />
                                             </Binding.ValidationRules>
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="0" Grid.Column="3" Click="SetAttribute_Click" ToolTip="Set the leader's attribute value from 0 to 255."
-                                        IsEnabled="{Binding ElementName=tbAttributeValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="0" Grid.Column="3" Click="SetCredits_Click" ToolTip="Set the amount of credits in the party's inventory."
+                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
+
+                                <!-- Filter Items -->
+                                <!--<TextBlock Grid.Row="1" Grid.Column="0" Text="Item Filter:" />
+                                <ComboBox Grid.Row="1" Grid.Column="1" Name="cbItemFilter" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />-->
                                 
-                                <!-- Set Skills -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Set Skill:" />
-                                <ComboBox Grid.Row="1" Grid.Column="1" Name="cbSkill" ItemsSource="{Binding KotorSkills}" />
-                                <TextBox Grid.Row="1" Grid.Column="2" Name="tbSkillValue">
-                                    <TextBox.Text>
-                                        <Binding Path="ValueInSkillBox" UpdateSourceTrigger="PropertyChanged">
-                                            <Binding.ValidationRules>
-                                                <help:IntRangeRule Min="-128" Max="127" />
-                                            </Binding.ValidationRules>
-                                        </Binding>
-                                    </TextBox.Text>
-                                </TextBox>
-                                <Button Grid.Row="1" Grid.Column="3" Click="SetSkill_Click" ToolTip="Set the leader's skill value from -127 to 127."
-                                        IsEnabled="{Binding ElementName=tbSkillValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
-                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-
-                                <!-- Add Feats -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Add Feat:" />
-                                <ComboBox Grid.Row="2" Grid.Column="1" Name="cbFeat" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
-                                <Button Grid.Row="2" Grid.Column="3" Click="AddFeat_Click" ToolTip="Add the selected feat to the leader.">
-                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-
-                                <!-- Add Powers -->
-                                <!--<TextBlock Grid.Row="3" Grid.Column="0" Text="Add Power:" />
-                                <ComboBox Grid.Row="3" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
-                                <Button Grid.Row="3" Grid.Column="3" Click="AddPower_Click" ToolTip="Add the selected force power to the leader.">
+                                <!-- Give Items -->
+                                <!--<TextBlock Grid.Row="2" Grid.Column="0" Text="Give Item:" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Name="cbItem" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
+                                <Button Grid.Row="2" Grid.Column="3" Click="GiveItem_Click" ToolTip="Set the amount of credits in the party's inventory."
+                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>-->
                             </Grid>
-                            
                             <Border />
                             <!--#endregion-->
 
@@ -2789,7 +2897,7 @@
                 <uc:MouseHoverDisplayControl
                     x:Name="mouseHoverDisplay"
                     Grid.Column="3"
-                    ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse}"
+                    ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse, FallbackValue=False}"
                     RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}" />
                 
                 <!--
