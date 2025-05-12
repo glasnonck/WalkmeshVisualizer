@@ -5171,6 +5171,26 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        private void ResetFeats_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Get feats to add as default
+            var feats = new List<kmih.FEATS>()
+            {
+                kmih.FEATS.ARMOUR_PROF_LIGHT,
+                kmih.FEATS.WEAPON_PROF_BLASTER,
+                kmih.FEATS.WEAPON_PROF_BLASTER_RIFLE,
+                kmih.FEATS.WEAPON_PROF_MELEE_WEAPONS,
+            };
+
+            // Add feats
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.SetCreatureFeats(km.pr.h, player, feats);
+        }
+
         private void AddPower_Click(object sender, RoutedEventArgs e)
         {
             //if (cbPower.Text == string.Empty) return;                // Exit if no power selected

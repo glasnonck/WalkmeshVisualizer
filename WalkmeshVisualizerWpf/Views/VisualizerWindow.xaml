@@ -2300,6 +2300,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <Grid.Resources>
                                     <ControlTemplate x:Key="TextBoxErrorTemplate">
@@ -2400,11 +2401,24 @@
                                 <Button Grid.Row="4" Grid.Column="3" Click="AddFeat_Click" ToolTip="Add the selected feat to the leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
+                                
+                                <!-- Clear Feats -->
+                                <Grid Grid.Row="5" Grid.ColumnSpan="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1" Grid.ColumnSpan="2" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click"
+                                            ToolTip="Add the selected feat to the leader." />
+                                    <!--<Button Grid.Column="2" Width="Auto" Content="Reset to Basics" Click="ResetFeats_Click"
+                                            ToolTip="Add the selected feat to the leader." />-->
+                                </Grid>
 
                                 <!-- Add Powers -->
-                                <!--<TextBlock Grid.Row="5" Grid.Column="0" Text="Add Power:" />
-                                <ComboBox Grid.Row="5" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
-                                <Button Grid.Row="5" Grid.Column="3" Click="AddPower_Click" ToolTip="Add the selected force power to the leader.">
+                                <!--<TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
+                                <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
+                                <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click" ToolTip="Add the selected force power to the leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>-->
                             </Grid>
