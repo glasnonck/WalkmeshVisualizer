@@ -2948,7 +2948,7 @@
                 <Grid x:Name="optionsGrid" Grid.Column="5" Margin="5,0"
                       Visibility="{Binding ShowWalkmeshPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                            FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -3088,6 +3088,7 @@
                     <Grid x:Name="OffGrid" Grid.Row="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
@@ -3098,8 +3099,17 @@
                                 <Span>)</Span>
                             </TextBlock>
                         </StackPanel>
-                        
-                        <ListView x:Name="lvOff" Grid.Row="1" ItemsSource="{Binding OffRims}"
+
+                        <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,5">
+                            <TextBlock DockPanel.Dock="Left" Text="Filter:"
+                               Margin="20,0,5,0" VerticalAlignment="Center" />
+                            <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearOffRimsFilter_Click">
+                                <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                            </Button>
+                            <TextBox x:Name="txtRimsFilter" TextChanged="TxtOffRimsFilter_TextChanged" />
+                        </DockPanel>
+
+                        <ListView x:Name="lvOff" Grid.Row="2" ItemsSource="{Binding OffRims}"
                                   ItemContainerStyle="{StaticResource OffItemStyle}"
                                   ScrollViewer.VerticalScrollBarVisibility="Visible"
                                   ScrollViewer.CanContentScroll="False">

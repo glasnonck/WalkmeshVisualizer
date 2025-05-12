@@ -175,6 +175,10 @@ namespace WalkmeshVisualizerWpf.Views
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimTrap.ItemsSource)).Filter = RimDataFilter;
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimZone.ItemsSource)).Filter = RimDataFilter;
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimEncounter.ItemsSource)).Filter = RimDataFilter;
+
+            // Set up RIM filter
+            var view = (CollectionView)CollectionViewSource.GetDefaultView(lvOff.ItemsSource);
+            if (view != null) view.Filter = HandleListFilter;
         }
 
         #endregion // END REGION Constructors
@@ -2149,7 +2153,12 @@ namespace WalkmeshVisualizerWpf.Views
                     });
                 }
 
-                OffRims = new ObservableCollection<RimModel>(rimModels);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OffRims.Clear();
+                    foreach (var r in rimModels) OffRims.Add(r);
+                });
+
                 AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
                 KotorClasses = Game == K1_NAME ? Kotor1Classes : Kotor2Classes;
                 KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
@@ -2662,7 +2671,11 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Sort the ON list and update collection.
                 sorted.Sort();
-                OnRims = new ObservableCollection<RimModel>(sorted);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OnRims.Clear();
+                    foreach (var r in sorted) OnRims.Add(r);
+                });
 
                 // Add RIM data collections.
                 var rdiModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
@@ -3333,7 +3346,11 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Sort the OFF list and update collection.
                 sorted.Sort();
-                OffRims = new ObservableCollection<RimModel>(sorted);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OffRims.Clear();
+                    foreach (var r in sorted) OffRims.Add(r);
+                });
 
                 // Remove RIM data collections.
                 var rimModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
@@ -3475,7 +3492,11 @@ namespace WalkmeshVisualizerWpf.Views
             // Sort the OFF collection.
             var sorted = OffRims.ToList();
             sorted.Sort();
-            OffRims = new ObservableCollection<RimModel>(sorted);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                OffRims.Clear();
+                foreach (var r in sorted) OffRims.Add(r);
+            });
 
             // Hide all polygons in the canvas.
             content.Dispatcher.Invoke(() =>
@@ -4378,6 +4399,25 @@ namespace WalkmeshVisualizerWpf.Views
                 prevRightPanelSize = columnRightPanel.ActualWidth;
                 columnRightPanel.Width = new GridLength(1, GridUnitType.Auto);
             }
+        }
+
+        private void TxtOffRimsFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(lvOn.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvOff.ItemsSource).Refresh();
+        }
+
+        private bool HandleListFilter(object item)
+        {
+            if (string.IsNullOrEmpty(txtRimsFilter.Text)) return true;
+            else return (item as RimModel).FileName.IndexOf(txtRimsFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        (item as RimModel).Planet.IndexOf(txtRimsFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        (item as RimModel).CommonName.IndexOf(txtRimsFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void ClearOffRimsFilter_Click(object sender, RoutedEventArgs e)
+        {
+            txtRimsFilter.Clear();
         }
 
         #endregion
