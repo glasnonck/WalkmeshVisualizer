@@ -99,7 +99,7 @@ namespace WalkmeshVisualizerWpf.Models
                 var rim = new RIM(rimFileInfo.FullName);
                 var srim = new RIM(rimFileInfo.FullName.Substring(0, rimFileInfo.FullName.Length - 4) + "_s.rim");
 
-                var rimDoors = ParseRimDoors(rim, srim, bif, tlk);
+                //var rimDoors = ParseRimDoors(rim, srim, bif, tlk);
                 var rimTriggers = ParseRimTriggers(rim, srim, bif, tlk);
                 var rimTraps = ParseRimTraps(rim, srim, bif, tlk);
                 var rimZones = ParseRimZones(rim, srim, bif, tlk);
@@ -116,6 +116,7 @@ namespace WalkmeshVisualizerWpf.Models
                 {
                     door.RimDataType = RimDataType.Door;
                     door.Module = module.Module;
+                    door.OnEnter = door.ResRef;
                     for (int i = 0; i < door.CornersX.Count; i++)
                         door.Geometry.Add(new Tuple<float, float>(door.CornersX[i], door.CornersY[i]));
                 }
@@ -528,7 +529,7 @@ namespace WalkmeshVisualizerWpf.Models
         public string Module { get; set; }
         public string ResRef { get; set; }
         public string Tag { get; set; }
-        public string ScriptOnEnter { get; set; }
+        public string OnEnter { get; set; }
         public string LocalizedName { get; set; }
 
         public List<float> CornersX { get; set; } = new List<float>();
@@ -559,7 +560,7 @@ namespace WalkmeshVisualizerWpf.Models
             ResRef = trigger.TemplateResRef;
             Geometry = trigger.Corners;
             Tag = trigger.Tag;
-            ScriptOnEnter = trigger.ScriptOnEnter;
+            OnEnter = trigger.ScriptOnEnter;
             LocalizedName = trigger.LocalizedName;
         }
 
@@ -571,7 +572,7 @@ namespace WalkmeshVisualizerWpf.Models
             Geometry = encounter.Corners;
             SpawnPoints = encounter.SpawnPoints;
             Tag = encounter.Tag;
-            ScriptOnEnter = encounter.ScriptOnEnter;
+            OnEnter = encounter.ScriptOnEnter;
             LocalizedName = encounter.LocalizedName;
         }
 
@@ -652,7 +653,7 @@ namespace WalkmeshVisualizerWpf.Models
         #endregion
 
         public override string ToString()
-            => $"trr: {ResRef}, tag: {Tag}, soe: {ScriptOnEnter}, ln: {LocalizedName}";
+            => $"trr: {ResRef}, tag: {Tag}, soe: {OnEnter}, ln: {LocalizedName}";
 
         public void Hide()
         {

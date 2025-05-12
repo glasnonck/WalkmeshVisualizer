@@ -102,6 +102,8 @@ namespace WalkmeshVisualizerWpf.Views
             ShowDlzLines = settings.ShowDlzLines;
             ShowDoorsOnAddRim = settings.ShowDoorsOnAddRim;
             ShowTriggersOnAddRim = settings.ShowTriggersOnAddRim;
+            ShowTrapsOnAddRim = settings.ShowTrapsOnAddRim;
+            ShowZonesOnAddRim = settings.ShowZonesOnAddRim;
             ShowEncountersOnAddRim = settings.ShowEncountersOnAddRim;
             ShowLivePositionCoordinates = settings.ShowLivePositionCoordinates;
             HidePreviousLiveModule = settings.HidePreviousLiveModule;
@@ -131,6 +133,12 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataTraps = settings.ShowRimDataTraps;
             ShowRimDataZones = settings.ShowRimDataZones;
             ShowRimDataEncounters = settings.ShowRimDataEncounters;
+
+            ShowTypeUnderMouse = settings.ShowTypeUnderMouse;
+            ShowResRefUnderMouse = settings.ShowResRefUnderMouse;
+            ShowTagUnderMouse = settings.ShowTagUnderMouse;
+            ShowLocalizedNameUnderMouse = settings.ShowLocalizedNameUnderMouse;
+            ShowOnEnterUnderMouse = settings.ShowOnEnterUnderMouse;
 
             // Palette
             BrushToName = PaletteManager.GetSelectedPalette().ToDictionary();
@@ -1061,6 +1069,41 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showRimDataUnderMouse, value);
         }
         private bool _showRimDataUnderMouse = false;
+
+        public bool ShowTypeUnderMouse
+        {
+            get => _showTypeUnderMouse;
+            set => SetField(ref _showTypeUnderMouse, value);
+        }
+        private bool _showTypeUnderMouse = true;
+
+        public bool ShowResRefUnderMouse
+        {
+            get => _showResRefUnderMouse;
+            set => SetField(ref _showResRefUnderMouse, value);
+        }
+        private bool _showResRefUnderMouse = true;
+
+        public bool ShowTagUnderMouse
+        {
+            get => _showTagUnderMouse;
+            set => SetField(ref _showTagUnderMouse, value);
+        }
+        private bool _showTagUnderMouse = true;
+
+        public bool ShowLocalizedNameUnderMouse
+        {
+            get => _showLocalizedNameUnderMouse;
+            set => SetField(ref _showLocalizedNameUnderMouse, value);
+        }
+        private bool _showLocalizedNameUnderMouse = true;
+
+        public bool ShowOnEnterUnderMouse
+        {
+            get => _showOnEnterUnderMouse;
+            set => SetField(ref _showOnEnterUnderMouse, value);
+        }
+        private bool _showOnEnterUnderMouse = true;
 
         public Point CurrentMousePosition
         {
@@ -3732,6 +3775,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowDlzLines = ShowDlzLines;
             settings.ShowDoorsOnAddRim = ShowDoorsOnAddRim;
             settings.ShowTriggersOnAddRim = ShowTriggersOnAddRim;
+            settings.ShowTrapsOnAddRim = ShowTrapsOnAddRim;
+            settings.ShowZonesOnAddRim = ShowZonesOnAddRim;
             settings.ShowEncountersOnAddRim = ShowEncountersOnAddRim;
             settings.ShowLivePositionCoordinates = ShowLivePositionCoordinates;
             settings.HidePreviousLiveModule = HidePreviousLiveModule;
@@ -3760,6 +3805,11 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowRimDataTraps = ShowRimDataTraps;
             settings.ShowRimDataZones = ShowRimDataZones;
             settings.ShowRimDataEncounters = ShowRimDataEncounters;
+            settings.ShowTypeUnderMouse = ShowTypeUnderMouse;
+            settings.ShowResRefUnderMouse = ShowResRefUnderMouse;
+            settings.ShowTagUnderMouse = ShowTagUnderMouse;
+            settings.ShowLocalizedNameUnderMouse = ShowLocalizedNameUnderMouse;
+            settings.ShowOnEnterUnderMouse = ShowOnEnterUnderMouse;
             settings.Save();
         }
 

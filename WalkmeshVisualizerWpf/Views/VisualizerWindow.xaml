@@ -357,6 +357,13 @@
                     <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
                     <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
                     <Separator />
+                    <!--<MenuItem Header="Identify RIM data under mouse" IsCheckable="True" IsChecked="{Binding }" />-->
+                    <MenuItem Header="Show under mouse: Type" IsCheckable="True" IsChecked="{Binding ShowTypeUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: ResRef" IsCheckable="True" IsChecked="{Binding ShowResRefUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: Tag" IsCheckable="True" IsChecked="{Binding ShowTagUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: Name" IsCheckable="True" IsChecked="{Binding ShowLocalizedNameUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: OnEnter" IsCheckable="True" IsChecked="{Binding ShowOnEnterUnderMouse, Mode=TwoWay}" />
+                    <Separator />
                     <MenuItem Header="Set color preferences" Command="{StaticResource Commands.SetColorPreferences}"/>
                 </MenuItem>
 
@@ -2912,7 +2919,14 @@
                     x:Name="mouseHoverDisplay"
                     Grid.Column="3"
                     ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse, FallbackValue=False}"
-                    RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}" />
+                    RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}"
+                    ShowMeshColor="True"
+                    ShowType="{Binding ElementName=thisWindow, Path=ShowTypeUnderMouse, FallbackValue=True}"
+                    ShowResRef="{Binding ElementName=thisWindow, Path=ShowResRefUnderMouse, FallbackValue=True}"
+                    ShowTag="{Binding ElementName=thisWindow, Path=ShowTagUnderMouse, FallbackValue=True}"
+                    ShowLocalizedName="{Binding ElementName=thisWindow, Path=ShowLocalizedNameUnderMouse, FallbackValue=True}"
+                    ShowOnEnter="{Binding ElementName=thisWindow, Path=ShowOnEnterUnderMouse, FallbackValue=True}"
+                    />
                 
                 <!--
                 Right Panel Grid Splitter
