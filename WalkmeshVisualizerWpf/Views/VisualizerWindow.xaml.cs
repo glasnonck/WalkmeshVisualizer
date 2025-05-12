@@ -1370,6 +1370,16 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // ENDREGION Live Tools: Abilities
 
+        #region Live Tools: Rendering
+
+        public int ValueInGuiAlphaBox { get; set; } = 100;
+        public int ValueInTriggerRedBox { get; set; } = 100;
+        public int ValueInTriggerGreenBox { get; set; } = 100;
+        public int ValueInTriggerBlueBox { get; set; } = 0;
+        public int ValueInTriggerAlphaBox { get; set; } = 35;
+
+        #endregion
+
         #endregion // ENDREGION DataBinding Members
 
         #region ZoomAndPanControl
@@ -5320,6 +5330,59 @@ namespace WalkmeshVisualizerWpf.Views
         private void GiveItem_Click(object sender, RoutedEventArgs e)
         {
             // 
+        }
+
+        /*
+         * Rendering
+         */
+        private void SetGameGui_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderGui((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGuiAlpha_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderGuiAlpha(ValueInGuiAlphaBox / 100f);
+        }
+
+        private void SetGameAABB_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderAABB((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGameWireframe_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderWireframe((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGameTrigger_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderTrigger((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGameTriggerColor_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderTriggerColor(ValueInTriggerRedBox / 100f, ValueInTriggerGreenBox / 100f,
+                                     ValueInTriggerBlueBox / 100f, ValueInTriggerAlphaBox / 100f);
+        }
+
+        private void SetGamePersonalSpace_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderPersonalSpace((sender as Button).Tag.ToString() == "on");
         }
 
         /*

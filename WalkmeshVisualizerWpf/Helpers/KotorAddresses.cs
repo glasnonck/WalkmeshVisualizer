@@ -106,6 +106,26 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint[] MG_TUNNEL_LIMIT_POS;  // float, positive tunnel limit
         public uint[] MG_TUNNEL_LIMIT_NEG;  // float, negative tunnel limit
 
+        public uint RENDERING_NO_GUI;
+        public uint RENDERING_GUI_ALPHA;
+        public uint RENDERING_AABB;
+        public uint RENDERING_WIREFRAME;
+        public uint RENDERING_QA_TRIGGERS;
+        public uint RENDERING_TRIGGERS;
+        public uint RENDERING_TRIGGERS_RED;
+        public uint RENDERING_TRIGGERS_GREEN;
+        public uint RENDERING_TRIGGERS_BLUE;
+        public uint RENDERING_TRIGGERS_ALPHA;
+        public uint RENDERING_PERSONAL_SPACE;
+        public uint CAMERA_OVERRIDE;
+        public uint CAMERA_OVERRIDE_POS_X;
+        public uint CAMERA_OVERRIDE_POS_Y;
+        public uint CAMERA_OVERRIDE_POS_Z;
+        public uint CAMERA_OVERRIDE_VIEW_W;
+        public uint CAMERA_OVERRIDE_VIEW_X;
+        public uint CAMERA_OVERRIDE_VIEW_Y;
+        public uint CAMERA_OVERRIDE_VIEW_Z;
+
         public KotorAddresses(int version = 1)
         {
             if (version == 1)
@@ -150,6 +170,26 @@ namespace WalkmeshVisualizerWpf.Helpers
                 MG_PLAYER_POSITION_X = MG_PLAYER_POSITION;
                 MG_PLAYER_POSITION_Y = MG_PLAYER_POSITION; MG_PLAYER_POSITION_Y[7] += 0x4;
                 MG_PLAYER_POSITION_Z = MG_PLAYER_POSITION; MG_PLAYER_POSITION_Z[7] += 0x8;
+
+                RENDERING_NO_GUI         = 0x007BB4D0;
+                RENDERING_GUI_ALPHA      = 0x00459216;
+                RENDERING_AABB           = 0x007FBF5C;
+                RENDERING_WIREFRAME      = 0x007BB4F0;
+                RENDERING_QA_TRIGGERS    = 0x0083285C;
+                RENDERING_TRIGGERS       = 0x007B92E4;
+                RENDERING_TRIGGERS_RED   = 0x00691E7A;
+                RENDERING_TRIGGERS_GREEN = 0x00691E82;
+                RENDERING_TRIGGERS_BLUE  = 0x00691E8A;
+                RENDERING_TRIGGERS_ALPHA = 0x00691E92;
+                RENDERING_PERSONAL_SPACE = 0x007B9314;
+                CAMERA_OVERRIDE          = 0x007BB4F4;
+                CAMERA_OVERRIDE_POS_X    = 0x007BB504;
+                CAMERA_OVERRIDE_POS_Y    = 0x007BB508;
+                CAMERA_OVERRIDE_POS_Z    = 0x007BB50C;
+                CAMERA_OVERRIDE_VIEW_W   = 0x0078E440;
+                CAMERA_OVERRIDE_VIEW_X   = 0x0078E444;
+                CAMERA_OVERRIDE_VIEW_Y   = 0x0078E448;
+                CAMERA_OVERRIDE_VIEW_Z   = 0x0078E44C;
             }
             else if (version == 2)
             {
@@ -554,6 +594,70 @@ namespace WalkmeshVisualizerWpf.Helpers
         //    if (pr.hasFailed) return false;
         //    return true;
         //}
+
+        public bool SetRenderGui(bool isVisible)
+        {
+            if (version == 1)
+                pr.WriteUint(ka.RENDERING_NO_GUI, isVisible ? 0u : 1u);
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
+
+        public bool SetRenderGuiAlpha(float alpha)
+        {
+            if (version == 1)
+                pr.WriteFloat(ka.RENDERING_GUI_ALPHA, alpha);
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
+
+        public bool SetRenderAABB(bool isVisible)
+        {
+            if (version == 1)
+                pr.WriteUint(ka.RENDERING_AABB, isVisible ? 1u : 0u);
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
+
+        public bool SetRenderWireframe(bool isVisible)
+        {
+            if (version == 1)
+                pr.WriteUint(ka.RENDERING_WIREFRAME, isVisible ? 1u : 0u);
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
+
+        public bool SetRenderTrigger(bool isVisible)
+        {
+            if (version == 1)
+            {
+                pr.WriteUint(ka.RENDERING_QA_TRIGGERS, isVisible ? 1u : 0u);
+                pr.WriteUint(ka.RENDERING_TRIGGERS, isVisible ? 1u : 0u);
+            }
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
+
+        public bool SetRenderTriggerColor(float red, float green, float blue, float alpha)
+        {
+            if (version == 1)
+            {
+                pr.WriteFloat(ka.RENDERING_TRIGGERS_RED, red);
+                pr.WriteFloat(ka.RENDERING_TRIGGERS_GREEN, green);
+                pr.WriteFloat(ka.RENDERING_TRIGGERS_BLUE, blue);
+                pr.WriteFloat(ka.RENDERING_TRIGGERS_ALPHA, alpha);
+            }
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
+
+        public bool SetRenderPersonalSpace(bool isVisible)
+        {
+            if (version == 1)
+                pr.WriteUint(ka.RENDERING_PERSONAL_SPACE, isVisible ? 1u : 0u);
+            else return false;  // K2 addresses not implemented
+            return !pr.hasFailed;
+        }
 
         public bool TestRead()
         {

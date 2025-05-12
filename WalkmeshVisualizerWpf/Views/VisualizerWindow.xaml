@@ -2512,6 +2512,194 @@
                             </Grid>
                             <Border />
                             <!--#endregion-->
+                            
+                            <!--#region Rendering-->
+                            <TextBlock Text="Rendering (K1 Only)" Style="{StaticResource tbHeader}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.Resources>
+                                    <ControlTemplate x:Key="TextBoxErrorTemplate">
+                                        <StackPanel>
+                                            <AdornedElementPlaceholder x:Name="Holder" />
+                                            <Label Foreground="Red" Content="{Binding ElementName=Holder,
+                                                   Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="0,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Margin" Value="4,0,0,0" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Height" Value="22" />
+                                        <Setter Property="Width" Value="22" />
+                                    </Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Height" Value="18" />
+                                        <Setter Property="Width" Value="18" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <!-- Render Personal Space -->
+                                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Personal Space:" />
+                                <StackPanel Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGamePersonalSpace_Click" Tag="on" ToolTip="Show the in-game character personal space.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGamePersonalSpace_Click" Tag="off" ToolTip="Hide the in-game character personal space.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Render Triggers -->
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers (on reload):" />
+                                <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameTrigger_Click" Tag="on" ToolTip="Show the in-game triggers.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameTrigger_Click" Tag="off" ToolTip="Hide the in-game triggers.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Trigger Color -->
+                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6" ToolTip="Trigger color as a percentage." />
+                                <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Name="tbTriggerColorRedValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerRedBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Grid.Column="1" Name="tbTriggerColorGreenValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerGreenBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Grid.Column="2" Name="tbTriggerColorBlueValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerBlueBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Grid.Column="3" Name="tbTriggerColorAlphaValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerAlphaBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </Grid>
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click" ToolTip="Set the game trigger color.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Render AABB -->
+                                <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="AABBs:" ToolTip="Axis-Aligned Bounding Boxes" />
+                                <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameAABB_Click" Tag="on" ToolTip="Show the in-game bounding boxes.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameAABB_Click" Tag="off" ToolTip="Hide the in-game bounding boxes.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Render Wireframe -->
+                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="Wireframes:" />
+                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameWireframe_Click" Tag="on" ToolTip="Show the in-game wireframes.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameWireframe_Click" Tag="off" ToolTip="Hide the in-game wireframes.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Render GUI -->
+                                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
+                                <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameGui_Click" Tag="on"
+                                            ToolTip="Show the in-game user interface.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameGui_Click" Tag="off"
+                                            ToolTip="Hide the in-game user interface.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- GUI Alpha -->
+                                <TextBlock Grid.Row="6" Text="Alpha%:" Margin="10,0,0,6" />
+                                <Grid Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="3" Name="tbGuiAlphaValue"
+                                             PreviewTextInput="tbPreviewIntegerInput"
+                                             PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInGuiAlphaBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </Grid>
+                                <Button Grid.Row="6" Grid.Column="3" Click="SetGuiAlpha_Click"
+                                        ToolTip="Add the selected class to the leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
+                            <Border />
+                            <!--#endregion-->
 
                             <!--#region FreeCam -->
                             <TextBlock Text="FreeCam Mode" Style="{StaticResource tbHeader}" />
