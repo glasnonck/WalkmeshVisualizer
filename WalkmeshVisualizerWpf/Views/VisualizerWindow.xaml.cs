@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
+using System.Windows.Xps.Packaging;
 using KotOR_IO;
 using KotOR_IO.GffFile;
 using KotOR_IO.Helpers;
@@ -28,6 +29,7 @@ using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Windows.Documents;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -634,6 +636,13 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _currentProgress;
             set => SetField(ref _currentProgress, value);
+        }
+
+        private string _currentProgressStatus;
+        public string CurrentProgressStatus
+        {
+            get => _currentProgressStatus;
+            set => SetField(ref _currentProgressStatus, value);
         }
 
         public bool LeftOrRightClickPointVisible
@@ -3880,7 +3889,54 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SaveEntireCanvas_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            SaveImageFromCanvas(20);
+            SaveToXps();
+        }
+
+        private void SaveToXps()
+        {
+            CurrentProgress = 100;
+            CurrentProgressStatus = "Saving to XPS...";
+            IsBusy = true;
+
+            var dlg = new SaveFileDialog
+            {
+                Title = "Save XPS As",
+                FileName = "screenshot",
+                DefaultExt = ".xps",
+                Filter = "XPS Documents (.xps)|*.xps"
+            };
+
+            var result = dlg.ShowDialog();
+            if (result == true)
+            {
+                var fd = new FixedDocument();
+                var pc = new PageContent();
+                var fp = new FixedPage();
+
+                fp.Height = theGrid.Height - 10;
+                fp.Width = theGrid.Width - 10;
+                theGrid.Margin = new Thickness(LeftOffset - 5, -BottomOffset - 5, 0, 0);
+
+                zoomAndPanControl.Content = null;
+                fp.Children.Add(theGrid);
+                ((System.Windows.Markup.IAddChild)pc).AddChild(fp);
+                fd.Pages.Add(pc);
+
+                var filename = dlg.FileName;
+                if (File.Exists(filename)) File.Delete(filename);
+                var xpsd = new XpsDocument(filename, FileAccess.ReadWrite);
+                var xw = XpsDocument.CreateXpsDocumentWriter(xpsd);
+                xw.Write(fd);
+                xpsd.Close();
+
+                fp.Children.Remove(theGrid);
+                theGrid.Margin = new Thickness(0);
+                zoomAndPanControl.Content = theGrid;
+            }
+
+            CurrentProgress = 0;
+            CurrentProgressStatus = string.Empty;
+            IsBusy = false;
         }
 
         private void SaveEntireCanvas_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -3893,7 +3949,8 @@ namespace WalkmeshVisualizerWpf.Views
             var sfd = new SaveFileDialog
             {
                 Title = "Save Image As",
-                InitialDirectory = Environment.CurrentDirectory,
+                FileName = "screenshot",
+                DefaultExt = ".png",
                 Filter = "PNG File|*.png",
             };
             return sfd.ShowDialog() == true ? sfd.FileName : null;

@@ -341,7 +341,7 @@
                 -->
                 <MenuItem Header="_File">
                     <MenuItem Header="Save _Shown Canvas As Image..." Command="{StaticResource Commands.SaveShownCanvas}" />
-                    <MenuItem Header="Save _Full Canvas As Image..." Command="{StaticResource Commands.SaveEntireCanvas}" />
+                    <MenuItem Header="Save _Full Canvas As XPS..." Command="{StaticResource Commands.SaveEntireCanvas}" />
                     <Separator />
                     <MenuItem Header="_Exit" Command="{StaticResource Commands.Exit}" />
                 </MenuItem>
@@ -515,10 +515,11 @@
                 </MenuItem>
             </Menu>
 
-            <ProgressBar x:Name="pbLoading" Width="280" Grid.Column="2"
-                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
-                Value="{Binding CurrentProgress}" />
-            
+            <ProgressBar x:Name="pbLoading" Width="280" Grid.Column="2" Value="{Binding CurrentProgress}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0" Text="{Binding CurrentProgressStatus}"
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+
             <!--
             Stack panel containing the select game options and, once selected, displaying the
             currently selected game.
@@ -2161,13 +2162,10 @@
 
                             <!--#region Momvement -->
                             <TextBlock Text="Movement" Style="{StaticResource tbHeader}" />
-                            
-                            <!-- Teleport Leader -->
-                            <Grid Margin="0,0,0,6">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
@@ -2177,79 +2175,70 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Column="0" Text="Teleport Leader To:" Margin="0,0,4,0" VerticalAlignment="Center" />
-                                <!-- To Left Click Point -->
-                                <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
-                                        ToolTip="Teleport player to left double-click (black) point.">
-                                    <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
-                                </Button>
-                                <!-- To Right Click Point -->
-                                <Button Grid.Column="3" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
-                                        ToolTip="Teleport player to right double-click (white) point.">
-                                    <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
-                                </Button>
-                                <!-- To Custom Coordinates -->
-                                <Button Grid.Column="4" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
-                                        ToolTip="Teleport player to custom coordinates.">
-                                </Button>
-                                <!-- Custom Coordinates -->
-                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Margin="50,2,4,0">
+                                
+                                <!-- Teleport Leader -->
+                                <TextBlock Grid.Column="0" Text="Teleport To:" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                <Grid Grid.Column="1" Grid.ColumnSpan="3">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <!--To Left Click Point-->
+                                    <Button Grid.Column="1" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to left double-click (black) point.">
+                                        <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
+                                    </Button>
+                                    <!--To Right Click Point-->
+                                    <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to right double-click (white) point.">
+                                        <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
+                                    </Button>
+                                    <!--To Custom Coordinates-->
+                                    <Button Grid.Column="3" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
+                                        ToolTip="Teleport player to custom coordinates.">
+                                    </Button>
+                                </Grid>
+                                
+                                <!-- Custom Coordinates -->
+                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,2,4,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20" />
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="4" />
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="X: " />
-                                    <TextBox   Grid.Column="1" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
-                                    <TextBlock Grid.Column="3" Text="Y: " />
-                                    <TextBox   Grid.Column="4" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="1" Text="X: " />
+                                    <TextBox   Grid.Column="2" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="4" Text="Y: " />
+                                    <TextBox   Grid.Column="5" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
                                 </Grid>
-                            </Grid>
-
-                            <!-- Movement Speed -->
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Margin="0,0,2,0"
-                                           Text="Speed Multiplier:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="2" Width="110" Margin="4,0"
-                                          HorizontalContentAlignment="Right"
-                                          Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
+                                
+                                <!-- Movement Speed -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,2,6" Text="Speed Mul:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="4,0,0,6" Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
                                     <ComboBoxItem>0.5</ComboBoxItem>
                                     <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
                                     <ComboBoxItem>2.0</ComboBoxItem>
                                     <ComboBoxItem>5.0</ComboBoxItem>
                                     <ComboBoxItem>10.0</ComboBoxItem>
                                 </ComboBox>
-                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
-                                        ToolTip="Multiply the default movement speed by the selected value.">
+                                <Button Grid.Row="2" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
+                                    ToolTip="Multiply the default movement speed by the selected value.">
+                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Warp to Module -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,2,6" Text="Warp To:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="4,0,0,6" Grid.ColumnSpan="2" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
+                                <Button Grid.Row="3" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="WarpCheat_Click"
+                                    ToolTip="Load the selected module using the warp cheat.">
                                     <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
-
-                            <!-- Warp to Module -->
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Margin="0,0,2,2"
-                                           Text="Warp To Module:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="2" Margin="4,0" Width="110" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
-                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="WarpCheat_Click"
-                                        ToolTip="Load the selected module using the warp cheat.">
-                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-                            </Grid>
-                            
                             <Border />
                             <!--#endregion-->
 
