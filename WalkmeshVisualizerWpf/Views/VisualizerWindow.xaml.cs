@@ -4544,7 +4544,6 @@ namespace WalkmeshVisualizerWpf.Views
                             // Get current position and bearing
                             km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
                             LivePartyCount = partyCount;
-                            //var partyPositions = km.GetPartyPositions();
                             var partyPositions3D = km.GetPartyPositions3D();
                             var partyBearings = km.GetPartyBearings();
                             var partyInRange = true;
@@ -4569,13 +4568,11 @@ namespace WalkmeshVisualizerWpf.Views
                             if (!LockGatherPartyRange)
                             {
                                 LiveGatherPartyRangePoint = LivePositionEllipsePoint;
-                                //LastGatherPartyRangePosition = LivePositionPoint;
                                 LastGatherPartyRangePosition = partyPositions3D[0];
                                 LastGatherPartyRangePoint = LivePositionEllipsePoint;
                             }
                             else
                             {
-                                //var leaderDist = (LastGatherPartyRangePosition - partyPositions[0]).Length;
                                 var leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[0]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
                             }
@@ -4583,10 +4580,12 @@ namespace WalkmeshVisualizerWpf.Views
                             // Handle party member 1
                             if (partyCount > 1)
                             {
-                                //var leaderDist = (partyPositions[0] - partyPositions[1]).Length;
-                                var leaderDistSq = (partyPositions3D[0] - partyPositions3D[1]).LengthSquared;
+                                double leaderDistSq = 0;
+                                if (!LockGatherPartyRange)
+                                    leaderDistSq = (partyPositions3D[0] - partyPositions3D[1]).LengthSquared;
+                                else
+                                    leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[1]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
-                                //LivePositionEllipsePointPC1 = new Point(partyPositions[1].X + LeftOffset - 0.5, partyPositions[1].Y + BottomOffset - 0.5);
                                 LivePositionEllipsePointPC1 = new Point(partyPositions3D[1].X + LeftOffset - 0.5, partyPositions3D[1].Y + BottomOffset - 0.5);
                                 LiveBearingPC1 = partyBearings[1];
                             }
@@ -4594,10 +4593,12 @@ namespace WalkmeshVisualizerWpf.Views
                             // Handle party member 2
                             if (partyCount > 2)
                             {
-                                //var leaderDist = (partyPositions[0] - partyPositions[2]).Length;
-                                var leaderDistSq = (partyPositions3D[0] - partyPositions3D[2]).LengthSquared;
+                                double leaderDistSq = 0;
+                                if (!LockGatherPartyRange)
+                                    leaderDistSq = (partyPositions3D[0] - partyPositions3D[2]).LengthSquared;
+                                else
+                                    leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[2]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
-                                //LivePositionEllipsePointPC2 = new Point(partyPositions[2].X + LeftOffset - 0.5, partyPositions[2].Y + BottomOffset - 0.5);
                                 LivePositionEllipsePointPC2 = new Point(partyPositions3D[2].X + LeftOffset - 0.5, partyPositions3D[2].Y + BottomOffset - 0.5);
                                 LiveBearingPC2 = partyBearings[2];
                             }
