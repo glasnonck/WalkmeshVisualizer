@@ -2334,14 +2334,16 @@
                                 <!-- Add Class -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Add Class:" />
                                 <ComboBox Grid.Row="0" Grid.Column="1" Name="cbClass" Grid.ColumnSpan="2" ItemsSource="{Binding KotorClasses}" />
-                                <Button Grid.Row="0" Grid.Column="3" Click="AddClass_Click" ToolTip="Add the selected class to the leader.">
+                                <Button Grid.Row="0" Grid.Column="3" Click="AddClass_Click"
+                                        ToolTip="Add the selected class to the party leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
 
                                 <!-- Level Up -->
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Add XP:" />
                                 <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Name="tbExperienceValue"
-                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
                                     <TextBox.Text>
                                         <Binding Path="ValueInExperienceBox" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
@@ -2350,8 +2352,10 @@
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="1" Grid.Column="3" Click="AddExperience_Click" ToolTip="Set the leader's skill value from -127 to 127."
-                                        IsEnabled="{Binding ElementName=tbExperienceValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="1" Grid.Column="3" Click="AddExperience_Click"
+                                        ToolTip="Add experience to the party leader. Value must be positive."
+                                        IsEnabled="{Binding ElementName=tbExperienceValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
 
@@ -2359,7 +2363,8 @@
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Set Attribute:" />
                                 <ComboBox Grid.Row="2" Grid.Column="1" Name="cbAttribute" ItemsSource="{Binding KotorAttributes}" />
                                 <TextBox Grid.Row="2" Grid.Column="2" Name="tbAttributeValue"
-                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
                                     <TextBox.Text>
                                         <Binding Path="ValueInAttributeBox" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
@@ -2368,8 +2373,10 @@
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="2" Grid.Column="3" Click="SetAttribute_Click" ToolTip="Set the leader's attribute value from 0 to 255."
-                                        IsEnabled="{Binding ElementName=tbAttributeValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetAttribute_Click"
+                                        ToolTip="Set the party leader's selected attribute rank. Value must be between 0 and 255."
+                                        IsEnabled="{Binding ElementName=tbAttributeValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                                 
@@ -2377,7 +2384,8 @@
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Set Skill:" />
                                 <ComboBox Grid.Row="3" Grid.Column="1" Name="cbSkill" ItemsSource="{Binding KotorSkills}" />
                                 <TextBox Grid.Row="3" Grid.Column="2" Name="tbSkillValue"
-                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
                                     <TextBox.Text>
                                         <Binding Path="ValueInSkillBox" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
@@ -2386,15 +2394,18 @@
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="3" Grid.Column="3" Click="SetSkill_Click" ToolTip="Set the leader's skill value from -127 to 127."
-                                        IsEnabled="{Binding ElementName=tbSkillValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="3" Grid.Column="3" Click="SetSkill_Click"
+                                        ToolTip="Set the party leader's selected skill rank. Value must be between -127 and 127."
+                                        IsEnabled="{Binding ElementName=tbSkillValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
 
                                 <!-- Add Feats -->
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Add Feat:" />
                                 <ComboBox Grid.Row="4" Grid.Column="1" Name="cbFeat" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
-                                <Button Grid.Row="4" Grid.Column="3" Click="AddFeat_Click" ToolTip="Add the selected feat to the leader.">
+                                <Button Grid.Row="4" Grid.Column="3" Click="AddFeat_Click"
+                                        ToolTip="Add the selected feat to the party leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                                 
@@ -2406,15 +2417,16 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Button Grid.Column="1" Grid.ColumnSpan="2" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click"
-                                            ToolTip="Add the selected feat to the leader." />
+                                            ToolTip="Remove all feats from the party leader. Only light armor proficiency will remain." />
                                     <!--<Button Grid.Column="2" Width="Auto" Content="Reset to Basics" Click="ResetFeats_Click"
-                                            ToolTip="Add the selected feat to the leader." />-->
+                                            ToolTip="Reset the party leader's feats to the class defaults." />-->
                                 </Grid>
 
                                 <!-- Add Powers -->
                                 <!--<TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
                                 <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
-                                <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click" ToolTip="Add the selected force power to the leader.">
+                                <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click"
+                                        ToolTip="Add the selected force power to the party leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>-->
                             </Grid>
@@ -2473,7 +2485,8 @@
                                 <!-- Set Credits -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Set Credits:" />
                                 <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Name="tbSetCreditsValue"
-                                         PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
                                     <TextBox.Text>
                                         <Binding Path="ValueInSetCreditsBox" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
@@ -2482,8 +2495,10 @@
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="0" Grid.Column="3" Click="SetCredits_Click" ToolTip="Set the amount of credits in the party's inventory."
-                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="0" Grid.Column="3" Click="SetCredits_Click"
+                                        ToolTip="Set the number of credits in the party's inventory. Value must be less than 1 billion - negative values are allowed."
+                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
 
@@ -2494,8 +2509,10 @@
                                 <!-- Give Items -->
                                 <!--<TextBlock Grid.Row="2" Grid.Column="0" Text="Give Item:" />
                                 <ComboBox Grid.Row="2" Grid.Column="1" Name="cbItem" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
-                                <Button Grid.Row="2" Grid.Column="3" Click="GiveItem_Click" ToolTip="Set the amount of credits in the party's inventory."
-                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="2" Grid.Column="3" Click="GiveItem_Click"
+                                        ToolTip="Add the selected item to the party's inventory."
+                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>-->
                             </Grid>
@@ -2556,10 +2573,10 @@
                                 <!-- Render Personal Space -->
                                 <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Personal Space:" />
                                 <StackPanel Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <Button Click="SetGamePersonalSpace_Click" Tag="on" ToolTip="Show the in-game character personal space.">
+                                    <Button Click="SetGamePersonalSpace_Click" Tag="on" ToolTip="Show the in-game creature personal space.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button>
-                                    <Button Click="SetGamePersonalSpace_Click" Tag="off" ToolTip="Hide the in-game character personal space.">
+                                    <Button Click="SetGamePersonalSpace_Click" Tag="off" ToolTip="Hide the in-game creature personal space.">
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
                                 </StackPanel>
@@ -2576,7 +2593,7 @@
                                 </StackPanel>
 
                                 <!-- Trigger Color -->
-                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6" ToolTip="Trigger color as a percentage." />
+                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100." />
                                 <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -2621,7 +2638,7 @@
                                         </TextBox.Text>
                                     </TextBox>
                                 </Grid>
-                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click" ToolTip="Set the game trigger color.">
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                                 
@@ -2683,7 +2700,7 @@
                                     </TextBox>
                                 </Grid>
                                 <Button Grid.Row="6" Grid.Column="3" Click="SetGuiAlpha_Click"
-                                        ToolTip="Add the selected class to the leader.">
+                                        ToolTip="Set the transparency of the in-game user interface.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
