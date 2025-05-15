@@ -442,5 +442,89 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["SelectedBackgroundColor"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowTypeUnderMouse {
+            get {
+                return ((bool)(this["ShowTypeUnderMouse"]));
+            }
+            set {
+                this["ShowTypeUnderMouse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowResRefUnderMouse {
+            get {
+                return ((bool)(this["ShowResRefUnderMouse"]));
+            }
+            set {
+                this["ShowResRefUnderMouse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowTagUnderMouse {
+            get {
+                return ((bool)(this["ShowTagUnderMouse"]));
+            }
+            set {
+                this["ShowTagUnderMouse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowLocalizedNameUnderMouse {
+            get {
+                return ((bool)(this["ShowLocalizedNameUnderMouse"]));
+            }
+            set {
+                this["ShowLocalizedNameUnderMouse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowOnEnterUnderMouse {
+            get {
+                return ((bool)(this["ShowOnEnterUnderMouse"]));
+            }
+            set {
+                this["ShowOnEnterUnderMouse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowTrapsOnAddRim {
+            get {
+                return ((bool)(this["ShowTrapsOnAddRim"]));
+            }
+            set {
+                this["ShowTrapsOnAddRim"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowZonesOnAddRim {
+            get {
+                return ((bool)(this["ShowZonesOnAddRim"]));
+            }
+            set {
+                this["ShowZonesOnAddRim"] = value;
+            }
+        }
     }
 }

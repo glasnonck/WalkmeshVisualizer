@@ -13,7 +13,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using WalkmeshVisualizerWpf.Views;
 
 namespace WalkmeshVisualizerWpf.Models
 {
@@ -36,7 +35,6 @@ namespace WalkmeshVisualizerWpf.Models
                 * Verify these triggers
                     * k39_trg_trap
             * Zone Controller
-                * k_zonetrigger##(#)? (manm27aa)
                 * tar09_area09
                 * tar10_wtflee
                 * unk41_fleetrig
@@ -63,9 +61,9 @@ namespace WalkmeshVisualizerWpf.Models
                 * [modulename]_swooptrig#
                 * k_kor_swoop_03
          */
-        public readonly Regex regexAll  = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)|(^poisongas$)|(^g_zoncata\d+$)|(^zonecatalogu?er?\d\d$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)$");
+        public readonly Regex regexAll  = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)|(^poisongas$)|(^g_zoncata\d+$)|(^k_zonetrigger\d+$)|(^zonecatalogu?er?\d\d$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)$");
         public readonly Regex regexTrap = new Regex(@"(^g_t_\w+\d+$)|(^man27_steam\d\d$)|(^blowtrigd?\d$)|(^poisongas$)");
-        public readonly Regex regexZone = new Regex(@"(^g_zoncata\d+$)|(^zonecatalogu?er?\d\d$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)");
+        public readonly Regex regexZone = new Regex(@"(^g_zoncata\d+$)|(^k_zonetrigger\d+$)|(^zonecatalogu?er?\d\d$)|(^k_flee_trigge(\d\d\d)?r?$)|(_flee$)");
 
         /// <summary>
         /// Collection of ModuleDLZ objects.
@@ -91,17 +89,21 @@ namespace WalkmeshVisualizerWpf.Models
             if (!RimData.Any()) LoadDlzDataFile();
 
             var kpath = new KPaths(gamePath);
+            var bif = new BIF(System.IO.Path.Combine(kpath.data, "templates.bif"));
+            var key = new KEY(kpath.chitin);
+            bif.AttachKey(key, "data\\templates.bif");
+            var tlk = new TLK(kpath.dialog);
             foreach (var rimFileInfo in kpath.FilesInModules.Where(fi => !fi.Name.EndsWith("_s.rim") && fi.Extension != ".erf"))
             {
                 var moduleName = rimFileInfo.Name.Substring(0, rimFileInfo.Name.Length - 4).ToLower();
                 var rim = new RIM(rimFileInfo.FullName);
                 var srim = new RIM(rimFileInfo.FullName.Substring(0, rimFileInfo.FullName.Length - 4) + "_s.rim");
-                
-                var rimDoors = ParseRimDoors(rim);
-                var rimTriggers = ParseRimTriggers(rim);
-                var rimTraps = ParseRimTraps(rim);
-                var rimZones = ParseRimZones(rim);
-                var rimEncounters = ParseRimEncounters(rim, srim);
+
+                //var rimDoors = ParseRimDoors(rim, srim, bif, tlk);
+                var rimTriggers = ParseRimTriggers(rim, srim, bif, tlk);
+                var rimTraps = ParseRimTraps(rim, srim, bif, tlk);
+                var rimZones = ParseRimZones(rim, srim, bif, tlk);
+                var rimEncounters = ParseRimEncounters(rim, srim, bif, tlk);
 
                 RimData module = RimData.FirstOrDefault(m => m.Module == moduleName);
                 if (module == null)
@@ -114,6 +116,7 @@ namespace WalkmeshVisualizerWpf.Models
                 {
                     door.RimDataType = RimDataType.Door;
                     door.Module = module.Module;
+                    door.OnEnter = door.ResRef;
                     for (int i = 0; i < door.CornersX.Count; i++)
                         door.Geometry.Add(new Tuple<float, float>(door.CornersX[i], door.CornersY[i]));
                 }
@@ -323,38 +326,72 @@ namespace WalkmeshVisualizerWpf.Models
             }
         }
 
-        public class Door
+        public class Data
         {
             public string TemplateResRef;
+            public string Tag;
+            public string ScriptOnEnter;
+            public string LocalizedName;
+
+            public Data() { }
+
+            public Data(ResourceType type, GFF.STRUCT s, RIM srim, BIF bif, TLK tlk)
+            {
+                // Collect data from RIM git file.
+                TemplateResRef = (s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference;
+
+                // Find template, checking the SRIM first.
+                GFF template = null;
+                if (srim.File_Table.FirstOrDefault(rf => rf.TypeID == (int)type && rf.Label == TemplateResRef) is RIM.rFile rfile)
+                    template = new GFF(rfile.File_Data);
+                else
+                    template = new GFF(bif.VariableResourceTable.First(vre => vre.ResourceType == type && vre.ResRef == TemplateResRef).EntryData);
+
+                // Collect data from door template
+                var fields = template.Top_Level.Fields;
+                if (fields.FirstOrDefault(f => f.Label == "Tag") is GFF.CExoString t)
+                    Tag = t.CEString;
+
+                if (fields.FirstOrDefault(f => f.Label == "ScriptOnEnter") is GFF.ResRef soe)
+                    ScriptOnEnter = soe.Reference;
+
+                var nameLabel = type == ResourceType.UTD ? "LocName" : "LocalizedName";
+                if (fields.FirstOrDefault(f => f.Label == nameLabel) is GFF.CExoLocString ln && ln.StringRef >= 0)
+                    LocalizedName = tlk.String_Data_Table[ln.StringRef].StringText;
+            }
+        }
+
+        public class Door : Data
+        {
             public string LinkedToModule;
             public float X;
             public float Y;
 
-            public Door(GFF.STRUCT s)
+            public override string ToString()
+                => $"trr: {TemplateResRef}, tag: {Tag}, soe: {ScriptOnEnter}, ln: {LocalizedName}, ltm: {LinkedToModule}";
+
+            public Door(GFF.STRUCT s, RIM srim, BIF bif, TLK tlk) : base(ResourceType.UTD, s, srim, bif, tlk)
             {
-                TemplateResRef = (s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference;
+                // Collect data from RIM git file.
                 LinkedToModule = (s.Fields.First(f => f.Label == "LinkedToModule") as GFF.ResRef).Reference;
                 X = (s.Fields.First(f => f.Label == "X") as GFF.FLOAT).Value;
                 Y = (s.Fields.First(f => f.Label == "Y") as GFF.FLOAT).Value;
             }
         }
 
-        public class Trigger
+        public class Trigger : Data
         {
             public List<Tuple<float, float>> Corners = new List<Tuple<float, float>>();
-            public string TemplateResRef;
 
-            public override string ToString() =>
-                $"ResRef: {TemplateResRef}; Corners: [{string.Join(", ", Corners.Select(t => $"({t.Item1},{t.Item2})"))}]";
+            public override string ToString()
+                => $"trr: {TemplateResRef}, tag: {Tag}, soe: {ScriptOnEnter}, ln: {LocalizedName}";
 
-            public Trigger(GFF.STRUCT s)
+            public Trigger(GFF.STRUCT s, RIM srim, BIF bif, TLK tlk) : base(ResourceType.UTT, s, srim, bif, tlk)
             {
-                TemplateResRef = (s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference;
-
+                // Collect data from RIM git file.
                 var xPos = (s.Fields.First(f => f.Label == "XPosition") as GFF.FLOAT).Value;
                 var yPos = (s.Fields.First(f => f.Label == "YPosition") as GFF.FLOAT).Value;
                 var geometry = new Geometry(s.Fields.First(f => f.Label == "Geometry") as GFF.LIST, "Point");
-
                 foreach (var corner in geometry.Corners)
                 {
                     Corners.Add(new Tuple<float, float>
@@ -366,20 +403,19 @@ namespace WalkmeshVisualizerWpf.Models
             }
         }
 
-        public class Encounter
+        public class Encounter : Data
         {
             public List<Tuple<float, float>> Corners = new List<Tuple<float, float>>();
             public List<Tuple<float, float>> SpawnPoints = new List<Tuple<float, float>>();
-            public string TemplateResRef;
             public float X;
             public float Y;
 
-            public override string ToString() =>
-                base.ToString();
+            public override string ToString()
+                => $"trr: {TemplateResRef}, tag: {Tag}, soe: {ScriptOnEnter}, ln: {LocalizedName}";
 
-            public Encounter(GFF.STRUCT s)
+            public Encounter(GFF.STRUCT s, RIM srim, BIF bif, TLK tlk) : base(ResourceType.UTE, s, srim, bif, tlk)
             {
-                TemplateResRef = (s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference;
+                // Collect data from RIM git file.
                 X = (s.Fields.First(f => f.Label == "XPosition") as GFF.FLOAT).Value;
                 Y = (s.Fields.First(f => f.Label == "YPosition") as GFF.FLOAT).Value;
 
@@ -395,41 +431,43 @@ namespace WalkmeshVisualizerWpf.Models
 
         #endregion
 
-        private List<Door> ParseRimDoors(RIM rim)
+        private List<Door> ParseRimDoors(RIM rim, RIM srim, BIF bif, TLK tlk)
         {
             var doors = new List<Door>();
-            foreach (var d in rim.GitFile.Doors.Structs) doors.Add(new Door(d));
+            foreach (var d in rim.GitFile.Doors.Structs)
+                doors.Add(new Door(d, srim, bif, tlk));
             return doors;
         }
 
-        private List<Trigger> ParseRimTriggers(RIM rim)
+        private List<Trigger> ParseRimTriggers(RIM rim, RIM srim, BIF bif, TLK tlk)
         {
             var triggers = new List<Trigger>();
             foreach (var t in rim.GitFile.Triggers.Structs.Where(s => !regexAll.IsMatch((s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference)))
-                triggers.Add(new Trigger(t));
+                triggers.Add(new Trigger(t, srim, bif, tlk));
             return triggers;
         }
 
-        private List<Trigger> ParseRimTraps(RIM rim)
+        private List<Trigger> ParseRimTraps(RIM rim, RIM srim, BIF bif, TLK tlk)
         {
             var traps = new List<Trigger>();
             foreach (var t in rim.GitFile.Triggers.Structs.Where(s => regexTrap.IsMatch((s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference)))
-                traps.Add(new Trigger(t));
+                traps.Add(new Trigger(t, srim, bif, tlk));
             return traps;
         }
 
-        private List<Trigger> ParseRimZones(RIM rim)
+        private List<Trigger> ParseRimZones(RIM rim, RIM srim, BIF bif, TLK tlk)
         {
             var zones = new List<Trigger>();
             foreach (var t in rim.GitFile.Triggers.Structs.Where(s => regexZone.IsMatch((s.Fields.First(f => f.Label == "TemplateResRef") as GFF.ResRef).Reference)))
-                zones.Add(new Trigger(t));
+                zones.Add(new Trigger(t, srim, bif, tlk));
             return zones;
         }
 
-        private List<Encounter> ParseRimEncounters(RIM rim, RIM srim)
+        private List<Encounter> ParseRimEncounters(RIM rim, RIM srim, BIF bif, TLK tlk)
         {
             var encounters = new List<Encounter>();
-            foreach (var e in rim.GitFile.Encounters.Structs) encounters.Add(new Encounter(e));
+            foreach (var e in rim.GitFile.Encounters.Structs)
+                encounters.Add(new Encounter(e, srim, bif, tlk));
             return encounters;
         }
 
@@ -486,10 +524,14 @@ namespace WalkmeshVisualizerWpf.Models
     {
         public bool AreVisualsBuilt { get; set; } = false;
         public Palette PaletteUsed { get; set; } = null;
-
         public RimDataType RimDataType { get; set; }
+
         public string Module { get; set; }
         public string ResRef { get; set; }
+        public string Tag { get; set; }
+        public string OnEnter { get; set; }
+        public string LocalizedName { get; set; }
+
         public List<float> CornersX { get; set; } = new List<float>();
         public List<float> CornersY { get; set; } = new List<float>();
         public List<Tuple<float, float>> Geometry { get; set; } = new List<Tuple<float, float>>();
@@ -517,6 +559,9 @@ namespace WalkmeshVisualizerWpf.Models
             Module = module;
             ResRef = trigger.TemplateResRef;
             Geometry = trigger.Corners;
+            Tag = trigger.Tag;
+            OnEnter = trigger.ScriptOnEnter;
+            LocalizedName = trigger.LocalizedName;
         }
 
         public RimDataInfo(RimDataSet.Encounter encounter, string module = "")
@@ -526,6 +571,9 @@ namespace WalkmeshVisualizerWpf.Models
             ResRef = encounter.TemplateResRef;
             Geometry = encounter.Corners;
             SpawnPoints = encounter.SpawnPoints;
+            Tag = encounter.Tag;
+            OnEnter = encounter.ScriptOnEnter;
+            LocalizedName = encounter.LocalizedName;
         }
 
         public RimDataInfo(LYT.ArtPlaceable art, string module = "")
@@ -549,9 +597,12 @@ namespace WalkmeshVisualizerWpf.Models
                     ellipse.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
                 }
 
-                Polygon.Fill = value;
-                Polygon.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
-                Polygon.StrokeLineJoin = PenLineJoin.Round;
+                if (Polygon != null)
+                {
+                    Polygon.Fill = value;
+                    Polygon.Stroke = (value == Brushes.Transparent) ? value : Brushes.Black;
+                    Polygon.StrokeLineJoin = PenLineJoin.Round;
+                }
                 
                 SetField(ref _meshColor, value);
                 NotifyPropertyChanged(nameof(MeshVisible));
@@ -602,9 +653,7 @@ namespace WalkmeshVisualizerWpf.Models
         #endregion
 
         public override string ToString()
-        {
-            return $"{ResRef}, {Geometry.Count} corner(s)";
-        }
+            => $"trr: {ResRef}, tag: {Tag}, soe: {OnEnter}, ln: {LocalizedName}";
 
         public void Hide()
         {

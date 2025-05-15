@@ -1,0 +1,153 @@
+﻿<UserControl x:Class="WalkmeshVisualizerWpf.UserControls.MouseHoverDisplayControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WalkmeshVisualizerWpf.UserControls"
+             xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=local:MouseHoverDisplayControl}"
+             d:DesignHeight="100" d:DesignWidth="800">
+    <UserControl.Resources>
+        <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Border Margin="10" Padding="10" Background="LightGray"
+                BorderThickness="1" BorderBrush="Black"
+                Visibility="{Binding ShowRimDataUnderMouse, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Visible}"
+                CornerRadius="4" Opacity=".85">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.Resources>
+                    <Style TargetType="TextBlock" x:Key="tbHeader">
+                        <Setter Property="Margin" Value="0,0,4,0" />
+                        <Setter Property="FontWeight" Value="Bold" />
+                    </Style>
+                </Grid.Resources>
+                
+                <!--Rectangle-->
+                <Grid Grid.Column="0" Width="16" Visibility="{Binding ShowMeshColor, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource tbHeader}" Text="" />
+                    <ItemsControl ItemsSource="{Binding RimDataUnderMouse}" Grid.Row="1">
+                        <ItemsControl.ItemTemplate>
+                            <ItemContainerTemplate>
+                                <Grid Height="16">
+                                    <Rectangle Width="10" Height="10" HorizontalAlignment="Left"
+                                               Fill="{Binding MeshColor}" Stroke="Black" StrokeThickness="1" />
+                                </Grid>
+                            </ItemContainerTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!--RimDataType-->
+                <Grid Grid.Column="1" Width="70" Visibility="{Binding ShowType, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource tbHeader}" Text="Type" />
+                    <ItemsControl ItemsSource="{Binding RimDataUnderMouse}" Grid.Row="1">
+                        <ItemsControl.ItemTemplate>
+                            <ItemContainerTemplate>
+                                <Grid Height="16">
+                                    <TextBlock Text="{Binding RimDataType}" />
+                                </Grid>
+                            </ItemContainerTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!--ResRef-->
+                <Grid Grid.Column="2" Width="120" Visibility="{Binding ShowResRef, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource tbHeader}" Text="Template ResRef" />
+                    <ItemsControl ItemsSource="{Binding RimDataUnderMouse}" Grid.Row="1">
+                        <ItemsControl.ItemTemplate>
+                            <ItemContainerTemplate>
+                                <Grid Height="16">
+                                    <TextBlock Text="{Binding ResRef}" />
+                                </Grid>
+                            </ItemContainerTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!--Tag-->
+                <Grid Grid.Column="3" Width="120" Visibility="{Binding ShowTag, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource tbHeader}" Text="Tag" />
+                    <ItemsControl ItemsSource="{Binding RimDataUnderMouse}" Grid.Row="1">
+                        <ItemsControl.ItemTemplate>
+                            <ItemContainerTemplate>
+                                <Grid Height="16">
+                                    <TextBlock Text="{Binding Tag}" />
+                                </Grid>
+                            </ItemContainerTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!--LocalizedName-->
+                <Grid Grid.Column="4" Width="150" Visibility="{Binding ShowLocalizedName, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource tbHeader}" Text="Localized Name" />
+                    <ItemsControl ItemsSource="{Binding RimDataUnderMouse}" Grid.Row="1">
+                        <ItemsControl.ItemTemplate>
+                            <ItemContainerTemplate>
+                                <Grid Height="16">
+                                    <TextBlock Text="{Binding LocalizedName}" />
+                                </Grid>
+                            </ItemContainerTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!--OnEnter-->
+                <Grid Grid.Column="5" Width="120" Visibility="{Binding ShowOnEnter, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource tbHeader}" Text="On Enter" />
+                    <ItemsControl ItemsSource="{Binding RimDataUnderMouse}" Grid.Row="1">
+                        <ItemsControl.ItemTemplate>
+                            <ItemContainerTemplate>
+                                <Grid Height="16">
+                                    <TextBlock Text="{Binding OnEnter}" />
+                                </Grid>
+                            </ItemContainerTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

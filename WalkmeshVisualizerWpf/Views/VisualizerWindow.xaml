@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:WalkmeshVisualizerWpf.Views"
     xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
+    xmlns:uc="clr-namespace:WalkmeshVisualizerWpf.UserControls"
     xmlns:ZoomAndPan="clr-namespace:ZoomAndPan;assembly=ZoomAndPan"
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
@@ -340,7 +341,7 @@
                 -->
                 <MenuItem Header="_File">
                     <MenuItem Header="Save _Shown Canvas As Image..." Command="{StaticResource Commands.SaveShownCanvas}" />
-                    <MenuItem Header="Save _Full Canvas As Image..." Command="{StaticResource Commands.SaveEntireCanvas}" />
+                    <MenuItem Header="Save _Full Canvas As XPS..." Command="{StaticResource Commands.SaveEntireCanvas}" />
                     <Separator />
                     <MenuItem Header="_Exit" Command="{StaticResource Commands.Exit}" />
                 </MenuItem>
@@ -355,6 +356,13 @@
                     <MenuItem Header="_Fill Page Zoom" Command="{StaticResource Commands.Fill}" />
                     <MenuItem Header="_Default Zoom" Command="{StaticResource Commands.OneHundredPercent}" />
                     <MenuItem Header="Return to _Previous Zoom" Command="{StaticResource Commands.JumpBackToPrevZoom}" />
+                    <Separator />
+                    <!--<MenuItem Header="Identify RIM data under mouse" IsCheckable="True" IsChecked="{Binding }" />-->
+                    <MenuItem Header="Show under mouse: Type" IsCheckable="True" IsChecked="{Binding ShowTypeUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: ResRef" IsCheckable="True" IsChecked="{Binding ShowResRefUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: Tag" IsCheckable="True" IsChecked="{Binding ShowTagUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: Name" IsCheckable="True" IsChecked="{Binding ShowLocalizedNameUnderMouse, Mode=TwoWay}" />
+                    <MenuItem Header="Show under mouse: OnEnter" IsCheckable="True" IsChecked="{Binding ShowOnEnterUnderMouse, Mode=TwoWay}" />
                     <Separator />
                     <MenuItem Header="Set color preferences" Command="{StaticResource Commands.SetColorPreferences}"/>
                 </MenuItem>
@@ -507,10 +515,11 @@
                 </MenuItem>
             </Menu>
 
-            <ProgressBar x:Name="pbLoading" Width="280" Grid.Column="2"
-                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
-                Value="{Binding CurrentProgress}" />
-            
+            <ProgressBar x:Name="pbLoading" Width="280" Grid.Column="2" Value="{Binding CurrentProgress}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,0" Text="{Binding CurrentProgressStatus}"
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+
             <!--
             Stack panel containing the select game options and, once selected, displaying the
             currently selected game.
@@ -2153,13 +2162,10 @@
 
                             <!--#region Momvement -->
                             <TextBlock Text="Movement" Style="{StaticResource tbHeader}" />
-                            
-                            <!-- Teleport Leader -->
-                            <Grid Margin="0,0,0,6">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
@@ -2169,79 +2175,70 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Column="0" Text="Teleport Leader To:" Margin="0,0,4,0" VerticalAlignment="Center" />
-                                <!-- To Left Click Point -->
-                                <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
-                                        ToolTip="Teleport player to left double-click (black) point.">
-                                    <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
-                                </Button>
-                                <!-- To Right Click Point -->
-                                <Button Grid.Column="3" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
-                                        ToolTip="Teleport player to right double-click (white) point.">
-                                    <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
-                                </Button>
-                                <!-- To Custom Coordinates -->
-                                <Button Grid.Column="4" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
-                                        ToolTip="Teleport player to custom coordinates.">
-                                </Button>
-                                <!-- Custom Coordinates -->
-                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Margin="50,2,4,0">
+                                
+                                <!-- Teleport Leader -->
+                                <TextBlock Grid.Column="0" Text="Teleport To:" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                <Grid Grid.Column="1" Grid.ColumnSpan="3">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <!--To Left Click Point-->
+                                    <Button Grid.Column="1" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to left double-click (black) point.">
+                                        <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
+                                    </Button>
+                                    <!--To Right Click Point-->
+                                    <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
+                                        ToolTip="Teleport player to right double-click (white) point.">
+                                        <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
+                                    </Button>
+                                    <!--To Custom Coordinates-->
+                                    <Button Grid.Column="3" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
+                                        ToolTip="Teleport player to custom coordinates.">
+                                    </Button>
+                                </Grid>
+                                
+                                <!-- Custom Coordinates -->
+                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,2,4,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20" />
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="4" />
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="X: " />
-                                    <TextBox   Grid.Column="1" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
-                                    <TextBlock Grid.Column="3" Text="Y: " />
-                                    <TextBox   Grid.Column="4" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="1" Text="X: " />
+                                    <TextBox   Grid.Column="2" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="4" Text="Y: " />
+                                    <TextBox   Grid.Column="5" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
                                 </Grid>
-                            </Grid>
-
-                            <!-- Movement Speed -->
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Margin="0,0,2,0"
-                                           Text="Speed Multiplier:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="2" Width="110" Margin="4,0"
-                                          HorizontalContentAlignment="Right"
-                                          Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
+                                
+                                <!-- Movement Speed -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,2,6" Text="Speed Mul:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="4,0,0,6" Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
                                     <ComboBoxItem>0.5</ComboBoxItem>
                                     <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
                                     <ComboBoxItem>2.0</ComboBoxItem>
                                     <ComboBoxItem>5.0</ComboBoxItem>
                                     <ComboBoxItem>10.0</ComboBoxItem>
                                 </ComboBox>
-                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
-                                        ToolTip="Multiply the default movement speed by the selected value.">
+                                <Button Grid.Row="2" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
+                                    ToolTip="Multiply the default movement speed by the selected value.">
+                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Warp to Module -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,2,6" Text="Warp To:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="4,0,0,6" Grid.ColumnSpan="2" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
+                                <Button Grid.Row="3" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="WarpCheat_Click"
+                                    ToolTip="Load the selected module using the warp cheat.">
                                     <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
-
-                            <!-- Warp to Module -->
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Margin="0,0,2,2"
-                                           Text="Warp To Module:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Column="2" Margin="4,0" Width="110" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
-                                <Button Grid.Column="3" Width="22" Height="22" Margin="0" Padding="0,0" Click="WarpCheat_Click"
-                                        ToolTip="Load the selected module using the warp cheat.">
-                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-                            </Grid>
-                            
                             <Border />
                             <!--#endregion-->
 
@@ -2280,11 +2277,165 @@
                                 <TextBlock Text="Abilities" Style="{StaticResource tbHeader}" />
                                 <Button HorizontalAlignment="Right" Content="Max" Margin="0,-2,26,0" FontSize="10" VerticalAlignment="Top" Width="32" Padding="0,1" Height="18"
                                         VerticalContentAlignment="Center" Click="MaximumAbilities_Click" ToolTip="Assign maximum values to the ability functions." />
-                                <Button Grid.Column="3" Width="22" Height="18" Margin="0,-2,0,0" Padding="0,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                <Button Visibility="Collapsed" Grid.Column="3" Width="22" Height="18" Margin="0,-2,0,0" Padding="0,0" HorizontalAlignment="Right" VerticalAlignment="Top"
                                         Click="AllAbilities_Click" ToolTip="Run all three functions: attribute, skill, and feat.">
                                     <Image Width="14" Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.Resources>
+                                    <ControlTemplate x:Key="TextBoxErrorTemplate">
+                                        <StackPanel>
+                                            <AdornedElementPlaceholder x:Name="Holder" />
+                                            <Label Foreground="Red" Content="{Binding ElementName=Holder,
+                                                   Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="0,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Margin" Value="4,0,0,0" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Height" Value="22" />
+                                        <Setter Property="Width" Value="22" />
+                                    </Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Height" Value="18" />
+                                        <Setter Property="Width" Value="18" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <!-- Add Class -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Add Class:" />
+                                <ComboBox Grid.Row="0" Grid.Column="1" Name="cbClass" Grid.ColumnSpan="2" ItemsSource="{Binding KotorClasses}" />
+                                <Button Grid.Row="0" Grid.Column="3" Click="AddClass_Click"
+                                        ToolTip="Add the selected class to the party leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Level Up -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Add XP:" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Name="tbExperienceValue"
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInExperienceBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="0" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="1" Grid.Column="3" Click="AddExperience_Click"
+                                        ToolTip="Add experience to the party leader. Value must be positive."
+                                        IsEnabled="{Binding ElementName=tbExperienceValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Set Attributes -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Set Attribute:" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Name="cbAttribute" ItemsSource="{Binding KotorAttributes}" />
+                                <TextBox Grid.Row="2" Grid.Column="2" Name="tbAttributeValue"
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInAttributeBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="0" Max="255" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetAttribute_Click"
+                                        ToolTip="Set the party leader's selected attribute rank. Value must be between 0 and 255."
+                                        IsEnabled="{Binding ElementName=tbAttributeValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Set Skills -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Set Skill:" />
+                                <ComboBox Grid.Row="3" Grid.Column="1" Name="cbSkill" ItemsSource="{Binding KotorSkills}" />
+                                <TextBox Grid.Row="3" Grid.Column="2" Name="tbSkillValue"
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInSkillBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="-128" Max="127" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="3" Grid.Column="3" Click="SetSkill_Click"
+                                        ToolTip="Set the party leader's selected skill rank. Value must be between -127 and 127."
+                                        IsEnabled="{Binding ElementName=tbSkillValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Add Feats -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Add Feat:" />
+                                <ComboBox Grid.Row="4" Grid.Column="1" Name="cbFeat" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
+                                <Button Grid.Row="4" Grid.Column="3" Click="AddFeat_Click"
+                                        ToolTip="Add the selected feat to the party leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Clear Feats -->
+                                <Grid Grid.Row="5" Grid.ColumnSpan="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1" Grid.ColumnSpan="2" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click"
+                                            ToolTip="Remove all feats from the party leader. Only light armor proficiency will remain." />
+                                    <!--<Button Grid.Column="2" Width="Auto" Content="Reset to Basics" Click="ResetFeats_Click"
+                                            ToolTip="Reset the party leader's feats to the class defaults." />-->
+                                </Grid>
+
+                                <!-- Add Powers -->
+                                <!--<TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
+                                <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
+                                <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click"
+                                        ToolTip="Add the selected force power to the party leader.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>-->
+                            </Grid>
+                            
+                            <Border />
+                            <!--#endregion-->
+                            
+                            <!--#region Inventory -->
+                            <TextBlock Text="Inventory" Style="{StaticResource tbHeader}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -2330,56 +2481,229 @@
                                         <Setter Property="Width" Value="18" />
                                     </Style>
                                 </Grid.Resources>
-                                
-                                <!-- Set Attributes -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Set Attribute:" />
-                                <ComboBox Grid.Row="0" Grid.Column="1" Name="cbAttribute" ItemsSource="{Binding KotorAttributes}" />
-                                <TextBox Grid.Row="0" Grid.Column="2" Name="tbAttributeValue">
+
+                                <!-- Set Credits -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Set Credits:" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Name="tbSetCreditsValue"
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
                                     <TextBox.Text>
-                                        <Binding Path="ValueInAttributeBox" UpdateSourceTrigger="PropertyChanged">
+                                        <Binding Path="ValueInSetCreditsBox" UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
-                                                <help:IntRangeRule Min="0" Max="255" />
+                                                <help:IntRangeRule Max="999999999" />
                                             </Binding.ValidationRules>
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="0" Grid.Column="3" Click="SetAttribute_Click" ToolTip="Set the leader's attribute value from 0 to 255."
-                                        IsEnabled="{Binding ElementName=tbAttributeValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
+                                <Button Grid.Row="0" Grid.Column="3" Click="SetCredits_Click"
+                                        ToolTip="Set the number of credits in the party's inventory. Value must be less than 1 billion - negative values are allowed."
+                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
+
+                                <!-- Filter Items -->
+                                <!--<TextBlock Grid.Row="1" Grid.Column="0" Text="Item Filter:" />
+                                <ComboBox Grid.Row="1" Grid.Column="1" Name="cbItemFilter" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />-->
                                 
-                                <!-- Set Skills -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Set Skill:" />
-                                <ComboBox Grid.Row="1" Grid.Column="1" Name="cbSkill" ItemsSource="{Binding KotorSkills}" />
-                                <TextBox Grid.Row="1" Grid.Column="2" Name="tbSkillValue">
-                                    <TextBox.Text>
-                                        <Binding Path="ValueInSkillBox" UpdateSourceTrigger="PropertyChanged">
-                                            <Binding.ValidationRules>
-                                                <help:IntRangeRule Min="-128" Max="127" />
-                                            </Binding.ValidationRules>
-                                        </Binding>
-                                    </TextBox.Text>
-                                </TextBox>
-                                <Button Grid.Row="1" Grid.Column="3" Click="SetSkill_Click" ToolTip="Set the leader's skill value from -127 to 127."
-                                        IsEnabled="{Binding ElementName=tbSkillValue, Path=(Validation.HasError), Converter={StaticResource InverseBooleanConverter}}">
-                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-
-                                <!-- Add Feats -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Add Feat:" />
-                                <ComboBox Grid.Row="2" Grid.Column="1" Name="cbFeat" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
-                                <Button Grid.Row="2" Grid.Column="3" Click="AddFeat_Click" ToolTip="Add the selected feat to the leader.">
-                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-
-                                <!-- Add Powers -->
-                                <!--<TextBlock Grid.Row="3" Grid.Column="0" Text="Add Power:" />
-                                <ComboBox Grid.Row="3" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
-                                <Button Grid.Row="3" Grid.Column="3" Click="AddPower_Click" ToolTip="Add the selected force power to the leader.">
+                                <!-- Give Items -->
+                                <!--<TextBlock Grid.Row="2" Grid.Column="0" Text="Give Item:" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Name="cbItem" Grid.ColumnSpan="2" ItemsSource="{Binding KotorFeats}" />
+                                <Button Grid.Row="2" Grid.Column="3" Click="GiveItem_Click"
+                                        ToolTip="Add the selected item to the party's inventory."
+                                        IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>-->
                             </Grid>
+                            <Border />
+                            <!--#endregion-->
                             
+                            <!--#region Rendering-->
+                            <TextBlock Text="Rendering (K1 Only)" Style="{StaticResource tbHeader}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.Resources>
+                                    <ControlTemplate x:Key="TextBoxErrorTemplate">
+                                        <StackPanel>
+                                            <AdornedElementPlaceholder x:Name="Holder" />
+                                            <Label Foreground="Red" Content="{Binding ElementName=Holder,
+                                                   Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="0,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                    </Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Margin" Value="4,0,0,0" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Height" Value="22" />
+                                        <Setter Property="Width" Value="22" />
+                                    </Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Height" Value="18" />
+                                        <Setter Property="Width" Value="18" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <!-- Render Personal Space -->
+                                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Personal Space:" />
+                                <StackPanel Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGamePersonalSpace_Click" Tag="on" ToolTip="Show the in-game creature personal space.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGamePersonalSpace_Click" Tag="off" ToolTip="Hide the in-game creature personal space.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Render Triggers -->
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers (on reload):" />
+                                <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameTrigger_Click" Tag="on" ToolTip="Show the in-game triggers.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameTrigger_Click" Tag="off" ToolTip="Hide the in-game triggers.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Trigger Color -->
+                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100." />
+                                <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Name="tbTriggerColorRedValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerRedBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Grid.Column="1" Name="tbTriggerColorGreenValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerGreenBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Grid.Column="2" Name="tbTriggerColorBlueValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerBlueBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Grid.Column="3" Name="tbTriggerColorAlphaValue" PreviewTextInput="tbPreviewIntegerInput" PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInTriggerAlphaBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </Grid>
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                                
+                                <!-- Render AABB -->
+                                <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="AABBs:" ToolTip="Axis-Aligned Bounding Boxes" />
+                                <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameAABB_Click" Tag="on" ToolTip="Show the in-game bounding boxes.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameAABB_Click" Tag="off" ToolTip="Hide the in-game bounding boxes.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Render Wireframe -->
+                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="Wireframes:" />
+                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameWireframe_Click" Tag="on" ToolTip="Show the in-game wireframes.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameWireframe_Click" Tag="off" ToolTip="Hide the in-game wireframes.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Render GUI -->
+                                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
+                                <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGameGui_Click" Tag="on"
+                                            ToolTip="Show the in-game user interface.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGameGui_Click" Tag="off"
+                                            ToolTip="Hide the in-game user interface.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- GUI Alpha -->
+                                <TextBlock Grid.Row="6" Text="Alpha%:" Margin="10,0,0,6" />
+                                <Grid Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="3" Name="tbGuiAlphaValue"
+                                             PreviewTextInput="tbPreviewIntegerInput"
+                                             PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                        <TextBox.Text>
+                                            <Binding Path="ValueInGuiAlphaBox" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <help:IntRangeRule Min="0" Max="100" />
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </Grid>
+                                <Button Grid.Row="6" Grid.Column="3" Click="SetGuiAlpha_Click"
+                                        ToolTip="Set the transparency of the in-game user interface.">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
                             <Border />
                             <!--#endregion-->
 
@@ -2785,22 +3109,18 @@
                 <!--
                 Mouse Hover Information Grid
                 -->
-                <Grid Grid.Column="3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Border Margin="10" Padding="10" Background="LightGray"
-                            BorderThickness="1" BorderBrush="Black"
-                            Visibility="{Binding ShowRimDataUnderMouse, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}"
-                            CornerRadius="4" Opacity=".85">
-                        <TextBlock Text="{Binding RimDataUnderMouse}" />
-                    </Border>
-                </Grid>
+                <uc:MouseHoverDisplayControl
+                    x:Name="mouseHoverDisplay"
+                    Grid.Column="3"
+                    ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse, FallbackValue=False}"
+                    RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}"
+                    ShowMeshColor="True"
+                    ShowType="{Binding ElementName=thisWindow, Path=ShowTypeUnderMouse, FallbackValue=True}"
+                    ShowResRef="{Binding ElementName=thisWindow, Path=ShowResRefUnderMouse, FallbackValue=True}"
+                    ShowTag="{Binding ElementName=thisWindow, Path=ShowTagUnderMouse, FallbackValue=True}"
+                    ShowLocalizedName="{Binding ElementName=thisWindow, Path=ShowLocalizedNameUnderMouse, FallbackValue=True}"
+                    ShowOnEnter="{Binding ElementName=thisWindow, Path=ShowOnEnterUnderMouse, FallbackValue=True}"
+                    />
                 
                 <!--
                 Right Panel Grid Splitter
@@ -2822,7 +3142,7 @@
                 <Grid x:Name="optionsGrid" Grid.Column="5" Margin="5,0"
                       Visibility="{Binding ShowWalkmeshPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                            FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -2962,6 +3282,7 @@
                     <Grid x:Name="OffGrid" Grid.Row="4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
@@ -2972,8 +3293,17 @@
                                 <Span>)</Span>
                             </TextBlock>
                         </StackPanel>
-                        
-                        <ListView x:Name="lvOff" Grid.Row="1" ItemsSource="{Binding OffRims}"
+
+                        <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,5">
+                            <TextBlock DockPanel.Dock="Left" Text="Filter:"
+                               Margin="20,0,5,0" VerticalAlignment="Center" />
+                            <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearOffRimsFilter_Click">
+                                <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                            </Button>
+                            <TextBox x:Name="txtRimsFilter" TextChanged="TxtOffRimsFilter_TextChanged" />
+                        </DockPanel>
+
+                        <ListView x:Name="lvOff" Grid.Row="2" ItemsSource="{Binding OffRims}"
                                   ItemContainerStyle="{StaticResource OffItemStyle}"
                                   ScrollViewer.VerticalScrollBarVisibility="Visible"
                                   ScrollViewer.CanContentScroll="False">

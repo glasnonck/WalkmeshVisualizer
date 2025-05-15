@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
+using System.Windows.Xps.Packaging;
 using KotOR_IO;
 using KotOR_IO.GffFile;
 using KotOR_IO.Helpers;
@@ -27,6 +28,8 @@ using kmih = KotorMessageInjector.KotorHelpers;
 using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.Windows.Documents;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -81,6 +84,7 @@ namespace WalkmeshVisualizerWpf.Views
             MouseHoverWorker.RunWorkerCompleted += MouseHoverWorker_RunWorkerCompleted;
             MouseHoverWorker.DoWork += MouseHoverWorker_DoWork;
 
+            KotorClassLookup = KotorClassDescriptionLookup.ToDictionary((c) => c.Value, (c) => c.Key);
             DataContext = this;
         }
 
@@ -100,6 +104,8 @@ namespace WalkmeshVisualizerWpf.Views
             ShowDlzLines = settings.ShowDlzLines;
             ShowDoorsOnAddRim = settings.ShowDoorsOnAddRim;
             ShowTriggersOnAddRim = settings.ShowTriggersOnAddRim;
+            ShowTrapsOnAddRim = settings.ShowTrapsOnAddRim;
+            ShowZonesOnAddRim = settings.ShowZonesOnAddRim;
             ShowEncountersOnAddRim = settings.ShowEncountersOnAddRim;
             ShowLivePositionCoordinates = settings.ShowLivePositionCoordinates;
             HidePreviousLiveModule = settings.HidePreviousLiveModule;
@@ -129,6 +135,12 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataTraps = settings.ShowRimDataTraps;
             ShowRimDataZones = settings.ShowRimDataZones;
             ShowRimDataEncounters = settings.ShowRimDataEncounters;
+
+            ShowTypeUnderMouse = settings.ShowTypeUnderMouse;
+            ShowResRefUnderMouse = settings.ShowResRefUnderMouse;
+            ShowTagUnderMouse = settings.ShowTagUnderMouse;
+            ShowLocalizedNameUnderMouse = settings.ShowLocalizedNameUnderMouse;
+            ShowOnEnterUnderMouse = settings.ShowOnEnterUnderMouse;
 
             // Palette
             BrushToName = PaletteManager.GetSelectedPalette().ToDictionary();
@@ -165,6 +177,10 @@ namespace WalkmeshVisualizerWpf.Views
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimTrap.ItemsSource)).Filter = RimDataFilter;
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimZone.ItemsSource)).Filter = RimDataFilter;
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimEncounter.ItemsSource)).Filter = RimDataFilter;
+
+            // Set up RIM filter
+            var view = (CollectionView)CollectionViewSource.GetDefaultView(lvOff.ItemsSource);
+            if (view != null) view.Filter = HandleListFilter;
         }
 
         #endregion // END REGION Constructors
@@ -369,7 +385,6 @@ namespace WalkmeshVisualizerWpf.Views
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
         private const string K2_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR2";
-        private const string MOUSE_OVER_DEFAULT_STRING = "Mouse is above these items:";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
@@ -621,6 +636,13 @@ namespace WalkmeshVisualizerWpf.Views
         {
             get => _currentProgress;
             set => SetField(ref _currentProgress, value);
+        }
+
+        private string _currentProgressStatus;
+        public string CurrentProgressStatus
+        {
+            get => _currentProgressStatus;
+            set => SetField(ref _currentProgressStatus, value);
         }
 
         public bool LeftOrRightClickPointVisible
@@ -1061,6 +1083,41 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showRimDataUnderMouse = false;
 
+        public bool ShowTypeUnderMouse
+        {
+            get => _showTypeUnderMouse;
+            set => SetField(ref _showTypeUnderMouse, value);
+        }
+        private bool _showTypeUnderMouse = true;
+
+        public bool ShowResRefUnderMouse
+        {
+            get => _showResRefUnderMouse;
+            set => SetField(ref _showResRefUnderMouse, value);
+        }
+        private bool _showResRefUnderMouse = true;
+
+        public bool ShowTagUnderMouse
+        {
+            get => _showTagUnderMouse;
+            set => SetField(ref _showTagUnderMouse, value);
+        }
+        private bool _showTagUnderMouse = true;
+
+        public bool ShowLocalizedNameUnderMouse
+        {
+            get => _showLocalizedNameUnderMouse;
+            set => SetField(ref _showLocalizedNameUnderMouse, value);
+        }
+        private bool _showLocalizedNameUnderMouse = true;
+
+        public bool ShowOnEnterUnderMouse
+        {
+            get => _showOnEnterUnderMouse;
+            set => SetField(ref _showOnEnterUnderMouse, value);
+        }
+        private bool _showOnEnterUnderMouse = true;
+
         public Point CurrentMousePosition
         {
             get => _currentMousePosition;
@@ -1068,12 +1125,12 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _currentMousePosition = new Point();
 
-        public string RimDataUnderMouse
+        public List<RimDataInfo> RimDataUnderMouse
         {
             get => _rimDataUnderMouse;
             set => SetField(ref _rimDataUnderMouse, value);
         }
-        private string _rimDataUnderMouse = MOUSE_OVER_DEFAULT_STRING;
+        private List<RimDataInfo> _rimDataUnderMouse = new List<RimDataInfo>();
 
         public int MouseHoverUpdateDelay
         {
@@ -1252,6 +1309,45 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInAttributeBox { get; set; } = 10;
         public int ValueInSkillBox { get; set; } = 0;
 
+        // Kotor 1 MAX =   250,000
+        // Kotor 2 MAX = 1,250,000
+        public int ValueInExperienceBox { get; set; } = 1000;
+        public int ValueInSetCreditsBox { get; set; } = 10000;
+
+        private Dictionary<kmih.CLASSES, string> KotorClassDescriptionLookup = new Dictionary<kmih.CLASSES, string>()
+        {
+            { kmih.CLASSES.SOLDIER,           "Soldier" },
+            { kmih.CLASSES.SCOUT,             "Scout" },
+            { kmih.CLASSES.SCOUNDREL,         "Scoundrel" },
+            { kmih.CLASSES.JEDI_GUARDIAN,     "Jedi Guardian" },
+            { kmih.CLASSES.JEDI_CONSULAR,     "Jedi Consular" },
+            { kmih.CLASSES.JEDI_SENTINEL,     "Jedi Sentinel" },
+            { kmih.CLASSES.COMBAT_DROID,      "Combat Droid" },
+            { kmih.CLASSES.EXPERT_DROID,      "Expert Droid" },
+            { kmih.CLASSES.MINION,            "Minion" },
+            { kmih.CLASSES.TECH_SPECIALIST,   "Tech Specialist" },
+            { kmih.CLASSES.BOUNTY_HUNTER,     "Bounty Hunter" },
+            { kmih.CLASSES.JEDI_WEAPONMASTER, "Jedi Weaponmaster" },
+            { kmih.CLASSES.JEDI_MASTER,       "Jedi Master" },
+            { kmih.CLASSES.JEDI_WATCHMAN,     "Jedi Watchman" },
+            { kmih.CLASSES.SITH_MARAUDER,     "Sith Marauder" },
+            { kmih.CLASSES.SITH_LORD,         "Sith Lord" },
+            { kmih.CLASSES.SITH_ASSASSIN,     "Sith Assassin" },
+        };
+
+        private Dictionary<string, kmih.CLASSES> KotorClassLookup;
+
+        public List<string> Kotor1Classes => Enum.GetValues(typeof(kmih.CLASSES)).Cast<kmih.CLASSES>()
+            .Where(c => (byte)c < kmih.FIRST_KOTOR_2_CLASS).Select(c => KotorClassDescriptionLookup[c]).ToList();
+
+        public List<string> Kotor2Classes => Enum.GetValues(typeof(kmih.CLASSES)).Cast<kmih.CLASSES>().Select(c => KotorClassDescriptionLookup[c]).ToList();
+
+        public List<string> KotorClasses
+        {
+            get => _kotorClasses;
+            set => SetField(ref _kotorClasses, value);
+        }
+        private List<string> _kotorClasses = new List<string>();
 
         public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.ATTRIBUTES))).ToList();
 
@@ -1282,6 +1378,16 @@ namespace WalkmeshVisualizerWpf.Views
         //private List<string> _kotorPowers = new List<string>();
 
         #endregion // ENDREGION Live Tools: Abilities
+
+        #region Live Tools: Rendering
+
+        public int ValueInGuiAlphaBox { get; set; } = 100;
+        public int ValueInTriggerRedBox { get; set; } = 100;
+        public int ValueInTriggerGreenBox { get; set; } = 100;
+        public int ValueInTriggerBlueBox { get; set; } = 0;
+        public int ValueInTriggerAlphaBox { get; set; } = 35;
+
+        #endregion
 
         #endregion // ENDREGION DataBinding Members
 
@@ -2066,8 +2172,14 @@ namespace WalkmeshVisualizerWpf.Views
                     });
                 }
 
-                OffRims = new ObservableCollection<RimModel>(rimModels);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OffRims.Clear();
+                    foreach (var r in rimModels) OffRims.Add(r);
+                });
+
                 AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
+                KotorClasses = Game == K1_NAME ? Kotor1Classes : Kotor2Classes;
                 KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
                 //KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
 
@@ -2578,7 +2690,11 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Sort the ON list and update collection.
                 sorted.Sort();
-                OnRims = new ObservableCollection<RimModel>(sorted);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OnRims.Clear();
+                    foreach (var r in sorted) OnRims.Add(r);
+                });
 
                 // Add RIM data collections.
                 var rdiModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
@@ -3249,7 +3365,11 @@ namespace WalkmeshVisualizerWpf.Views
 
                 // Sort the OFF list and update collection.
                 sorted.Sort();
-                OffRims = new ObservableCollection<RimModel>(sorted);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OffRims.Clear();
+                    foreach (var r in sorted) OffRims.Add(r);
+                });
 
                 // Remove RIM data collections.
                 var rimModule = RimDataSet.RimData.First(m => m.Module == rim.FileName);
@@ -3391,7 +3511,11 @@ namespace WalkmeshVisualizerWpf.Views
             // Sort the OFF collection.
             var sorted = OffRims.ToList();
             sorted.Sort();
-            OffRims = new ObservableCollection<RimModel>(sorted);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                OffRims.Clear();
+                foreach (var r in sorted) OffRims.Add(r);
+            });
 
             // Hide all polygons in the canvas.
             content.Dispatcher.Invoke(() =>
@@ -3691,6 +3815,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowDlzLines = ShowDlzLines;
             settings.ShowDoorsOnAddRim = ShowDoorsOnAddRim;
             settings.ShowTriggersOnAddRim = ShowTriggersOnAddRim;
+            settings.ShowTrapsOnAddRim = ShowTrapsOnAddRim;
+            settings.ShowZonesOnAddRim = ShowZonesOnAddRim;
             settings.ShowEncountersOnAddRim = ShowEncountersOnAddRim;
             settings.ShowLivePositionCoordinates = ShowLivePositionCoordinates;
             settings.HidePreviousLiveModule = HidePreviousLiveModule;
@@ -3719,6 +3845,11 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowRimDataTraps = ShowRimDataTraps;
             settings.ShowRimDataZones = ShowRimDataZones;
             settings.ShowRimDataEncounters = ShowRimDataEncounters;
+            settings.ShowTypeUnderMouse = ShowTypeUnderMouse;
+            settings.ShowResRefUnderMouse = ShowResRefUnderMouse;
+            settings.ShowTagUnderMouse = ShowTagUnderMouse;
+            settings.ShowLocalizedNameUnderMouse = ShowLocalizedNameUnderMouse;
+            settings.ShowOnEnterUnderMouse = ShowOnEnterUnderMouse;
             settings.Save();
         }
 
@@ -3758,7 +3889,54 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SaveEntireCanvas_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            SaveImageFromCanvas(20);
+            SaveToXps();
+        }
+
+        private void SaveToXps()
+        {
+            CurrentProgress = 100;
+            CurrentProgressStatus = "Saving to XPS...";
+            IsBusy = true;
+
+            var dlg = new SaveFileDialog
+            {
+                Title = "Save XPS As",
+                FileName = "screenshot",
+                DefaultExt = ".xps",
+                Filter = "XPS Documents (.xps)|*.xps"
+            };
+
+            var result = dlg.ShowDialog();
+            if (result == true)
+            {
+                var fd = new FixedDocument();
+                var pc = new PageContent();
+                var fp = new FixedPage();
+
+                fp.Height = theGrid.Height - 10;
+                fp.Width = theGrid.Width - 10;
+                theGrid.Margin = new Thickness(LeftOffset - 5, -BottomOffset - 5, 0, 0);
+
+                zoomAndPanControl.Content = null;
+                fp.Children.Add(theGrid);
+                ((System.Windows.Markup.IAddChild)pc).AddChild(fp);
+                fd.Pages.Add(pc);
+
+                var filename = dlg.FileName;
+                if (File.Exists(filename)) File.Delete(filename);
+                var xpsd = new XpsDocument(filename, FileAccess.ReadWrite);
+                var xw = XpsDocument.CreateXpsDocumentWriter(xpsd);
+                xw.Write(fd);
+                xpsd.Close();
+
+                fp.Children.Remove(theGrid);
+                theGrid.Margin = new Thickness(0);
+                zoomAndPanControl.Content = theGrid;
+            }
+
+            CurrentProgress = 0;
+            CurrentProgressStatus = string.Empty;
+            IsBusy = false;
         }
 
         private void SaveEntireCanvas_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -3771,7 +3949,8 @@ namespace WalkmeshVisualizerWpf.Views
             var sfd = new SaveFileDialog
             {
                 Title = "Save Image As",
-                InitialDirectory = Environment.CurrentDirectory,
+                FileName = "screenshot",
+                DefaultExt = ".png",
                 Filter = "PNG File|*.png",
             };
             return sfd.ShowDialog() == true ? sfd.FileName : null;
@@ -4289,6 +4468,25 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
+        private void TxtOffRimsFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(lvOn.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(lvOff.ItemsSource).Refresh();
+        }
+
+        private bool HandleListFilter(object item)
+        {
+            if (string.IsNullOrEmpty(txtRimsFilter.Text)) return true;
+            else return (item as RimModel).FileName.IndexOf(txtRimsFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        (item as RimModel).Planet.IndexOf(txtRimsFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        (item as RimModel).CommonName.IndexOf(txtRimsFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void ClearOffRimsFilter_Click(object sender, RoutedEventArgs e)
+        {
+            txtRimsFilter.Clear();
+        }
+
         #endregion
 
         #region Live Position Methods
@@ -4336,6 +4534,7 @@ namespace WalkmeshVisualizerWpf.Views
                         {
                             if (version != lastVersion) Application.Current.Dispatcher.Invoke(() =>
                             {
+                                KotorClasses = version == 1 ? Kotor1Classes : Kotor2Classes;
                                 KotorFeats = version == 1 ? Kotor1Feats : Kotor2Feats;
                                 //KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
                             });
@@ -4402,7 +4601,6 @@ namespace WalkmeshVisualizerWpf.Views
                             // Get current position and bearing
                             km.pr.ReadUint(km.GetPartyAddress(), out uint partyCount);
                             LivePartyCount = partyCount;
-                            //var partyPositions = km.GetPartyPositions();
                             var partyPositions3D = km.GetPartyPositions3D();
                             var partyBearings = km.GetPartyBearings();
                             var partyInRange = true;
@@ -4427,13 +4625,11 @@ namespace WalkmeshVisualizerWpf.Views
                             if (!LockGatherPartyRange)
                             {
                                 LiveGatherPartyRangePoint = LivePositionEllipsePoint;
-                                //LastGatherPartyRangePosition = LivePositionPoint;
                                 LastGatherPartyRangePosition = partyPositions3D[0];
                                 LastGatherPartyRangePoint = LivePositionEllipsePoint;
                             }
                             else
                             {
-                                //var leaderDist = (LastGatherPartyRangePosition - partyPositions[0]).Length;
                                 var leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[0]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
                             }
@@ -4441,10 +4637,12 @@ namespace WalkmeshVisualizerWpf.Views
                             // Handle party member 1
                             if (partyCount > 1)
                             {
-                                //var leaderDist = (partyPositions[0] - partyPositions[1]).Length;
-                                var leaderDistSq = (partyPositions3D[0] - partyPositions3D[1]).LengthSquared;
+                                double leaderDistSq = 0;
+                                if (!LockGatherPartyRange)
+                                    leaderDistSq = (partyPositions3D[0] - partyPositions3D[1]).LengthSquared;
+                                else
+                                    leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[1]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
-                                //LivePositionEllipsePointPC1 = new Point(partyPositions[1].X + LeftOffset - 0.5, partyPositions[1].Y + BottomOffset - 0.5);
                                 LivePositionEllipsePointPC1 = new Point(partyPositions3D[1].X + LeftOffset - 0.5, partyPositions3D[1].Y + BottomOffset - 0.5);
                                 LiveBearingPC1 = partyBearings[1];
                             }
@@ -4452,10 +4650,12 @@ namespace WalkmeshVisualizerWpf.Views
                             // Handle party member 2
                             if (partyCount > 2)
                             {
-                                //var leaderDist = (partyPositions[0] - partyPositions[2]).Length;
-                                var leaderDistSq = (partyPositions3D[0] - partyPositions3D[2]).LengthSquared;
+                                double leaderDistSq = 0;
+                                if (!LockGatherPartyRange)
+                                    leaderDistSq = (partyPositions3D[0] - partyPositions3D[2]).LengthSquared;
+                                else
+                                    leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[2]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
-                                //LivePositionEllipsePointPC2 = new Point(partyPositions[2].X + LeftOffset - 0.5, partyPositions[2].Y + BottomOffset - 0.5);
                                 LivePositionEllipsePointPC2 = new Point(partyPositions3D[2].X + LeftOffset - 0.5, partyPositions3D[2].Y + BottomOffset - 0.5);
                                 LiveBearingPC2 = partyBearings[2];
                             }
@@ -4636,7 +4836,6 @@ namespace WalkmeshVisualizerWpf.Views
             var mousePosition = new Point();
             IEnumerable<RimDataInfo> visibleRimData = new List<RimDataInfo>();
             var bw = sender as BackgroundWorker;
-            var message = string.Empty;
 
             while (true)
             {
@@ -4652,15 +4851,11 @@ namespace WalkmeshVisualizerWpf.Views
                         .Concat(RimTraps)
                         .Concat(RimZones)
                         .Concat(RimEncounters)
-                        .Where(r => r.MeshVisible);
-                    message = string.Join(Environment.NewLine, visibleRimData
-                        .Where(r => r.IsTouching(mousePosition))
-                        .Select(r => $"{r.RimDataType,-12}\t{GetBrushName(r.MeshColor),-7}\t      {r.ResRef}")
-                        //.Select(r => $"{r.RimDataType,-12}\t{BrushToName[r.MeshColor],-7}\t      {r.ResRef}")
-                        .ToArray());
+                        .Where(r => r.MeshVisible)
+                        .Where(r => r.IsTouching(mousePosition));
                 });
 
-                RimDataUnderMouse = $"Mouse is above these items:{Environment.NewLine}{message}".TrimEnd();
+                RimDataUnderMouse = visibleRimData.ToList();
                 Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
                 sw.Restart();
             }
@@ -4671,7 +4866,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void MouseHoverWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ShowRimDataUnderMouse = false;
-            RimDataUnderMouse = MOUSE_OVER_DEFAULT_STRING;
+            RimDataUnderMouse = new List<RimDataInfo>();
             MouseHoverToggleButton.IsEnabled = true;
         }
 
@@ -5003,14 +5198,49 @@ namespace WalkmeshVisualizerWpf.Views
         /*
          * Attributes, Skills, Feats, and Powers (Abilities)
          */
+        private void tbPreviewIntegerInput(object sender, TextCompositionEventArgs e)
+        {
+            // TODO: Consider implementing paste handling for any text box that should be limited.
+            //DataObject.AddPastingHandler
+            var r = new Regex(@"^-$|^-?[0-9]+$");
+            if (!r.IsMatch(e.Text))
+                e.Handled = true;
+        }
+
+        private void tbPreviewIntegerKeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Space) e.Handled = true; }
+
+        private void AddClass_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbClass.Text == string.Empty) return;           // Exit if no attribute selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Set class
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.AddCreatureClass(km.pr.h, player, KotorClassLookup[cbClass.Text]);
+        }
+
+        private void AddExperience_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            // Add experience
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.AddCreatureExp(km.pr.h, player, (uint)ValueInExperienceBox);
+        }
 
         private void MaximumAbilities_Click(object sender, RoutedEventArgs e)
         {
+            tbExperienceValue.Text = SelectedGame == K1_NAME ? "250000" : "1250000";
             cbAttribute.SelectedItem = KotorAttributes.FirstOrDefault();
             tbAttributeValue.Text = "255";
             cbSkill.SelectedItem = KotorAttributes.FirstOrDefault();
             tbSkillValue.Text = "127";
             cbFeat.SelectedItem = KotorFeats.FirstOrDefault();
+            //cbPower.SelectedItem = KotorPowers.FirstOrDefault();
         }
 
         private void AllAbilities_Click(object sender, RoutedEventArgs e)
@@ -5099,28 +5329,119 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        //private void AddPower_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (cbPower.Text == string.Empty) return;                // Exit if no power selected
-        //    var km = new KotorManager(GetRunningKotor());
-        //    if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+        private void ResetFeats_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
 
-        //    // Get powers to add
-        //    var powers = new List<string>();
-        //    if (cbPower.Text == ALL_ABILITIES)
-        //        powers = KotorPowers.ToList();
-        //    else powers.Add(cbPower.Text);
+            // Get feats to add as default
+            var feats = new List<kmih.FEATS>()
+            {
+                kmih.FEATS.ARMOUR_PROF_LIGHT,
+                kmih.FEATS.WEAPON_PROF_BLASTER,
+                kmih.FEATS.WEAPON_PROF_BLASTER_RIFLE,
+                kmih.FEATS.WEAPON_PROF_MELEE_WEAPONS,
+            };
 
-        //    // Add powers
-        //    var player = kmia.GetPlayerServerObject(km.pr.h);
-        //    km.RefreshAddresses();
-        //    foreach (var power in powers)
-        //    {
-        //        if (power == ALL_ABILITIES) continue;
-        //        kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
-        //        km.RefreshAddresses();
-        //    }
-        //}
+            // Add feats
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.SetCreatureFeats(km.pr.h, player, feats);
+        }
+
+        private void AddPower_Click(object sender, RoutedEventArgs e)
+        {
+            //if (cbPower.Text == string.Empty) return;                // Exit if no power selected
+            //var km = new KotorManager(GetRunningKotor());
+            //if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+
+            //// Get powers to add
+            //var powers = new List<string>();
+            //if (cbPower.Text == ALL_ABILITIES)
+            //    powers = KotorPowers.ToList();
+            //else powers.Add(cbPower.Text);
+
+            //// Add powers
+            //var player = kmia.GetPlayerServerObject(km.pr.h);
+            //km.RefreshAddresses();
+            //foreach (var power in powers)
+            //{
+            //    if (power == ALL_ABILITIES) continue;
+            //    kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
+            //    km.RefreshAddresses();
+            //}
+        }
+
+        /*
+         * Inventory
+         */
+        private void SetCredits_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            kmia.SetCreatureCredits(km.pr.h, player, ValueInSetCreditsBox);
+        }
+
+        private void GiveItem_Click(object sender, RoutedEventArgs e)
+        {
+            // 
+        }
+
+        /*
+         * Rendering
+         */
+        private void SetGameGui_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderGui((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGuiAlpha_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderGuiAlpha(ValueInGuiAlphaBox / 100f);
+        }
+
+        private void SetGameAABB_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderAABB((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGameWireframe_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderWireframe((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGameTrigger_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderTrigger((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGameTriggerColor_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderTriggerColor(ValueInTriggerRedBox / 100f, ValueInTriggerGreenBox / 100f,
+                                     ValueInTriggerBlueBox / 100f, ValueInTriggerAlphaBox / 100f);
+        }
+
+        private void SetGamePersonalSpace_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderPersonalSpace((sender as Button).Tag.ToString() == "on");
+        }
 
         /*
          * Free Camera
