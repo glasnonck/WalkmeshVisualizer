@@ -11,7 +11,7 @@
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
-    MinHeight="600" Height="800"
+    MinHeight="600" Height="900"
     MinWidth="800" Width="1200"
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
@@ -160,6 +160,7 @@
         <help:AnyVisibleRdiConverter x:Key="AnyVisibleRdiConverter" />
         <help:AnyHiddenRdiConverter x:Key="AnyHiddenRdiConverter" />
         <help:StringEqualsConverter x:Key="StringEqualsConverter" />
+        <help:StringEqualsToVisibilityConverter x:Key="StringEqualsToVisibilityConverter" />
         <help:StringNotEqualsConverter x:Key="StringNotEqualsConverter" />
         <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
         <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
@@ -2520,7 +2521,7 @@
                             <!--#endregion-->
                             
                             <!--#region Rendering-->
-                            <TextBlock Text="Rendering (K1 Only)" Style="{StaticResource tbHeader}" />
+                            <TextBlock Text="Rendering" Style="{StaticResource tbHeader}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -2529,6 +2530,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -2582,7 +2584,10 @@
                                 </StackPanel>
 
                                 <!-- Render Triggers -->
-                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers (on reload):" />
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers:" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="(on reload)"
+                                           Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                               Converter={StaticResource StringEqualsToVisibilityConverter}}" />
                                 <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameTrigger_Click" Tag="on" ToolTip="Show the in-game triggers.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2593,8 +2598,15 @@
                                 </StackPanel>
 
                                 <!-- Trigger Color -->
-                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100." />
-                                <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
+                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6"
+                                           ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100."
+                                           Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                               Converter={StaticResource StringEqualsToVisibilityConverter}}" />
+                                <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                                      IsEnabled="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                          Converter={StaticResource StringEqualsConverter}}"
+                                      Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                          Converter={StaticResource StringEqualsToVisibilityConverter}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
@@ -2638,7 +2650,12 @@
                                         </TextBox.Text>
                                     </TextBox>
                                 </Grid>
-                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100.">
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click"
+                                        ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100."
+                                        IsEnabled="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                            Converter={StaticResource StringEqualsConverter}}"
+                                        Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                            Converter={StaticResource StringEqualsToVisibilityConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                                 
@@ -2652,21 +2669,32 @@
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
                                 </StackPanel>
+                                
+                                <!-- Render Placeholders -->
+                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="Placeholders:" />
+                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGamePlaceholders_Click" Tag="on" ToolTip="Show the in-game placeholders.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGamePlaceholders_Click" Tag="off" ToolTip="Hide the in-game placeholders.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
 
                                 <!-- Render Wireframe -->
-                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="Wireframes:" />
-                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <!--<TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="Wireframes:" />
+                                <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameWireframe_Click" Tag="on" ToolTip="Show the in-game wireframes.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button>
                                     <Button Click="SetGameWireframe_Click" Tag="off" ToolTip="Hide the in-game wireframes.">
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
-                                </StackPanel>
+                                </StackPanel>-->
 
                                 <!-- Render GUI -->
-                                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
-                                <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <!--<TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
+                                <StackPanel Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameGui_Click" Tag="on"
                                             ToolTip="Show the in-game user interface.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2675,11 +2703,11 @@
                                             ToolTip="Hide the in-game user interface.">
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
-                                </StackPanel>
+                                </StackPanel>-->
 
                                 <!-- GUI Alpha -->
-                                <TextBlock Grid.Row="6" Text="Alpha%:" Margin="10,0,0,6" />
-                                <Grid Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2">
+                                <!--<TextBlock Grid.Row="7" Text="Alpha%:" Margin="10,0,0,6" />
+                                <Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
@@ -2699,10 +2727,10 @@
                                         </TextBox.Text>
                                     </TextBox>
                                 </Grid>
-                                <Button Grid.Row="6" Grid.Column="3" Click="SetGuiAlpha_Click"
+                                <Button Grid.Row="7" Grid.Column="3" Click="SetGuiAlpha_Click"
                                         ToolTip="Set the transparency of the in-game user interface.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
+                                </Button>-->
                             </Grid>
                             <Border />
                             <!--#endregion-->

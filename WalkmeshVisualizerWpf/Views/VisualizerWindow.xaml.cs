@@ -735,12 +735,14 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _isBusy, value);
         }
 
-        private string _selectedGame = DEFAULT;
         public string SelectedGame
         {
-            get => _selectedGame;
-            set => SetField(ref _selectedGame, value);
+            get { return (string)GetValue(SelectedGameProperty); }
+            set { SetValue(SelectedGameProperty, value); }
         }
+
+        public static readonly DependencyProperty SelectedGameProperty =
+            DependencyProperty.Register(nameof(SelectedGame), typeof(string), typeof(VisualizerWindow), new PropertyMetadata(DEFAULT));
 
         public double _leftOffset;
         public double LeftOffset
@@ -2183,7 +2185,7 @@ namespace WalkmeshVisualizerWpf.Views
                 KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
                 //KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
 
-                SelectedGame = e.Argument?.ToString() ?? DEFAULT;
+                Application.Current.Dispatcher.Invoke(() => SelectedGame = e.Argument?.ToString() ?? DEFAULT);
 
                 if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
                 {
@@ -5441,6 +5443,13 @@ namespace WalkmeshVisualizerWpf.Views
             var km = new KotorManager(GetRunningKotor());
             if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
             km.SetRenderPersonalSpace((sender as Button).Tag.ToString() == "on");
+        }
+
+        private void SetGamePlaceholders_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            km.SetRenderPlaceholders((sender as Button).Tag.ToString() == "on");
         }
 
         /*

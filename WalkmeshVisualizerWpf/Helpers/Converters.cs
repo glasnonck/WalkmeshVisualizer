@@ -77,6 +77,15 @@ namespace WalkmeshVisualizerWpf.Helpers
             => throw new NotImplementedException();
     }
 
+    public class StringEqualsToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value.ToString().ToLower() == parameter.ToString().ToLower()) ? Visibility.Visible : Visibility.Collapsed;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
     public class IntLessEqualConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
