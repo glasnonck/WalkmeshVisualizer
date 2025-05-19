@@ -107,7 +107,6 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint[] MG_TUNNEL_LIMIT_NEG;  // float, negative tunnel limit
 
         public uint RENDERING_NO_GUI;
-        public uint RENDERING_GUI_ALPHA;
         public uint RENDERING_AABB;
         public uint RENDERING_WIREFRAME;
         public uint RENDERING_QA_TRIGGERS;
@@ -165,7 +164,6 @@ namespace WalkmeshVisualizerWpf.Helpers
                 MG_PLAYER_POSITION_Z = MG_PLAYER_POSITION; MG_PLAYER_POSITION_Z[7] += 0x8;
 
                 RENDERING_NO_GUI         = 0x007BB4D0;
-                RENDERING_GUI_ALPHA      = 0x00459216;
                 RENDERING_WIREFRAME      = 0x007BB4F0;
                 RENDERING_PLACEHOLDERS   = 0x00828024;
                 RENDERING_AABB           = 0x007FBF5C;
@@ -212,18 +210,13 @@ namespace WalkmeshVisualizerWpf.Helpers
                 MG_TUNNEL_LIMIT_POS = new uint[] { };
                 MG_TUNNEL_LIMIT_NEG = new uint[] { };
 
-                //RENDERING_NO_GUI         = 0x00000000;
-                //RENDERING_GUI_ALPHA      = 0x00000000;
-                //RENDERING_WIREFRAME      = 0x00000000;
+                RENDERING_NO_GUI         = 0x00a34c00;
+                RENDERING_WIREFRAME      = 0x00a3272c;
                 RENDERING_PLACEHOLDERS   = 0x00A2A3A0;
                 RENDERING_AABB           = 0x00A29E1C;
                 RENDERING_PERSONAL_SPACE = 0x00A19114;
                 RENDERING_QA_TRIGGERS    = 0x00A190E4;
                 RENDERING_TRIGGERS       = 0x00A149B8;
-                //RENDERING_TRIGGERS_RED   = 0x00000000;
-                //RENDERING_TRIGGERS_GREEN = 0x00000000;
-                //RENDERING_TRIGGERS_BLUE  = 0x00000000;
-                //RENDERING_TRIGGERS_ALPHA = 0x00000000;
             }
             else
             {
@@ -265,18 +258,13 @@ namespace WalkmeshVisualizerWpf.Helpers
             MG_TUNNEL_LIMIT_POS = new uint[] { };
             MG_TUNNEL_LIMIT_NEG = new uint[] { };
 
-            //RENDERING_NO_GUI         = 0x00000000;
-            //RENDERING_GUI_ALPHA      = 0x00000000;
-            //RENDERING_WIREFRAME      = 0x00000000;
+            RENDERING_NO_GUI         = 0x00a32a30;
+            RENDERING_WIREFRAME      = 0x00a32a50;
             RENDERING_PLACEHOLDERS   = 0x00a73708;
             RENDERING_AABB           = 0x00a73284;
             RENDERING_PERSONAL_SPACE = 0x00a2006c;
             RENDERING_QA_TRIGGERS    = 0x00a2003c;
             RENDERING_TRIGGERS       = 0x00a7e0e8;
-            //RENDERING_TRIGGERS_RED   = 0x00000000;
-            //RENDERING_TRIGGERS_GREEN = 0x00000000;
-            //RENDERING_TRIGGERS_BLUE  = 0x00000000;
-            //RENDERING_TRIGGERS_ALPHA = 0x00000000;
         }
 
         public static uint GetGOAIndexFromServerID(uint id)
@@ -609,18 +597,7 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public bool SetRenderGui(bool isVisible)
         {
-            if (version == 1)
-                pr.WriteUint(ka.RENDERING_NO_GUI, isVisible ? 0u : 1u);
-            else return false;  // K2 addresses not implemented
-            return !pr.hasFailed;
-        }
-
-        public bool SetRenderGuiAlpha(float alpha)
-        {
-            if (version == 1)
-                pr.WriteFloat(ka.RENDERING_GUI_ALPHA, alpha);
-            else return false;  // K2 addresses not implemented
-            return !pr.hasFailed;
+            return !pr.WriteUint(ka.RENDERING_NO_GUI, isVisible ? 0u : 1u);
         }
 
         public bool SetRenderAABB(bool isVisible)
@@ -630,10 +607,7 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public bool SetRenderWireframe(bool isVisible)
         {
-            if (version == 1)
-                pr.WriteUint(ka.RENDERING_WIREFRAME, isVisible ? 1u : 0u);
-            else return false;  // K2 addresses not implemented
-            return !pr.hasFailed;
+            return !pr.WriteUint(ka.RENDERING_WIREFRAME, isVisible ? 1u : 0u);
         }
 
         public bool SetRenderTrigger(bool isVisible)

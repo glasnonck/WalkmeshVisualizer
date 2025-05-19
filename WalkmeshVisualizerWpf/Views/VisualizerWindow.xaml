@@ -2412,17 +2412,17 @@
                                 </Button>
                                 
                                 <!-- Clear Feats -->
-                                <Grid Grid.Row="5" Grid.ColumnSpan="4">
+                                <Grid >
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="20" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="1" Grid.ColumnSpan="2" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click"
-                                            ToolTip="Remove all feats from the party leader. Only light armor proficiency will remain." />
                                     <!--<Button Grid.Column="2" Width="Auto" Content="Reset to Basics" Click="ResetFeats_Click"
                                             ToolTip="Reset the party leader's feats to the class defaults." />-->
                                 </Grid>
+                                <Button Grid.Row="5" Grid.ColumnSpan="4" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click" Margin="26,-3,26,6"
+                                        ToolTip="Remove all feats from the party leader. Only light armor proficiency will remain." />
 
                                 <!-- Add Powers -->
                                 <TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
@@ -2430,12 +2430,11 @@
                                     <ComboBoxItem IsSelected="True">Class 1</ComboBoxItem>
                                     <ComboBoxItem>Class 2</ComboBoxItem>
                                 </ComboBox>
-                                <!--<StackPanel  Grid.ColumnSpan="2" > </StackPanel>-->
                                 <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click"
                                         ToolTip="Add the selected force power to the party leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
-                                <ComboBox Grid.Row="7" Grid.ColumnSpan="3" Name="cbPower" ItemsSource="{Binding KotorPowers}" Margin="24,-3,0,6" />
+                                <ComboBox Grid.Row="7" Grid.ColumnSpan="5" Name="cbPower" ItemsSource="{Binding KotorPowers}" Margin="26,-3,26,6" />
                             </Grid>
                             
                             <Border />
@@ -2590,10 +2589,7 @@
                                 </StackPanel>
 
                                 <!-- Render Triggers -->
-                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers:" />
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="(on reload)"
-                                           Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
-                                               Converter={StaticResource StringEqualsToVisibilityConverter}}" />
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers: (on reload)" />
                                 <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameTrigger_Click" Tag="on" ToolTip="Show the in-game triggers.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2688,7 +2684,7 @@
                                 </StackPanel>
 
                                 <!-- Render Wireframe -->
-                                <!--<TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="Wireframes:" />
+                                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="Wireframes:" />
                                 <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameWireframe_Click" Tag="on" ToolTip="Show the in-game wireframes.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2696,10 +2692,10 @@
                                     <Button Click="SetGameWireframe_Click" Tag="off" ToolTip="Hide the in-game wireframes.">
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
-                                </StackPanel>-->
+                                </StackPanel>
 
                                 <!-- Render GUI -->
-                                <!--<TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
+                                <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
                                 <StackPanel Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameGui_Click" Tag="on"
                                             ToolTip="Show the in-game user interface.">
@@ -2709,34 +2705,7 @@
                                             ToolTip="Hide the in-game user interface.">
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
-                                </StackPanel>-->
-
-                                <!-- GUI Alpha -->
-                                <!--<TextBlock Grid.Row="7" Text="Alpha%:" Margin="10,0,0,6" />
-                                <Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="3" Name="tbGuiAlphaValue"
-                                             PreviewTextInput="tbPreviewIntegerInput"
-                                             PreviewKeyDown="tbPreviewIntegerKeyDown">
-                                        <TextBox.Text>
-                                            <Binding Path="ValueInGuiAlphaBox" UpdateSourceTrigger="PropertyChanged">
-                                                <Binding.ValidationRules>
-                                                    <help:IntRangeRule Min="0" Max="100" />
-                                                </Binding.ValidationRules>
-                                            </Binding>
-                                        </TextBox.Text>
-                                    </TextBox>
-                                </Grid>
-                                <Button Grid.Row="7" Grid.Column="3" Click="SetGuiAlpha_Click"
-                                        ToolTip="Set the transparency of the in-game user interface.">
-                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>-->
+                                </StackPanel>
                             </Grid>
                             <Border />
                             <!--#endregion-->

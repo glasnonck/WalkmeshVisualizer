@@ -5422,13 +5422,6 @@ namespace WalkmeshVisualizerWpf.Views
             km.SetRenderGui((sender as Button).Tag.ToString() == "on");
         }
 
-        private void SetGuiAlpha_Click(object sender, RoutedEventArgs e)
-        {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
-            km.SetRenderGuiAlpha(ValueInGuiAlphaBox / 100f);
-        }
-
         private void SetGameAABB_Click(object sender, RoutedEventArgs e)
         {
             var km = new KotorManager(GetRunningKotor());
