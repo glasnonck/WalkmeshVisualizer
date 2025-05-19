@@ -1308,6 +1308,17 @@ namespace WalkmeshVisualizerWpf.Views
         #region Live Tools: Abilities
 
         private const string ALL_ABILITIES = "ALL";
+        //private const string ALL_BAD_SPELLS = "Bad Spells";                 // Starts or Ends with XXX
+        //private const string ALL_SPECIAL_ABILITIES = "Special Abilities";   // Starts with SPECIAL_ABILITY_
+        //private const string ALL_ITEM_ABILITY = "Item Abilities";           // Starts with ITEM_ABILITY_
+        //private const string ALL_MONSTER_ABILITY = "Monster Abilities";     // Starts with MONSTER_ABILITY_
+        //private const string ALL_PLOT = "Plot";                             // Starts with PLOT_
+        //private const string ALL_DROID_ITEM = "Droid Item";                 // Starts with DROID_ITEM_
+        //private const string ALL_FORCE_POWERS = "Force Powers";             // Starts with FORCE_POWER_
+        //private const string ALL_SABER_FORMS = "Saber Forms";               // Starts with FORM_SABER_
+        //private const string ALL_FORCE_FORMS = "Force Forms";               // Starts with FORM_FORCE_
+        //private const string ALL_WOOKIEE = "Wookiee Abilities";             // Starts with WOOKIEE_
+
         public int ValueInAttributeBox { get; set; } = 10;
         public int ValueInSkillBox { get; set; } = 0;
 
@@ -1316,6 +1327,7 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInExperienceBox { get; set; } = 1000;
         public int ValueInSetCreditsBox { get; set; } = 10000;
 
+        // Classes
         private Dictionary<kmih.CLASSES, string> KotorClassDescriptionLookup = new Dictionary<kmih.CLASSES, string>()
         {
             { kmih.CLASSES.SOLDIER,           "Soldier" },
@@ -1351,14 +1363,19 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private List<string> _kotorClasses = new List<string>();
 
+        // Attributes
         public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.ATTRIBUTES))).ToList();
 
+        // Skills
         public List<string> KotorSkills => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.SKILLS))).ToList();
 
+        // Feats
         public List<string> Kotor1Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.FEATS)).Cast<ushort>().ToList()
-            .Where(f => f < kmih.FIRST_KOTOR_2_FEAT).Cast<kmih.FEATS>().Select(f => f.ToString()).OrderBy(f => f)).ToList();
+            .Where(f => f < kmih.FIRST_KOTOR_2_FEAT).Cast<kmih.FEATS>().Select(f => f.ToString())
+            .Where(f => !f.StartsWith("XXX") && !f.EndsWith("XXX")).OrderBy(f => f)).ToList();
 
-        public List<string> Kotor2Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.FEATS)).OrderBy(f => f)).ToList();
+        public List<string> Kotor2Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.FEATS))
+            .Where(f => !f.StartsWith("XXX") && !f.EndsWith("XXX")).OrderBy(f => f)).ToList();
 
         public List<string> KotorFeats
         {
@@ -1367,17 +1384,20 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private List<string> _kotorFeats = new List<string>();
 
-        //public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.POWERS)).Cast<ushort>().ToList()
-        //    .Where(f => f < kmih.FIRST_KOTOR_2_POWER).Cast<kmih.POWERS>().Select(f => f.ToString()).OrderBy(f => f)).ToList();
+        // Powers
+        public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.SPELLS)).Cast<int>().ToList()
+            .Where(p => p < kmih.FIRST_KOTOR_2_SPELL).Cast<kmih.SPELLS>().Select(p => p.ToString())
+            .Where(p => !p.StartsWith("XXX") && !p.EndsWith("XXX")).OrderBy(p => p)).ToList();
 
-        //public List<string> Kotor2Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.POWERS)).OrderBy(f => f)).ToList();
+        public List<string> Kotor2Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.SPELLS))
+            .Where(p => !p.StartsWith("XXX") && !p.EndsWith("XXX")).OrderBy(p => p)).ToList();
 
-        //public List<string> KotorPowers
-        //{
-        //    get => _kotorPowers;
-        //    set => SetField(ref _kotorPowers, value);
-        //}
-        //private List<string> _kotorPowers = new List<string>();
+        public List<string> KotorPowers
+        {
+            get => _kotorPowers;
+            set => SetField(ref _kotorPowers, value);
+        }
+        private List<string> _kotorPowers = new List<string>();
 
         #endregion // ENDREGION Live Tools: Abilities
 
@@ -2183,7 +2203,7 @@ namespace WalkmeshVisualizerWpf.Views
                 AllRimNames = OffRims.Select(rm => rm.FileName).ToList();
                 KotorClasses = Game == K1_NAME ? Kotor1Classes : Kotor2Classes;
                 KotorFeats  = Game == K1_NAME ? Kotor1Feats  : Kotor2Feats;
-                //KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
+                KotorPowers = Game == K1_NAME ? Kotor1Powers : Kotor2Powers;
 
                 Application.Current.Dispatcher.Invoke(() => SelectedGame = e.Argument?.ToString() ?? DEFAULT);
 
@@ -4538,7 +4558,7 @@ namespace WalkmeshVisualizerWpf.Views
                             {
                                 KotorClasses = version == 1 ? Kotor1Classes : Kotor2Classes;
                                 KotorFeats = version == 1 ? Kotor1Feats : Kotor2Feats;
-                                //KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
+                                KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
                             });
                             lastVersion = version;
 
@@ -5242,7 +5262,7 @@ namespace WalkmeshVisualizerWpf.Views
             cbSkill.SelectedItem = KotorAttributes.FirstOrDefault();
             tbSkillValue.Text = "127";
             cbFeat.SelectedItem = KotorFeats.FirstOrDefault();
-            //cbPower.SelectedItem = KotorPowers.FirstOrDefault();
+            cbPower.SelectedItem = KotorPowers.FirstOrDefault();
         }
 
         private void AllAbilities_Click(object sender, RoutedEventArgs e)
@@ -5353,25 +5373,25 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void AddPower_Click(object sender, RoutedEventArgs e)
         {
-            //if (cbPower.Text == string.Empty) return;                // Exit if no power selected
-            //var km = new KotorManager(GetRunningKotor());
-            //if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            if (cbPower.Text == string.Empty) return;               // Exit if no power selected
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
 
-            //// Get powers to add
-            //var powers = new List<string>();
-            //if (cbPower.Text == ALL_ABILITIES)
-            //    powers = KotorPowers.ToList();
-            //else powers.Add(cbPower.Text);
+            // Get powers to add
+            var powers = new List<string>();
+            if (cbPower.Text == ALL_ABILITIES)
+                powers = KotorPowers.ToList();
+            else powers.Add(cbPower.Text);
 
-            //// Add powers
-            //var player = kmia.GetPlayerServerObject(km.pr.h);
-            //km.RefreshAddresses();
-            //foreach (var power in powers)
-            //{
-            //    if (power == ALL_ABILITIES) continue;
-            //    kmia.AddCreaturePower(km.pr.h, player, power.ToEnum<kmih.POWERS>());
-            //    km.RefreshAddresses();
-            //}
+            // Add powers
+            var player = kmia.GetPlayerServerObject(km.pr.h);
+            km.RefreshAddresses();
+            foreach (var power in powers)
+            {
+                if (power == ALL_ABILITIES) continue;
+                kmia.AddCreatureSpell(km.pr.h, player, (byte)cbPowerTarget.SelectedIndex, power.ToEnum<kmih.SPELLS>());
+                km.RefreshAddresses();
+            }
         }
 
         /*

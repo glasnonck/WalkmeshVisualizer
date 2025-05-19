@@ -2298,6 +2298,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <Grid.Resources>
                                     <ControlTemplate x:Key="TextBoxErrorTemplate">
@@ -2424,12 +2425,17 @@
                                 </Grid>
 
                                 <!-- Add Powers -->
-                                <!--<TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
-                                <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
+                                <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPowerTarget">
+                                    <ComboBoxItem IsSelected="True">Class 1</ComboBoxItem>
+                                    <ComboBoxItem>Class 2</ComboBoxItem>
+                                </ComboBox>
+                                <!--<StackPanel  Grid.ColumnSpan="2" > </StackPanel>-->
                                 <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click"
                                         ToolTip="Add the selected force power to the party leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>-->
+                                </Button>
+                                <ComboBox Grid.Row="7" Grid.ColumnSpan="3" Name="cbPower" ItemsSource="{Binding KotorPowers}" Margin="24,-3,0,6" />
                             </Grid>
                             
                             <Border />
