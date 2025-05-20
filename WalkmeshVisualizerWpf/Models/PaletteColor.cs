@@ -10,6 +10,14 @@ namespace WalkmeshVisualizerWpf.Models
         private Brush _color;
         private string _colorText;
 
+        public PaletteColor() { }
+
+        public PaletteColor(PaletteColor color)
+        {
+            ColorText = color.ColorText;
+            Name = color.Name;
+        }
+
         [JsonIgnore]
         public Brush Color => _color;
 
@@ -18,8 +26,15 @@ namespace WalkmeshVisualizerWpf.Models
             get => _colorText;
             set
             {
-                _colorText = value;
-                _color = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+                try
+                {
+                    _color = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+                    _colorText = value;
+                }
+                catch (Exception)
+                {
+                    // In the case of an exception, don't save the new value and continue.
+                }
             }
         }
 

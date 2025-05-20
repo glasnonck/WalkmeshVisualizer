@@ -99,6 +99,9 @@
     <Compile Include="Views\MatchingWindow.xaml.cs">
       <DependentUpon>MatchingWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\PaletteDesignerWindow.xaml.cs">
+      <DependentUpon>PaletteDesignerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SetColorPreferencesWindow.xaml.cs">
       <DependentUpon>SetColorPreferencesWindow.xaml</DependentUpon>
     </Compile>
@@ -138,6 +141,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\MatchingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PaletteDesignerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -205,6 +212,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\Icons\RefreshIcon.png" />
+    <Resource Include="Resources\Icons\AddIcon.png" />
     <Resource Include="Resources\Icons\ClearIcon.png" />
     <Resource Include="Resources\Icons\OptionsIcon.png" />
     <Resource Include="Resources\Icons\FolderIcon.png" />

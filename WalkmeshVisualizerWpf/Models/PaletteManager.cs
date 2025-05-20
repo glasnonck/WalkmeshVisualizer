@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
-using WalkmeshVisualizerWpf.Views;
+using System.Runtime.CompilerServices;
 
 namespace WalkmeshVisualizerWpf.Models
 {
-    public class PaletteManager
+    public class PaletteManager : INotifyPropertyChanged
     {
         private const string DEFAULT_PALETTE_STRING = "{\"Name\":\"Bright\",\"Colors\":[{\"ColorText\":\"#FF0000FF\",\"Name\":\"Blue\"},{\"ColorText\":\"#FF00FF00\",\"Name\":\"Green\"},{\"ColorText\":\"#FFFF0000\",\"Name\":\"Red\"},{\"ColorText\":\"#FF00FFFF\",\"Name\":\"Cyan\"},{\"ColorText\":\"#FFFF00FF\",\"Name\":\"Magenta\"},{\"ColorText\":\"#FFFFFF00\",\"Name\":\"Yellow\"}]}";
         public const string DEFAULT_PALETTE_NAME = "Bright";
@@ -36,27 +36,47 @@ namespace WalkmeshVisualizerWpf.Models
         }
         #endregion
 
-        public bool ErrorsFound { get; private set; }
+        public bool ErrorsFound
+        {
+            get => _errorsFound;
+            private set => SetField(ref _errorsFound, value);
+        }
+        private bool _errorsFound = false;
 
-        public string ErrorMessages { get; private set; }
+        public string ErrorMessages
+        {
+            get => _errorMessages;
+            private set => SetField(ref _errorMessages, value);
+        }
+        private string _errorMessages = null;
 
         public ObservableCollection<Palette> Palettes { get; set; } = new ObservableCollection<Palette>();
 
         public PaletteManager()
         {
+            RefreshPalettes();
+        }
+
+        public void RefreshPalettes()
+        {
+            Palettes.Clear();
+            ErrorsFound = false;
+            ErrorMessages = null;
+
             // Read .json files from ./Resources/Palettes/
             var di = new DirectoryInfo(PALETTE_DIRECTORY);
             if (di.Exists)
             {
+                var list = new List<Palette>();
                 foreach (var fi in di.GetFiles("*.json", SearchOption.TopDirectoryOnly))
                 {
                     var pal = Palette.DeserializeJsonFromFile(fi.FullName);
                     // Invalid files return null -- ignore them.
-                    if (pal != null) Palettes.Add(pal);
+                    if (pal != null) list.Add(pal);
                 }
 
                 // Collect error messages.
-                var invalidPalettes = Palettes.Where(p => p.IsInvalid).ToList();
+                var invalidPalettes = list.Where(p => p.IsInvalid).ToList();
                 if (invalidPalettes.Any())
                 {
                     ErrorsFound = true;
@@ -67,10 +87,11 @@ namespace WalkmeshVisualizerWpf.Models
 
                 // Remove invalid palettes.
                 foreach (var invalidPalette in invalidPalettes)
-                    Palettes.Remove(invalidPalette);
+                    list.Remove(invalidPalette);
 
                 // Sort palettes by display name.
-                Palettes = new ObservableCollection<Palette>(Palettes.OrderBy(p => p.Name.ToLower()));
+                foreach (var palette in list.OrderBy(p => p.Name.ToLower()))
+                    Palettes.Add(palette);
             }
         }
 
@@ -101,20 +122,6 @@ namespace WalkmeshVisualizerWpf.Models
             => Process.Start("explorer.exe", PALETTE_DIRECTORY);
 
         ///// <summary>
-        ///// Searches the Palettes directory for new .json palette files.
-        ///// </summary>
-        //internal void CheckPalettesDirectory()
-        //{
-        //    var di = new DirectoryInfo(PALETTE_DIRECTORY);
-        //    if (!di.Exists) return;
-        //    foreach (var fi in di.GetFiles("*.json", SearchOption.TopDirectoryOnly))
-        //    {
-        //        if (!Palettes.Any(p => p.FileName == fi.Name))
-        //            Palettes.Add(Palette.ReadJsonFromFile(fi.FullName));
-        //    }
-        //}
-
-        ///// <summary>
         ///// Downloads any new or missing palettes from GitHub.
         ///// </summary>
         //internal void DownloadMissingPalettes()
@@ -132,5 +139,24 @@ namespace WalkmeshVisualizerWpf.Models
         //}
 
         public override string ToString() => $"{Palettes.Count} palette(s)";
+
+        #region INotifyPropertyChanged Implementation
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            NotifyPropertyChanged(propertyName);
+            return true;
+        }
+
+        #endregion // END REGION INotifyPropertyChanged Implementation
     }
 }

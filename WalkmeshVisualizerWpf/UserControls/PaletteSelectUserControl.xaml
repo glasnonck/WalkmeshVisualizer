@@ -36,7 +36,7 @@
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <RadioButton Style="{StaticResource rbPaletteSelection}" Content="{Binding Name}" IsChecked="{Binding IsSelected}" d:Content="Testing" />
+                <RadioButton Style="{StaticResource rbPaletteSelection}" Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}" d:Content="Testing" />
                 <ItemsControl Grid.Column="1" ItemsSource="{Binding Colors}" ItemTemplate="{StaticResource dtPaletteColor}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -48,7 +48,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <ItemsControl ItemsSource="{Binding Palettes}" ItemTemplate="{StaticResource dtPalette}">
+    <ItemsControl ItemsSource="{Binding Palettes, Mode=OneWay}" ItemTemplate="{StaticResource dtPalette}" d:ItemsSource="{d:SampleData}">
         <ItemsControl.Template>
             <ControlTemplate>
                 <ScrollViewer d:Background="White" VerticalScrollBarVisibility="Auto">

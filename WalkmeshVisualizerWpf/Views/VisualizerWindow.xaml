@@ -11,7 +11,7 @@
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
-    MinHeight="600" Height="900"
+    MinHeight="600" Height="800"
     MinWidth="800" Width="1200"
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
@@ -91,7 +91,11 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
-        <RoutedUICommand x:Key="Commands.SetColorPreferences" />
+        <RoutedUICommand x:Key="Commands.SetColorPreferences">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Comma</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
 
         <!--
         ToolBar related commands and keybinds.
@@ -1070,6 +1074,7 @@
                             <ListView x:Name="lvLeftPointMatches" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource MatchItemStyle}"
                                       ItemsSource="{Binding LeftPointMatches}"
+                                      d:ItemsSource="{d:SampleData}"
                                       >
                                 <ListView.View>
                                     <GridView>
@@ -1110,7 +1115,8 @@
 
                             <ListView x:Name="lvRightPointMatches" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource MatchItemStyle}"
-                                      ItemsSource="{Binding RightPointMatches}">
+                                      ItemsSource="{Binding RightPointMatches}"
+                                      d:ItemsSource="{d:SampleData}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
@@ -1151,7 +1157,8 @@
 
                             <ListView x:Name="lvBothPointMatches" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource MatchItemStyle}"
-                                      ItemsSource="{Binding BothPointMatches}">
+                                      ItemsSource="{Binding BothPointMatches}"
+                                      d:ItemsSource="{d:SampleData}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
@@ -1426,6 +1433,7 @@
                             <ListView x:Name="lvRimDoor" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimDoors}"
+                                      d:ItemsSource="{d:SampleData ItemCount=5}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1513,6 +1521,7 @@
                             <ListView x:Name="lvRimTrigger" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimTriggers}"
+                                      d:ItemsSource="{d:SampleData ItemCount=5}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1600,6 +1609,7 @@
                             <ListView x:Name="lvRimTrap" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimTraps}"
+                                      d:ItemsSource="{d:SampleData ItemCount=3}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1687,6 +1697,7 @@
                             <ListView x:Name="lvRimZone" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimZones}"
+                                      d:ItemsSource="{d:SampleData ItemCount=3}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1774,6 +1785,7 @@
                             <ListView x:Name="lvRimEncounter" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimEncounters}"
+                                      d:ItemsSource="{d:SampleData ItemCount=3}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -2131,6 +2143,7 @@
                 -->
                 <ScrollViewer x:Name="toolsPanel" Grid.Column="1"
                               Margin="0,0,-4,0" Padding="0,0,4,0"
+                              d:MinWidth="240"
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
@@ -2724,14 +2737,6 @@
                             <!--<Border />-->
                             <!--#endregion-->
 
-                            <!-- TODO: Consider adding Set Attribute or Set Skill cheats.
-                                Invulnerability - Can we determine if this is currently active?
-                                Set Attributes To 99
-                                Set Skills To 99
-                                Set [Attribute](CB) to [Value](TB)
-                                Set [Skill](CB) to [Value](TB)
-                            -->
-
                             <!--#region Affect Target (Disabled) -->
                             <!--<TextBlock Text="Affect Target" Style="{StaticResource tbHeader}" />
                             <Button Content="Delete Door"
@@ -3198,7 +3203,7 @@
                         <ListView x:Name="lvOn" Grid.Row="1" ItemsSource="{Binding OnRims}"
                                   ItemContainerStyle="{StaticResource OnItemStyle}"
                                   ScrollViewer.VerticalScrollBarVisibility="Visible"
-                                  ScrollViewer.CanContentScroll="False">
+                                  ScrollViewer.CanContentScroll="False" d:ItemsSource="{d:SampleData}">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18">
@@ -3309,7 +3314,7 @@
                         <ListView x:Name="lvOff" Grid.Row="2" ItemsSource="{Binding OffRims}"
                                   ItemContainerStyle="{StaticResource OffItemStyle}"
                                   ScrollViewer.VerticalScrollBarVisibility="Visible"
-                                  ScrollViewer.CanContentScroll="False">
+                                  ScrollViewer.CanContentScroll="False" d:ItemsSource="{d:SampleData}">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18">
