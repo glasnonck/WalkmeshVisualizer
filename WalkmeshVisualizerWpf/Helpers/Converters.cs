@@ -13,6 +13,24 @@ namespace WalkmeshVisualizerWpf.Helpers
 {
     #region Single Converters
 
+    public class IsNullConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value == null;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
+    public class IsNotNullConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value != null;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Used in MainWindow.xaml to converts a scale value to a percentage.
     /// It is used to display the 50%, 100%, etc that appears underneath the zoom and pan control.
@@ -72,6 +90,15 @@ namespace WalkmeshVisualizerWpf.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => value.ToString().ToLower() == parameter.ToString().ToLower();
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
+    public class StringEqualsToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value.ToString().ToLower() == parameter.ToString().ToLower()) ? Visibility.Visible : Visibility.Collapsed;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
             => throw new NotImplementedException();

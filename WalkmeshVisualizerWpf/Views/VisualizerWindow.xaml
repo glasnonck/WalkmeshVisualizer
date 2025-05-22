@@ -91,7 +91,11 @@
             </RoutedUICommand.InputGestures>
         </RoutedUICommand>
 
-        <RoutedUICommand x:Key="Commands.SetColorPreferences" />
+        <RoutedUICommand x:Key="Commands.SetColorPreferences">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+Comma</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
 
         <!--
         ToolBar related commands and keybinds.
@@ -160,6 +164,7 @@
         <help:AnyVisibleRdiConverter x:Key="AnyVisibleRdiConverter" />
         <help:AnyHiddenRdiConverter x:Key="AnyHiddenRdiConverter" />
         <help:StringEqualsConverter x:Key="StringEqualsConverter" />
+        <help:StringEqualsToVisibilityConverter x:Key="StringEqualsToVisibilityConverter" />
         <help:StringNotEqualsConverter x:Key="StringNotEqualsConverter" />
         <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
         <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
@@ -1069,6 +1074,7 @@
                             <ListView x:Name="lvLeftPointMatches" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource MatchItemStyle}"
                                       ItemsSource="{Binding LeftPointMatches}"
+                                      d:ItemsSource="{d:SampleData}"
                                       >
                                 <ListView.View>
                                     <GridView>
@@ -1109,7 +1115,8 @@
 
                             <ListView x:Name="lvRightPointMatches" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource MatchItemStyle}"
-                                      ItemsSource="{Binding RightPointMatches}">
+                                      ItemsSource="{Binding RightPointMatches}"
+                                      d:ItemsSource="{d:SampleData}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
@@ -1150,7 +1157,8 @@
 
                             <ListView x:Name="lvBothPointMatches" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource MatchItemStyle}"
-                                      ItemsSource="{Binding BothPointMatches}">
+                                      ItemsSource="{Binding BothPointMatches}"
+                                      d:ItemsSource="{d:SampleData}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Width="18" Header="" CellTemplate="{StaticResource dtPointRimColorTemplate}" />
@@ -1425,6 +1433,7 @@
                             <ListView x:Name="lvRimDoor" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimDoors}"
+                                      d:ItemsSource="{d:SampleData ItemCount=5}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1512,6 +1521,7 @@
                             <ListView x:Name="lvRimTrigger" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimTriggers}"
+                                      d:ItemsSource="{d:SampleData ItemCount=5}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1599,6 +1609,7 @@
                             <ListView x:Name="lvRimTrap" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimTraps}"
+                                      d:ItemsSource="{d:SampleData ItemCount=3}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1686,6 +1697,7 @@
                             <ListView x:Name="lvRimZone" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimZones}"
+                                      d:ItemsSource="{d:SampleData ItemCount=3}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -1773,6 +1785,7 @@
                             <ListView x:Name="lvRimEncounter" Grid.Row="1"
                                       ItemContainerStyle="{StaticResource RimDataInfoItemStyle}"
                                       ItemsSource="{Binding RimEncounters}"
+                                      d:ItemsSource="{d:SampleData ItemCount=3}"
                                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.CanContentScroll="False">
                                 <ListView.View>
@@ -2130,6 +2143,7 @@
                 -->
                 <ScrollViewer x:Name="toolsPanel" Grid.Column="1"
                               Margin="0,0,-4,0" Padding="0,0,4,0"
+                              d:MinWidth="240"
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
@@ -2297,6 +2311,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <Grid.Resources>
                                     <ControlTemplate x:Key="TextBoxErrorTemplate">
@@ -2410,25 +2425,29 @@
                                 </Button>
                                 
                                 <!-- Clear Feats -->
-                                <Grid Grid.Row="5" Grid.ColumnSpan="4">
+                                <Grid >
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="20" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="1" Grid.ColumnSpan="2" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click"
-                                            ToolTip="Remove all feats from the party leader. Only light armor proficiency will remain." />
                                     <!--<Button Grid.Column="2" Width="Auto" Content="Reset to Basics" Click="ResetFeats_Click"
                                             ToolTip="Reset the party leader's feats to the class defaults." />-->
                                 </Grid>
+                                <Button Grid.Row="5" Grid.ColumnSpan="4" Width="Auto" Content="Clear Feats" Click="ResetFeats_Click" Margin="26,-3,26,6"
+                                        ToolTip="Remove all feats from the party leader. Only light armor proficiency will remain." />
 
                                 <!-- Add Powers -->
-                                <!--<TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
-                                <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPower" Grid.ColumnSpan="2" ItemsSource="{Binding KotorPowers}" />
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Add Power:" />
+                                <ComboBox Grid.Row="6" Grid.Column="1" Name="cbPowerTarget">
+                                    <ComboBoxItem IsSelected="True">Class 1</ComboBoxItem>
+                                    <ComboBoxItem>Class 2</ComboBoxItem>
+                                </ComboBox>
                                 <Button Grid.Row="6" Grid.Column="3" Click="AddPower_Click"
                                         ToolTip="Add the selected force power to the party leader.">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>-->
+                                </Button>
+                                <ComboBox Grid.Row="7" Grid.ColumnSpan="5" Name="cbPower" ItemsSource="{Binding KotorPowers}" Margin="26,-3,26,6" />
                             </Grid>
                             
                             <Border />
@@ -2520,7 +2539,7 @@
                             <!--#endregion-->
                             
                             <!--#region Rendering-->
-                            <TextBlock Text="Rendering (K1 Only)" Style="{StaticResource tbHeader}" />
+                            <TextBlock Text="Rendering" Style="{StaticResource tbHeader}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -2529,6 +2548,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -2582,7 +2602,7 @@
                                 </StackPanel>
 
                                 <!-- Render Triggers -->
-                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers (on reload):" />
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Triggers: (on reload)" />
                                 <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameTrigger_Click" Tag="on" ToolTip="Show the in-game triggers.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2593,8 +2613,15 @@
                                 </StackPanel>
 
                                 <!-- Trigger Color -->
-                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100." />
-                                <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
+                                <TextBlock Grid.Row="2" Text="RGBA%:" Margin="10,0,0,6"
+                                           ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100."
+                                           Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                               Converter={StaticResource StringEqualsToVisibilityConverter}}" />
+                                <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                                      IsEnabled="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                          Converter={StaticResource StringEqualsConverter}}"
+                                      Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                          Converter={StaticResource StringEqualsToVisibilityConverter}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
@@ -2638,7 +2665,12 @@
                                         </TextBox.Text>
                                     </TextBox>
                                 </Grid>
-                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click" ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100.">
+                                <Button Grid.Row="2" Grid.Column="3" Click="SetGameTriggerColor_Click"
+                                        ToolTip="Set the game trigger color. Values represent percentages and must be between 0 and 100."
+                                        IsEnabled="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                            Converter={StaticResource StringEqualsConverter}}"
+                                        Visibility="{Binding SelectedGame, ConverterParameter=Kotor 1,
+                                            Converter={StaticResource StringEqualsToVisibilityConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                                 
@@ -2652,10 +2684,21 @@
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
                                 </StackPanel>
+                                
+                                <!-- Render Placeholders -->
+                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="Placeholders:" />
+                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Click="SetGamePlaceholders_Click" Tag="on" ToolTip="Show the in-game placeholders.">
+                                        <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                    </Button>
+                                    <Button Click="SetGamePlaceholders_Click" Tag="off" ToolTip="Hide the in-game placeholders.">
+                                        <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
+                                    </Button>
+                                </StackPanel>
 
                                 <!-- Render Wireframe -->
-                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="Wireframes:" />
-                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="Wireframes:" />
+                                <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameWireframe_Click" Tag="on" ToolTip="Show the in-game wireframes.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
                                     </Button>
@@ -2665,8 +2708,8 @@
                                 </StackPanel>
 
                                 <!-- Render GUI -->
-                                <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
-                                <StackPanel Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="GUI:" ToolTip="Graphical User Interface" />
+                                <StackPanel Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Click="SetGameGui_Click" Tag="on"
                                             ToolTip="Show the in-game user interface.">
                                         <Image Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2676,33 +2719,6 @@
                                         <Image Source="/Resources/Icons/HidePreviousModuleIcon.png" />
                                     </Button>
                                 </StackPanel>
-
-                                <!-- GUI Alpha -->
-                                <TextBlock Grid.Row="6" Text="Alpha%:" Margin="10,0,0,6" />
-                                <Grid Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="3" Name="tbGuiAlphaValue"
-                                             PreviewTextInput="tbPreviewIntegerInput"
-                                             PreviewKeyDown="tbPreviewIntegerKeyDown">
-                                        <TextBox.Text>
-                                            <Binding Path="ValueInGuiAlphaBox" UpdateSourceTrigger="PropertyChanged">
-                                                <Binding.ValidationRules>
-                                                    <help:IntRangeRule Min="0" Max="100" />
-                                                </Binding.ValidationRules>
-                                            </Binding>
-                                        </TextBox.Text>
-                                    </TextBox>
-                                </Grid>
-                                <Button Grid.Row="6" Grid.Column="3" Click="SetGuiAlpha_Click"
-                                        ToolTip="Set the transparency of the in-game user interface.">
-                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
                             </Grid>
                             <Border />
                             <!--#endregion-->
@@ -2720,14 +2736,6 @@
                             </Grid>
                             <!--<Border />-->
                             <!--#endregion-->
-
-                            <!-- TODO: Consider adding Set Attribute or Set Skill cheats.
-                                Invulnerability - Can we determine if this is currently active?
-                                Set Attributes To 99
-                                Set Skills To 99
-                                Set [Attribute](CB) to [Value](TB)
-                                Set [Skill](CB) to [Value](TB)
-                            -->
 
                             <!--#region Affect Target (Disabled) -->
                             <!--<TextBlock Text="Affect Target" Style="{StaticResource tbHeader}" />
@@ -3195,7 +3203,7 @@
                         <ListView x:Name="lvOn" Grid.Row="1" ItemsSource="{Binding OnRims}"
                                   ItemContainerStyle="{StaticResource OnItemStyle}"
                                   ScrollViewer.VerticalScrollBarVisibility="Visible"
-                                  ScrollViewer.CanContentScroll="False">
+                                  ScrollViewer.CanContentScroll="False" d:ItemsSource="{d:SampleData}">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18">
@@ -3306,7 +3314,7 @@
                         <ListView x:Name="lvOff" Grid.Row="2" ItemsSource="{Binding OffRims}"
                                   ItemContainerStyle="{StaticResource OffItemStyle}"
                                   ScrollViewer.VerticalScrollBarVisibility="Visible"
-                                  ScrollViewer.CanContentScroll="False">
+                                  ScrollViewer.CanContentScroll="False" d:ItemsSource="{d:SampleData}">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="18">

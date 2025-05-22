@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 using WalkmeshVisualizerWpf.Models;
 
 namespace WalkmeshVisualizerWpf.Views
@@ -99,6 +102,8 @@ namespace WalkmeshVisualizerWpf.Views
             SelectedBackground = initialBackground;
 
             DataContext = this;
+
+            RefreshPalettes();
         }
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)
@@ -109,5 +114,87 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void OpenPalettesFolder_Click(object sender, RoutedEventArgs e)
             => PaletteManager.ShowPalettesDirectory();
+
+        private void AddPalette_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var pdws = OwnedWindows.OfType<PaletteDesignerWindow>();
+            if (pdws.Any()) pdws.First().Show();
+            else
+            {
+                var pdw = new PaletteDesignerWindow()
+                {
+                    Owner = this,
+                };
+
+                // Show dialog. If "Ok" is selected...
+                if (pdw.ShowDialog() ?? false)
+                {
+                    // verify valid filename
+                    var wp = pdw.WorkingPalette;
+                    var fn = wp.FileName;
+                    var suffix = "";
+                    var index = 0;
+
+                    // find a valid, unused filename
+                    while (File.Exists(Path.Combine(PaletteManager.PALETTE_DIRECTORY, $"{fn}{suffix}.json")))
+                    {
+                        index++;
+                        suffix = $" ({index})";
+                    }
+                    pdw.WorkingPalette.FileName = $"{fn}{suffix}.json";
+
+                    // save new WorkingPalette to file
+                    wp.WriteToFile();
+
+                    // add WorkingPalette to PaletteManager
+                    PM.Palettes.Add(wp);
+                }
+                // If "Cancel is selected, do nothing.
+                else { }
+            }
+        }
+
+        private void EditPalette_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var pdws = OwnedWindows.OfType<PaletteDesignerWindow>();
+            if (pdws.Any()) pdws.First().Show();
+            else
+            {
+                var pdw = new PaletteDesignerWindow(PaletteManager.GetSelectedPalette())
+                {
+                    Owner = this,
+                };
+
+                // Show dialog. If "Ok" is selected...
+                if (pdw.ShowDialog() ?? false)
+                {
+                    // replace TargetPalette with WorkingPalette
+                    PM.Palettes[PM.Palettes.IndexOf(pdw.TargetPalette)] = pdw.WorkingPalette;
+
+                    // save WorkingPalette to file
+                    pdw.WorkingPalette.WriteToFile();
+                }
+                // If "Cancel is selected, do nothing.
+                else { }
+            }
+        }
+
+        private void ReloadPalettesFolder_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshPalettes();
+        }
+
+        private void RefreshPalettes()
+        {
+            var selectedFileName = PaletteManager.GetSelectedPalette().FileName;
+            PM.RefreshPalettes();
+            var selectedPalette = PM.Palettes.FirstOrDefault(p => p.FileName == selectedFileName);
+            if (selectedPalette == null)
+            {
+                if (PaletteManager.GetSelectedPalette() == null)
+                    PM.Palettes.First().IsSelected = true;
+            }
+            else selectedPalette.IsSelected = true;
+        }
     }
 }

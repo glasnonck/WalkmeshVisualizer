@@ -16,6 +16,29 @@
     Title="Set Color Preferences"
     d:DataContext="{d:DesignInstance views:SetColorPreferencesWindow, IsDesignTimeCreatable=True}"
     >
+    <Window.Resources>
+        <RoutedUICommand x:Key="Commands.AddPalette">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+A</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.EditPalette">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+E</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding 
+            Command="{StaticResource Commands.AddPalette}" 
+            Executed="AddPalette_Executed" 
+            />
+        <CommandBinding 
+            Command="{StaticResource Commands.EditPalette}" 
+            Executed="EditPalette_Executed" 
+            />
+    </Window.CommandBindings>
+
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -55,6 +78,15 @@
                 <Setter Property="Grid.Column" Value="0" />
                 <Setter Property="GroupName" Value="background" />
             </Style>
+            <Style TargetType="Image">
+                <Setter Property="Height" Value="18" />
+                <Setter Property="Width"  Value="18" />
+            </Style>
+            <Style TargetType="Button" x:Key="style_PaletteOptions">
+                <Setter Property="Margin" Value="0,0,3,0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+
             <help:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         </Grid.Resources>
 
@@ -74,7 +106,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            
+
             <RadioButton Style="{StaticResource rbBackground}" Grid.Row="0" Content="White" IsChecked="{Binding IsWhiteBackgroundSelected}" />
             <Rectangle   Grid.Column="1" Grid.Row="0" Fill="White" />
             <TextBlock   Style="{StaticResource tbExampleText}" Grid.Row="0" Foreground="Black" />
@@ -95,25 +127,44 @@
         <Border Grid.Column="1" Grid.RowSpan="2" Margin="5,0" BorderBrush="Black" BorderThickness="1,0,0,0"  />
 
         <!-- Color Palette -->
-        <TextBlock
-            Grid.Column="2" Grid.Row="0"
-            Padding="5,0,5,10"
-            TextAlignment="Center"
-            FontWeight="Bold"
-            Text="Color Palette" />
-        <Button
-            Grid.Column="2" Grid.Row="0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="0,-2,0,0" Padding="2,0,3,0"
-            Click="OpenPalettesFolder_Click"
-            ToolTip="Open palette directory"
-            >
-            <Image Height="18" Width="18" Source="/Resources/Icons/FolderIcon.png" />
-        </Button>
+        <TextBlock Grid.Column="2" Grid.Row="0"
+                   Padding="5,0,5,10"
+                   TextAlignment="Center"
+                   FontWeight="Bold"
+                   Text="Color Palette" />
+        <StackPanel Orientation="Horizontal"
+                    Grid.Column="2" Grid.Row="0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="0,-2,0,0">
+            <Button Style="{StaticResource style_PaletteOptions}"
+                    Command="{StaticResource Commands.AddPalette}"
+                    ToolTip="Add new palette.">
+                <Image Source="/Resources/Icons/AddIcon.png" />
+            </Button>
+            <Button Style="{StaticResource style_PaletteOptions}"
+                    Command="{StaticResource Commands.EditPalette}"
+                    ToolTip="Edit selected palette.">
+                <Image Source="/Resources/Icons/OptionsIcon.png" />
+            </Button>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Grid.Column="2" Grid.Row="0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,-2,0,0">
+            <Button Style="{StaticResource style_PaletteOptions}"
+                    Click="ReloadPalettesFolder_Click" ToolTip="Reload palette directory." >
+                <Image Height="18" Width="18" Source="/Resources/Icons/RefreshIcon.png" />
+            </Button>
+            <Button Style="{StaticResource style_PaletteOptions}" Margin="0"
+                    Click="OpenPalettesFolder_Click" ToolTip="Open palette directory.">
+                <Image Height="18" Width="18" Source="/Resources/Icons/FolderIcon.png" />
+            </Button>
+        </StackPanel>
 
         <!-- MaxHeight = 8 lines * 18 px/line = 144 px -->
-        <uc:PaletteSelectUserControl MaxHeight="144" Grid.Column="2" Grid.Row="1" DataContext="{Binding PM}" />
+        <uc:PaletteSelectUserControl MaxHeight="144" MinWidth="248" Grid.Column="2" Grid.Row="1" DataContext="{Binding PM, Mode=OneWay}" />
         
         <!-- Show Errors -->
         <StackPanel Grid.ColumnSpan="3" Grid.Row="2" HorizontalAlignment="Left" Margin="0,10,0,0"
@@ -133,7 +184,7 @@
         </StackPanel>
 
         <Border Name="bErrors" Grid.ColumnSpan="3" Grid.Row="3" Padding="0" Margin="0,10,0,0" BorderBrush="Black" BorderThickness="1" CornerRadius="2"
-                Visibility="{Binding IsErrorPanelExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                Visibility="{Binding IsErrorPanelExpanded, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
             <TextBox IsReadOnly="True" TextWrapping="Wrap" MinLines="8" MaxLines="8" BorderThickness="0" Padding="2"
                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                      Text="{Binding PM.ErrorMessages, Mode=OneWay, FallbackValue=Testing}" />

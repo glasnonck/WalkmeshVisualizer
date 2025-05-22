@@ -29,12 +29,32 @@ namespace WalkmeshVisualizerWpf.Models
         public ObservableCollection<PaletteColor> Colors { get; set; } = new ObservableCollection<PaletteColor>();
         #endregion
 
+        #region Constructors
+        public Palette() { }
+
+        public Palette(Palette palette)
+        {
+            FileName = palette.FileName;
+            IsSelected = palette.IsSelected;
+            IsInvalid = palette.IsInvalid;
+            Errors = palette.Errors.ToList();
+            Name = palette.Name;
+            Colors = new ObservableCollection<PaletteColor>();
+            foreach (var color in palette.Colors)
+            {
+                Colors.Add(new PaletteColor(color));
+            }
+        }
+        #endregion
+
+        #region Methods
         public override string ToString() => $"\"{Name}\": {Colors.Count} color(s)";
 
         public Dictionary<Brush, string> ToDictionary()
         {
             return Colors.ToDictionary(c => c.Color, c => c.Name);
         }
+        #endregion
 
         #region Serialization
         public void WriteToFile(string filename = null)
