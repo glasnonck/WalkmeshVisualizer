@@ -9,12 +9,20 @@
         xmlns:help="clr-namespace:WalkmeshVisualizerWpf.Helpers"
         mc:Ignorable="d"
         Title="Palette Designer"
-        Height="335" MinHeight="250"
+        Height="335" MinHeight="250" MaxHeight="400"
         Width="450" MinWidth="450"
+        SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         x:Name="thisWindow"
-        d:DataContext="{d:DesignInstance models:Palette, IsDesignTimeCreatable=False}">
+        d:DataContext="{d:DesignInstance models:Palette, IsDesignTimeCreatable=False}"
+        Loaded="Window_Loaded">
     <Window.Resources>
+        <RoutedUICommand x:Key="Commands.AddColor">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+A</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+
         <Style TargetType="Rectangle" x:Key="rectPaletteColor">
             <Setter Property="Margin" Value="3" />
             <Setter Property="Height" Value="20" />
@@ -36,7 +44,13 @@
 
         <help:IsNotNullConverter x:Key="IsNotNullConverter" />
     </Window.Resources>
-    
+    <Window.CommandBindings>
+        <CommandBinding 
+            Command="{StaticResource Commands.AddColor}" 
+            Executed="AddColor_Executed" 
+            />
+    </Window.CommandBindings>
+
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -61,7 +75,7 @@
         
         <!-- Display Name -->
         <Label Grid.Row="1" Grid.Column="0" Content="Display Name:" />
-        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Name, Mode=TwoWay}" />
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="tbxDisplayName" Text="{Binding Name, Mode=TwoWay}" />
 
         <!-- Colors -->
         <Border Grid.Row="3" Grid.ColumnSpan="2" Margin="0,3"
@@ -119,7 +133,8 @@
         <!-- Add -->
         <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Margin="0,3,0,0"
                     Orientation="Horizontal" HorizontalAlignment="Left">
-            <Button HorizontalContentAlignment="Left" Click="AddButton_Click" Margin="0,0,6,0">
+            <Button HorizontalContentAlignment="Left" Margin="0,0,6,0"
+                    Command="{StaticResource Commands.AddColor}">
                 <StackPanel Orientation="Horizontal" Margin="3,0">
                     <Image Width="16" Source="/Resources/Icons/AddIcon.png"/>
                     <TextBlock Margin="6,0,0,0" Text="Add Color" />

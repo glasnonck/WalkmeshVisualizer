@@ -16,6 +16,29 @@
     Title="Set Color Preferences"
     d:DataContext="{d:DesignInstance views:SetColorPreferencesWindow, IsDesignTimeCreatable=True}"
     >
+    <Window.Resources>
+        <RoutedUICommand x:Key="Commands.AddPalette">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+A</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+        <RoutedUICommand x:Key="Commands.EditPalette">
+            <RoutedUICommand.InputGestures>
+                <KeyGesture>Ctrl+E</KeyGesture>
+            </RoutedUICommand.InputGestures>
+        </RoutedUICommand>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding 
+            Command="{StaticResource Commands.AddPalette}" 
+            Executed="AddPalette_Executed" 
+            />
+        <CommandBinding 
+            Command="{StaticResource Commands.EditPalette}" 
+            Executed="EditPalette_Executed" 
+            />
+    </Window.CommandBindings>
+
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -115,11 +138,13 @@
                     VerticalAlignment="Top"
                     Margin="0,-2,0,0">
             <Button Style="{StaticResource style_PaletteOptions}"
-                    Click="AddPalette_Click" ToolTip="Add new palette.">
+                    Command="{StaticResource Commands.AddPalette}"
+                    ToolTip="Add new palette.">
                 <Image Source="/Resources/Icons/AddIcon.png" />
             </Button>
             <Button Style="{StaticResource style_PaletteOptions}"
-                    Click="EditPalette_Click" ToolTip="Edit selected palette.">
+                    Command="{StaticResource Commands.EditPalette}"
+                    ToolTip="Edit selected palette.">
                 <Image Source="/Resources/Icons/OptionsIcon.png" />
             </Button>
         </StackPanel>

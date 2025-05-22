@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 using WalkmeshVisualizerWpf.Models;
 
 namespace WalkmeshVisualizerWpf.Views
@@ -114,7 +115,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void OpenPalettesFolder_Click(object sender, RoutedEventArgs e)
             => PaletteManager.ShowPalettesDirectory();
 
-        private void AddPalette_Click(object sender, RoutedEventArgs e)
+        private void AddPalette_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var pdws = OwnedWindows.OfType<PaletteDesignerWindow>();
             if (pdws.Any()) pdws.First().Show();
@@ -131,8 +132,6 @@ namespace WalkmeshVisualizerWpf.Views
                     // verify valid filename
                     var wp = pdw.WorkingPalette;
                     var fn = wp.FileName;
-                    if (fn.EndsWith(".json"))
-                        fn = wp.FileName.Substring(0, wp.FileName.Length - 5);
                     var suffix = "";
                     var index = 0;
 
@@ -155,7 +154,7 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        private void EditPalette_Click(object sender, RoutedEventArgs e)
+        private void EditPalette_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var pdws = OwnedWindows.OfType<PaletteDesignerWindow>();
             if (pdws.Any()) pdws.First().Show();
@@ -172,8 +171,8 @@ namespace WalkmeshVisualizerWpf.Views
                     // replace TargetPalette with WorkingPalette
                     PM.Palettes[PM.Palettes.IndexOf(pdw.TargetPalette)] = pdw.WorkingPalette;
 
-                    // save new TargetPalette to file
-                    pdw.TargetPalette.WriteToFile();
+                    // save WorkingPalette to file
+                    pdw.WorkingPalette.WriteToFile();
                 }
                 // If "Cancel is selected, do nothing.
                 else { }
