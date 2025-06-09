@@ -11,7 +11,7 @@
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
-    MinHeight="600" Height="800"
+    MinHeight="600" Height="800" d:Height="1100"
     MinWidth="800" Width="1200"
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
@@ -950,6 +950,11 @@
                     <ToggleButton Content="Live Tools"
                                   IsChecked="{Binding ShowToolsPanel}"
                                   Click="ToolsPanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
+                                  />
+                    <ToggleButton Content="Wire Target"
+                                  IsChecked="{Binding ShowWireTargetPanel}"
+                                  Click="WireTargetPanelButton_Click"
                                   Style="{StaticResource panelToggleButton}"
                                   />
                 </StackPanel>
@@ -2174,7 +2179,7 @@
                                 </Style>
                             </StackPanel.Resources>
 
-                            <!--#region Momvement -->
+                            <!--#region Movement -->
                             <TextBlock Text="Movement" Style="{StaticResource tbHeader}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -2279,10 +2284,97 @@
                                     Click="UnlockFullParty_Click"
                                     ToolTip="Unlock all standard party members."
                                     />
+                            <Button Content="Show Party Select Menu"
+                                    Click="ShowPartySelect_Click"
+                                    ToolTip="Shows the party select menu."
+                                    />
                             <Button Content="Swap to Target Creature"
                                     Click="SwapToTargetCreature_Click"
                                     ToolTip="Set target creature as party leader."
                                     />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.Resources>
+                                    <ControlTemplate x:Key="TextBoxErrorTemplate">
+                                        <StackPanel>
+                                            <AdornedElementPlaceholder x:Name="Holder" />
+                                            <Label Foreground="Red" Content="{Binding ElementName=Holder,
+                                                   Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                    <Style TargetType="Button" x:Key="styleIconButton">
+                                        <Setter Property="Margin" Value="4,0,0,4" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Height" Value="22" />
+                                        <Setter Property="Width" Value="22" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <!-- Alignment -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Alignment:" VerticalAlignment="Center" Margin="0,0,0,4" />
+                                <ComboBox Grid.Row="0" Grid.Column="1" Margin="4,0,0,4" Padding="5,0"
+                                          VerticalContentAlignment="Center" VerticalAlignment="Top"
+                                          Height="22" Name="cbAlignmentTarget">
+                                    <ComboBoxItem IsSelected="True">Player</ComboBoxItem>
+                                    <ComboBoxItem>Target</ComboBoxItem>
+                                </ComboBox>
+                                <TextBox Grid.Row="0" Grid.Column="2"
+                                         Margin="4,0,0,4" Name="tbAlignmentValue"
+                                         HorizontalContentAlignment="Right"
+                                         VerticalContentAlignment="Center"
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInAlignmentBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="0" Max="100" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="0" Grid.Column="3" Click="SetAlignment_Click" Style="{StaticResource styleIconButton}"
+                                        ToolTip="Set the player or target creature's force alignment. Value must be between 0 and 100."
+                                        IsEnabled="{Binding ElementName=tbAlignmentValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+
+                                <!-- Influence -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Influence:" VerticalAlignment="Center" Name="txtInfluence" Margin="0,0,0,4" />
+                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="4,0,0,4" Padding="5,0" Name="cbInfluence"
+                                          VerticalContentAlignment="Center" VerticalAlignment="Top"
+                                          Height="22" ItemsSource="{Binding KotorPartyMembers}" />
+                                <TextBox Grid.Row="1" Grid.Column="2"
+                                         Margin="4,0,0,4" Name="tbInfluenceValue"
+                                         HorizontalContentAlignment="Right"
+                                         VerticalContentAlignment="Center"
+                                         PreviewTextInput="tbPreviewIntegerInput"
+                                         PreviewKeyDown="tbPreviewIntegerKeyDown">
+                                    <TextBox.Text>
+                                        <Binding Path="ValueInInfluenceBox" UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <help:IntRangeRule Min="0" Max="100" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <Button Grid.Row="1" Grid.Column="3" Click="SetInfluence_Click" Style="{StaticResource styleIconButton}" Name="btnInfluence"
+                                        ToolTip="Set the player's influence with party members. Value must be between 0 and 100."
+                                        IsEnabled="{Binding ElementName=tbInfluenceValue, Path=(Validation.HasError),
+                                            Converter={StaticResource InverseBooleanConverter}}">
+                                    <Image Source="/Resources/Icons/LivePositionIcon.png" />
+                                </Button>
+                            </Grid>
+                            
                             <Border Margin="0,2,0,6" />
                             <!--#endregion-->
                             
@@ -2478,20 +2570,20 @@
                                     </ControlTemplate>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="VerticalAlignment" Value="Center" />
-                                        <Setter Property="Margin" Value="0,0,0,6" />
+                                        <Setter Property="Margin" Value="0,0,0,4" />
                                     </Style>
                                     <Style TargetType="TextBox">
                                         <Setter Property="TextAlignment" Value="Right" />
                                         <Setter Property="VerticalContentAlignment" Value="Center" />
-                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Margin" Value="4,0,0,4" />
                                     </Style>
                                     <Style TargetType="ComboBox">
-                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Margin" Value="4,0,0,4" />
                                     </Style>
-                                    <Style TargetType="Button">
+                                    <Style TargetType="Button" x:Key="styleIconButton">
                                         <Setter Property="Margin" Value="4,0,0,0" />
                                         <Setter Property="Padding" Value="0" />
-                                        <Setter Property="Margin" Value="4,0,0,6" />
+                                        <Setter Property="Margin" Value="4,0,0,4" />
                                         <Setter Property="Height" Value="22" />
                                         <Setter Property="Width" Value="22" />
                                     </Style>
@@ -2514,12 +2606,17 @@
                                         </Binding>
                                     </TextBox.Text>
                                 </TextBox>
-                                <Button Grid.Row="0" Grid.Column="3" Click="SetCredits_Click"
+                                <Button Grid.Row="0" Grid.Column="3" Click="SetCredits_Click" Style="{StaticResource styleIconButton}"
                                         ToolTip="Set the number of credits in the party's inventory. Value must be less than 1 billion - negative values are allowed."
                                         IsEnabled="{Binding ElementName=tbSetCreditsValue, Path=(Validation.HasError),
                                             Converter={StaticResource InverseBooleanConverter}}">
                                     <Image Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
+                                
+                                <!-- Show Item Create Menu -->
+                                <Button Grid.Row="1" Grid.ColumnSpan="4" Margin="0,0,0,6"
+                                        Content="Show Item Create Menu"
+                                        Click="ShowItemCreate_Click" />
 
                                 <!-- Filter Items -->
                                 <!--<TextBlock Grid.Row="1" Grid.Column="0" Text="Item Filter:" />
@@ -2731,8 +2828,17 @@
                                     <ColumnDefinition Width="4" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="Turn On" Click="TurnOnFreeCam_Click" />
-                                <Button Grid.Column="2" Content="Turn Off" Click="TurnOffFreeCam_Click" />
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Toggle Free Cam -->
+                                <Button Grid.Row="0" Grid.Column="0" Content="Turn On" Click="TurnOnFreeCam_Click" />
+                                <Button Grid.Row="0" Grid.Column="2" Content="Turn Off" Click="TurnOffFreeCam_Click" />
+                                
+                                <!-- Turn off Fog -->
+                                <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Turn Off Fog" Click="TurnOffFog_Click" />
                             </Grid>
                             <!--<Border />-->
                             <!--#endregion-->
@@ -2777,6 +2883,66 @@
                 </ScrollViewer>
                 
                 <!--
+                Left Panel: Wire Target Panel
+                -->
+                <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
+                      Visibility="{Binding ShowWireTargetPanel,
+                          Converter={StaticResource BoolToVisibilityConverter},
+                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Target ID -->
+                    <TextBlock Grid.Column="0" Text="Target ID = " Margin="0,0,4,3" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" x:Name="txtTargetID" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,3" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Width="22" Height="22" Margin="4,0,0,3" Padding="0,0" Click="SearchForId_Click">
+                            <Image Width="18" Height="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                        </Button>
+                        <ToggleButton Width="22" Height="22" Margin="4,0,0,3" Padding="0,0"
+                                                IsChecked="{Binding UpdateLookingAtId, Mode=TwoWay}" VerticalAlignment="Center"
+                                                ToolTip="Load the selected module using the warp cheat.">
+                            <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
+                        </ToggleButton>
+                    </StackPanel>
+
+                    <!-- Area IDs Filter -->
+                    <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,3">
+                        <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="0,0,5,0" VerticalAlignment="Center" />
+                        <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearAreaIdsFilter_Click">
+                            <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                        </Button>
+                        <TextBox x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged" />
+                    </DockPanel>
+
+                    <!-- Refresh Area IDs -->
+                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Area IDs" Click="GetAllIDs_Click" Margin="0,0,0,3" />
+
+                    <!-- Area IDs List -->
+                    <ListView Grid.Row="3" Grid.ColumnSpan="3" d:Width="250" Name="lvAreaIds"
+                              ItemsSource="{Binding AreaGameObjects}" d:ItemsSource="{d:SampleData ItemCount=12}"
+                              Foreground="Black">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding Type}" Header="Type" />
+                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding ID, StringFormat=0x{0:X}}" Header="ID" />
+                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Tag}" Header="Tag" />
+                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Name}" Header="Name" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+                
+                <!--
                 Left Panel Grid Splitter
                 -->
                 <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Width="3" Background="#FF707070"
@@ -2789,6 +2955,7 @@
                             <Binding Path="ShowRimDataPanel" />
                             <Binding Path="ShowDistancePanel" />
                             <Binding Path="ShowToolsPanel" />
+                            <Binding Path="ShowWireTargetPanel" />
                         </MultiBinding>
                     </GridSplitter.Visibility>
                 </GridSplitter>
@@ -3303,8 +3470,7 @@
                         </StackPanel>
 
                         <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,5">
-                            <TextBlock DockPanel.Dock="Left" Text="Filter:"
-                               Margin="20,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="20,0,5,0" VerticalAlignment="Center" />
                             <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearOffRimsFilter_Click">
                                 <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
                             </Button>
