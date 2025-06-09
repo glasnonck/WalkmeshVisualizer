@@ -5525,16 +5525,20 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var km = new KotorManager(GetRunningKotor());
             if (!km.TestRead() || !km.SetLoadDirection()) return;
-            kmia.SendMessage(km.pr.h, kmia.FreeCamOn());
             km.SetFreeCamSpeed(FreeCamSpeed);
+            kmia.SendMessage(km.pr.h, kmia.FreeCamOn());
+            km.RefreshAddresses();
+            kmia.SetVisibilityGraph(km.pr.h, false);
         }
 
         private void TurnOffFreeCam_Click(object sender, RoutedEventArgs e)
         {
             var km = new KotorManager(GetRunningKotor());
             if (!km.TestRead() || !km.SetLoadDirection()) return;
-            kmia.SendMessage(km.pr.h, kmia.FreeCamOff());
             km.SetFreeCamSpeed(10f);
+            kmia.SendMessage(km.pr.h, kmia.FreeCamOff());
+            km.RefreshAddresses();
+            kmia.SetVisibilityGraph(km.pr.h, true);
         }
 
         //private void ResetFreeCamSpeed_Click(object sender, RoutedEventArgs e)
@@ -5550,6 +5554,13 @@ namespace WalkmeshVisualizerWpf.Views
         //    if (!km.TestRead() || !km.SetLoadDirection()) return;
         //    km.SetFreeCamSpeed(FreeCamSpeed);
         //}
+
+        private void TurnOffFog_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.SetSceneFogOff(km.pr.h);
+        }
 
         /*
          * Affect Target

@@ -6,7 +6,7 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-	<VersionPrefix>2.0.1</VersionPrefix>
+	<VersionPrefix>2.0.2</VersionPrefix>
 	<Title>WalkmeshVisualizerWpf</Title>
 	<Copyright>2025</Copyright>
   </PropertyGroup>

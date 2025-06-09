@@ -11,7 +11,7 @@
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
-    MinHeight="600" Height="800"
+    MinHeight="600" Height="800" d:Height="1100"
     MinWidth="800" Width="1200"
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
@@ -2152,7 +2152,7 @@
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
-                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                                  FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid>
                         <Grid.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -2736,8 +2736,17 @@
                                     <ColumnDefinition Width="4" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="Turn On" Click="TurnOnFreeCam_Click" />
-                                <Button Grid.Column="2" Content="Turn Off" Click="TurnOffFreeCam_Click" />
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Toggle Free Cam -->
+                                <Button Grid.Row="0" Grid.Column="0" Content="Turn On" Click="TurnOnFreeCam_Click" />
+                                <Button Grid.Row="0" Grid.Column="2" Content="Turn Off" Click="TurnOffFreeCam_Click" />
+                                
+                                <!-- Turn off Fog -->
+                                <Button Grid.Row="1" Grid.ColumnSpan="3" Content="Turn Off Fog" Click="TurnOffFog_Click" />
                             </Grid>
                             <!--<Border />-->
                             <!--#endregion-->
@@ -2787,7 +2796,7 @@
                 <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
                       Visibility="{Binding ShowWireTargetPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
