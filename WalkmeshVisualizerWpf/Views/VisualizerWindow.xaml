@@ -952,6 +952,11 @@
                                   Click="ToolsPanelButton_Click"
                                   Style="{StaticResource panelToggleButton}"
                                   />
+                    <ToggleButton Content="Wire Target"
+                                  IsChecked="{Binding ShowWireTargetPanel}"
+                                  Click="WireTargetPanelButton_Click"
+                                  Style="{StaticResource panelToggleButton}"
+                                  />
                 </StackPanel>
 
                 <!--
@@ -2147,7 +2152,7 @@
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
-                                  FallbackValue=Visible, TargetNullValue=Collapsed}">
+                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid>
                         <Grid.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -2174,7 +2179,7 @@
                                 </Style>
                             </StackPanel.Resources>
 
-                            <!--#region Momvement -->
+                            <!--#region Movement -->
                             <TextBlock Text="Movement" Style="{StaticResource tbHeader}" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -2777,6 +2782,66 @@
                 </ScrollViewer>
                 
                 <!--
+                Left Panel: Wire Target Panel
+                -->
+                <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
+                      Visibility="{Binding ShowWireTargetPanel,
+                          Converter={StaticResource BoolToVisibilityConverter},
+                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Target ID -->
+                    <TextBlock Grid.Column="0" Text="Target ID = " Margin="0,0,4,3" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" x:Name="txtTargetID" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,3" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Width="22" Height="22" Margin="4,0,0,3" Padding="0,0" Click="SearchForId_Click">
+                            <Image Width="18" Height="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                        </Button>
+                        <ToggleButton Width="22" Height="22" Margin="4,0,0,3" Padding="0,0"
+                                                IsChecked="{Binding UpdateLookingAtId, Mode=TwoWay}" VerticalAlignment="Center"
+                                                ToolTip="Load the selected module using the warp cheat.">
+                            <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
+                        </ToggleButton>
+                    </StackPanel>
+
+                    <!-- Area IDs Filter -->
+                    <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,3">
+                        <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="0,0,5,0" VerticalAlignment="Center" />
+                        <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearAreaIdsFilter_Click">
+                            <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                        </Button>
+                        <TextBox x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged" />
+                    </DockPanel>
+
+                    <!-- Refresh Area IDs -->
+                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Area IDs" Click="GetAllIDs_Click" Margin="0,0,0,3" />
+
+                    <!-- Area IDs List -->
+                    <ListView Grid.Row="3" Grid.ColumnSpan="3" d:Width="250" Name="lvAreaIds"
+                              ItemsSource="{Binding AreaGameObjects}" d:ItemsSource="{d:SampleData ItemCount=12}"
+                              Foreground="Black">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding Type}" Header="Type" />
+                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding ID, StringFormat=0x{0:X}}" Header="ID" />
+                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Tag}" Header="Tag" />
+                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Name}" Header="Name" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+                
+                <!--
                 Left Panel Grid Splitter
                 -->
                 <GridSplitter x:Name="gsLeftPanel" Grid.Column="2" Width="3" Background="#FF707070"
@@ -2789,6 +2854,7 @@
                             <Binding Path="ShowRimDataPanel" />
                             <Binding Path="ShowDistancePanel" />
                             <Binding Path="ShowToolsPanel" />
+                            <Binding Path="ShowWireTargetPanel" />
                         </MultiBinding>
                     </GridSplitter.Visibility>
                 </GridSplitter>
@@ -3303,8 +3369,7 @@
                         </StackPanel>
 
                         <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,5">
-                            <TextBlock DockPanel.Dock="Left" Text="Filter:"
-                               Margin="20,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="20,0,5,0" VerticalAlignment="Center" />
                             <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearOffRimsFilter_Click">
                                 <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
                             </Button>

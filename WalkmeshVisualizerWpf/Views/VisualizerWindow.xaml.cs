@@ -121,6 +121,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowDistancePanel = settings.ShowDistancePanel;
             ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
             ShowToolsPanel = settings.ShowToolsPanel;
+            ShowWireTargetPanel = settings.ShowWireTargetPanel;
             prevLeftPanelSize = settings.PrevLeftPanelSize;
             prevRightPanelSize = settings.PrevRightPanelSize;
 
@@ -181,6 +182,10 @@ namespace WalkmeshVisualizerWpf.Views
             // Set up RIM filter
             var view = (CollectionView)CollectionViewSource.GetDefaultView(lvOff.ItemsSource);
             if (view != null) view.Filter = HandleListFilter;
+
+            // Set up Area ID filter
+            view = (CollectionView)CollectionViewSource.GetDefaultView(lvAreaIds.ItemsSource);
+            if (view != null) view.Filter = HandleAreaIdsFilter;
         }
 
         #endregion // END REGION Constructors
@@ -432,6 +437,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showToolsPanel, value);
         }
         private bool _showToolsPanel = false;
+
+        public bool ShowWireTargetPanel
+        {
+            get => _showWireTargetPanel;
+            set => SetField(ref _showWireTargetPanel, value);
+        }
+        private bool _showWireTargetPanel = false;
 
         public bool ShowRimDataDoors
         {
@@ -1410,6 +1422,24 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInTriggerAlphaBox { get; set; } = 35;
 
         #endregion
+
+        #region Wire Targeting
+
+        public bool UpdateLookingAtId
+        {
+            get => _updateLookingAtId;
+            set => SetField(ref _updateLookingAtId, value);
+        }
+        private bool _updateLookingAtId = false;
+
+        public ObservableCollection<KotorGameObject> AreaGameObjects
+        {
+            get => _areaGameObjects;
+            set => SetField(ref _areaGameObjects, value);
+        }
+        private ObservableCollection<KotorGameObject> _areaGameObjects = [];
+
+        #endregion // Wire Targeting
 
         #endregion // ENDREGION DataBinding Members
 
@@ -3853,7 +3883,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.ShowDistancePanel = ShowDistancePanel;
             settings.ShowToolsPanel = ShowToolsPanel;
-            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel)
+            settings.ShowWireTargetPanel = ShowWireTargetPanel;
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel || ShowWireTargetPanel)
                 ? columnLeftPanel.ActualWidth
                 : prevLeftPanelSize;
             settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
@@ -4168,6 +4199,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
             ShowToolsPanel = false;
+            ShowWireTargetPanel = false;
         }
 
         private void RimDataPanelButton_Click(object sender, RoutedEventArgs e)
@@ -4176,6 +4208,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowCoordinatePanel = false;
             ShowDistancePanel = false;
             ShowToolsPanel = false;
+            ShowWireTargetPanel = false;
         }
 
         private void DistancePanelButton_Click(object sender, RoutedEventArgs e)
@@ -4184,6 +4217,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowCoordinatePanel = false;
             ShowRimDataPanel = false;
             ShowToolsPanel = false;
+            ShowWireTargetPanel = false;
         }
 
         private void ToolsPanelButton_Click(object sender, RoutedEventArgs e)
@@ -4192,11 +4226,21 @@ namespace WalkmeshVisualizerWpf.Views
             ShowCoordinatePanel = false;
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
+            ShowWireTargetPanel = false;
+        }
+
+        private void WireTargetPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide other panels in the Left Panel
+            ShowCoordinatePanel = false;
+            ShowRimDataPanel = false;
+            ShowDistancePanel = false;
+            ShowToolsPanel = false;
         }
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel)
+            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel || ShowWireTargetPanel)
             {
                 columnLeftPanel.MinWidth = 240;
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
@@ -4580,6 +4624,15 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         try
                         {
+                            if (!IsBusy && UpdateLookingAtId) Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                try
+                                {
+                                    GetTargetID_Click(null, null);
+                                }
+                                catch (Exception) { }
+                            });
+
                             string nextModuleName = string.Empty;
 
                             if (ShowCurrentLiveModule || HidePreviousLiveModule)
@@ -5539,5 +5592,90 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion // Live Tools Panel Methods
+
+        #region Wire Targeting Panel Methods
+
+        private void GetTargetID_Click(object sender, RoutedEventArgs e)
+        {
+            txtTargetID.Text = string.Empty;
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var id = kmih.getLookingAtClientID(km.pr.h);
+            //var id = kmih.getLookingAtServerID(km.pr.h);
+            txtTargetID.Text = "0x" + id.ToString("X");
+        }
+
+        public class KotorGameObject
+        {
+            public uint VTable { get; set; }
+            public uint ID { get; set; }
+            public GameObjectTypes Type { get; set; }
+            public string Tag { get; set; }
+            public string Name { get; set; }
+
+            public override string ToString() =>
+                "id: 0x" + ID.ToString("X") +
+                ", type: " + Type +
+                ", tag: " + Tag;
+        }
+
+        private void GetAllIDs_Click(object sender, RoutedEventArgs e)
+        {
+            AreaGameObjects.Clear();
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+
+            var objPtrs = km.GetAllObjectsInArea();
+            var objs = new List<KotorGameObject>();
+            foreach (var objPtr in objPtrs)
+            {
+                var obj = km.GetGameObjectByServerID(objPtr);
+                km.pr.ReadUint(obj, out uint vtable);
+                km.pr.ReadUint(obj + km.ka.OFFSET_GAME_OBJECT_ID, out uint serverID);
+                var clientID = kmih.serverToClientId(serverID);
+                km.pr.ReadByte(obj + km.ka.OFFSET_GAME_OBJECT_TYPE, out byte type);
+                var serverObject = kmia.GetServerObject(km.pr.h, serverID);
+                km.RefreshAddresses();
+                objs.Add(new KotorGameObject
+                {
+                    VTable = vtable,
+                    ID = clientID,
+                    Type = (GameObjectTypes)type,
+                    Tag = kmih.getServerObjectTag(km.pr.h, serverObject),
+                    Name = kmia.GetClientObjectName(km.pr.h, clientID),
+                });
+                km.RefreshAddresses();
+            }
+
+            foreach (var obj in objs.OrderBy(o => o.ID))
+                AreaGameObjects.Add(obj);
+        }
+
+        private void TxtAreaIdsFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(lvAreaIds.ItemsSource).Refresh();
+        }
+
+        private bool HandleAreaIdsFilter(object item)
+        {
+            if (string.IsNullOrEmpty(txtAreaIdsFilter.Text)) return true;
+            var kgo = item as KotorGameObject;
+            return kgo.Type.ToString().Contains(txtAreaIdsFilter.Text, StringComparison.OrdinalIgnoreCase)
+                || ("0x" + kgo.ID.ToString("X")).Contains(txtAreaIdsFilter.Text, StringComparison.OrdinalIgnoreCase)
+                || kgo.Tag.Contains(txtAreaIdsFilter.Text, StringComparison.OrdinalIgnoreCase)
+                || kgo.Name.Contains(txtAreaIdsFilter.Text, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void ClearAreaIdsFilter_Click(object sender, RoutedEventArgs e)
+        {
+            txtAreaIdsFilter.Clear();
+        }
+
+        private void SearchForId_Click(object sender, RoutedEventArgs e)
+        {
+            txtAreaIdsFilter.Text = txtTargetID.Text;
+        }
+
+        #endregion // Wire Targeting Panel Methods
     }
 }

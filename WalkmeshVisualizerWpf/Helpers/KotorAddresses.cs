@@ -80,6 +80,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public uint OFFSET_CLIENT_PLAYER_ID;
         public uint OFFSET_AREA_GAME_OBJECT_ARRAY;
         public uint OFFSET_AREA_GAME_OBJECT_ARRAY_LENGTH;
+        public uint OFFSET_GAME_OBJECT_ID;
         public uint OFFSET_GAME_OBJECT_TYPE;
         public uint OFFSET_CEXOSTRING_LENGTH;
         public uint OFFSET_CSWSOBJECT_TAG;
@@ -234,6 +235,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             OFFSET_CLIENT_PLAYER_ID = 0x20;
             OFFSET_AREA_GAME_OBJECT_ARRAY = 0x74;
             OFFSET_AREA_GAME_OBJECT_ARRAY_LENGTH = 0x78;
+            OFFSET_GAME_OBJECT_ID = 0x4;
             OFFSET_GAME_OBJECT_TYPE = 0x8;
             OFFSET_CEXOSTRING_LENGTH = 0x4;
             OFFSET_CSWSOBJECT_TAG = 0x18;
@@ -347,7 +349,7 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         private uint GetGameObjectByClientID(uint client_id) => GetGameObjectByServerID(KotorAddresses.ClientToServerID(client_id));
 
-        private uint GetGameObjectByServerID(uint server_id)
+        public uint GetGameObjectByServerID(uint server_id)
         {
             if (pr.hasFailed)
             {
@@ -526,7 +528,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return output;
         }
 
-        private List<uint> GetAllObjectsInArea()
+        public List<uint> GetAllObjectsInArea()
         {
             var agop = GetAreaGameObject();
             if (agop == 0x0) return null;
