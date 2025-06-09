@@ -5204,6 +5204,17 @@ namespace WalkmeshVisualizerWpf.Views
         #endregion
 
         #region Live Tools Panel Methods
+        private KotorManager GetKotorManager()
+        {
+            KotorManager km = null;
+            try
+            {
+                km = new KotorManager(GetRunningKotor());
+                if (!km.TestRead() || !km.SetLoadDirection()) km = null;
+            }
+            catch (Exception) { }
+            return km;
+        }
 
         /*
          * Movement
@@ -5211,8 +5222,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void TeleportPlayerToPoint_Click(object sender, RoutedEventArgs e)
         {
             var point = ((e.Source as Button).Tag as Point?).Value;
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.SendMessage(
                 km.pr.h,
                 kmia.TeleportPlayer(
@@ -5224,8 +5235,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SetMoveSpeedMultiplier_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var isFloat = float.TryParse(MoveSpeedMultiplier, out float msm);
             if (isFloat)
                 kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * msm);
@@ -5237,8 +5248,8 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var module = cbbWarpToRim.SelectedItem.ToString();
             if (string.IsNullOrEmpty(module)) return;
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.Warp(km.pr.h, module);
         }
 
@@ -5247,15 +5258,15 @@ namespace WalkmeshVisualizerWpf.Views
          */
         private void HealLeaderCheat_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.SendMessage(km.pr.h, kmia.Heal());
         }
 
         private void StartGatherPartyDialog_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var script = (e.Source as Button).Tag.ToString() == "Warp"
                 ? "k_trg_transfail1"
                 : "k_trg_transfail";
@@ -5268,8 +5279,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void UnlockFullParty_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var script = km.version == 1
                 ? "k_cheat_01"
                 : "a_debugparty";
@@ -5282,23 +5293,23 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowPartySelect_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.ShowPartySelection(km.pr.h);
         }
 
         private void SwapToTargetCreature_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var target = kmih.getLookingAtClientID(km.pr.h);
             kmia.SendMessage(km.pr.h, kmia.SwapToTarget(target));
         }
 
         private void SetAlignment_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
 
             uint id;
             if (cbAlignmentTarget.Text == "Player")
@@ -5314,8 +5325,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void SetInfluence_Click(object sender, RoutedEventArgs e)
         {
             if (cbInfluence.Text == string.Empty || Game != K2_NAME) return;    // Only works for K2. Exit if no influence target is selected.
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Get party members to adjust influence.
             var npcs = new List<string>();
@@ -5349,8 +5360,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void AddClass_Click(object sender, RoutedEventArgs e)
         {
             if (cbClass.Text == string.Empty) return;           // Exit if no attribute selected
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Set class
             var player = kmia.GetPlayerServerObject(km.pr.h);
@@ -5360,8 +5371,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void AddExperience_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Add experience
             var player = kmia.GetPlayerServerObject(km.pr.h);
@@ -5390,8 +5401,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void SetAttribute_Click(object sender, RoutedEventArgs e)
         {
             if (cbAttribute.Text == string.Empty) return;           // Exit if no attribute selected
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Get attributes to set
             var attrs = new List<string>();
@@ -5417,8 +5428,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void SetSkill_Click(object sender, RoutedEventArgs e)
         {
             if (cbSkill.Text == string.Empty) return;               // Exit if no skill selected
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Get skills to set
             var skills = new List<string>();
@@ -5446,8 +5457,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void AddFeat_Click(object sender, RoutedEventArgs e)
         {
             if (cbFeat.Text == string.Empty) return;                // Exit if no feat selected
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Get feats to add
             var feats = new List<string>();
@@ -5468,8 +5479,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ResetFeats_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Get feats to add as default
             var feats = new List<kmih.FEATS>()
@@ -5489,8 +5500,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void AddPower_Click(object sender, RoutedEventArgs e)
         {
             if (cbPower.Text == string.Empty) return;               // Exit if no power selected
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
 
             // Get powers to add
             var powers = new List<string>();
@@ -5514,8 +5525,8 @@ namespace WalkmeshVisualizerWpf.Views
          */
         private void SetCredits_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
 
             var player = kmia.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
@@ -5524,8 +5535,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void ShowItemCreate_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.ShowItemCreateMenu(km.pr.h);
         }
 
@@ -5539,51 +5550,51 @@ namespace WalkmeshVisualizerWpf.Views
          */
         private void SetGameGui_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderGui((sender as Button).Tag.ToString() == "on");
         }
 
         private void SetGameAABB_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderAABB((sender as Button).Tag.ToString() == "on");
         }
 
         private void SetGameWireframe_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderWireframe((sender as Button).Tag.ToString() == "on");
         }
 
         private void SetGameTrigger_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderTrigger((sender as Button).Tag.ToString() == "on");
         }
 
         private void SetGameTriggerColor_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderTriggerColor(ValueInTriggerRedBox / 100f, ValueInTriggerGreenBox / 100f,
                                      ValueInTriggerBlueBox / 100f, ValueInTriggerAlphaBox / 100f);
         }
 
         private void SetGamePersonalSpace_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderPersonalSpace((sender as Button).Tag.ToString() == "on");
         }
 
         private void SetGamePlaceholders_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;   // Exit if no game found
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetRenderPlaceholders((sender as Button).Tag.ToString() == "on");
         }
 
@@ -5592,8 +5603,8 @@ namespace WalkmeshVisualizerWpf.Views
          */
         private void TurnOnFreeCam_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetFreeCamSpeed(FreeCamSpeed);
             kmia.SendMessage(km.pr.h, kmia.FreeCamOn());
             km.RefreshAddresses();
@@ -5602,8 +5613,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void TurnOffFreeCam_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             km.SetFreeCamSpeed(10f);
             kmia.SendMessage(km.pr.h, kmia.FreeCamOff());
             km.RefreshAddresses();
@@ -5619,15 +5630,15 @@ namespace WalkmeshVisualizerWpf.Views
         //{
         //    var version = GetRunningKotor();
         //    if (version == 0) return;
-        //    var km = new KotorManager(version);
-        //    if (!km.TestRead() || !km.SetLoadDirection()) return;
+        //    var km = GetKotorManager();
+        //    if (km == null) return;
         //    km.SetFreeCamSpeed(FreeCamSpeed);
         //}
 
         private void TurnOffFog_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.SetSceneFogOff(km.pr.h);
         }
 
@@ -5637,16 +5648,16 @@ namespace WalkmeshVisualizerWpf.Views
         private void DeleteTargetDoor_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Update kmi adapter to handle getLokingAtClientID.
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var target = kmih.getLookingAtClientID(km.pr.h);
             kmia.SendMessage(km.pr.h, kmia.DeleteTargetDoor(target));
         }
 
         private void KillTargetCreature_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var handle = km.pr.h;
             var player = kmih.getPlayerServerID(handle);
             var target = kmih.getLookingAtServerID(handle);
@@ -5655,8 +5666,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void PeekTargetContainer_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var target = kmih.getLookingAtClientID(km.pr.h);
             kmia.SendMessage(km.pr.h, kmia.PeekContainerContents(target));
         }
@@ -5666,15 +5677,15 @@ namespace WalkmeshVisualizerWpf.Views
          */
         private void InvulnerabilityCheat_Click(object sender, RoutedEventArgs e)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.SendMessage(km.pr.h, kmia.Invulnerability());
         }
 
         private void ShowCustomMessageBox(string message, bool showCancel = false)
         {
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             kmia.CreatePopUp(km.pr.h, message, showCancel);
         }
 
@@ -5685,8 +5696,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void GetTargetID_Click(object sender, RoutedEventArgs e)
         {
             txtTargetID.Text = string.Empty;
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
             var id = kmih.getLookingAtClientID(km.pr.h);
             //var id = kmih.getLookingAtServerID(km.pr.h);
             txtTargetID.Text = "0x" + id.ToString("X");
@@ -5709,8 +5720,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void GetAllIDs_Click(object sender, RoutedEventArgs e)
         {
             AreaGameObjects.Clear();
-            var km = new KotorManager(GetRunningKotor());
-            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            var km = GetKotorManager();
+            if (km == null) return;
 
             var objPtrs = km.GetAllObjectsInArea();
             var objs = new List<KotorGameObject>();

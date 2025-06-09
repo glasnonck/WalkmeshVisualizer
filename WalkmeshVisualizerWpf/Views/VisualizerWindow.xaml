@@ -2152,7 +2152,7 @@
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
-                                  FallbackValue=Visible, TargetNullValue=Collapsed}">
+                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid>
                         <Grid.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -2888,7 +2888,7 @@
                 <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
                       Visibility="{Binding ShowWireTargetPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                          FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -2903,7 +2903,8 @@
 
                     <!-- Target ID -->
                     <TextBlock Grid.Column="0" Text="Target ID = " Margin="0,0,4,3" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" x:Name="txtTargetID" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,3" />
+                    <TextBlock Grid.Column="1" x:Name="txtTargetID" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,3"
+                               d:Text="0xFFFFFFFF" />
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Width="22" Height="22" Margin="4,0,0,3" Padding="0,0" Click="SearchForId_Click">
                             <Image Width="18" Height="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
@@ -2921,11 +2922,19 @@
                         <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearAreaIdsFilter_Click">
                             <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
                         </Button>
-                        <TextBox x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged" />
+                        <TextBox x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
+                                 d:Text="FilterText" />
                     </DockPanel>
 
                     <!-- Refresh Area IDs -->
-                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Area IDs" Click="GetAllIDs_Click" Margin="0,0,0,3" />
+                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Live Module IDs" Click="GetAllIDs_Click" Margin="0,0,0,3">
+                        <Button.IsEnabled>
+                            <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                <Binding Path="ShowLivePosition" />
+                                <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                            </MultiBinding>
+                        </Button.IsEnabled>
+                    </Button>
 
                     <!-- Area IDs List -->
                     <ListView Grid.Row="3" Grid.ColumnSpan="3" d:Width="250" Name="lvAreaIds"
