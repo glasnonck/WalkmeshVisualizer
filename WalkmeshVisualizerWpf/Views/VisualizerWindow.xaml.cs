@@ -5262,6 +5262,13 @@ namespace WalkmeshVisualizerWpf.Views
                     km.pr.h));
         }
 
+        private void ShowPartySelect_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.ShowPartySelection(km.pr.h);
+        }
+
         private void SwapToTargetCreature_Click(object sender, RoutedEventArgs e)
         {
             var km = new KotorManager(GetRunningKotor());
@@ -5458,6 +5465,13 @@ namespace WalkmeshVisualizerWpf.Views
             var player = kmia.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
             kmia.SetCreatureCredits(km.pr.h, player, ValueInSetCreditsBox);
+        }
+
+        private void ShowItemCreate_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.ShowItemCreateMenu(km.pr.h);
         }
 
         private void GiveItem_Click(object sender, RoutedEventArgs e)
