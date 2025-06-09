@@ -85,6 +85,7 @@ namespace WalkmeshVisualizerWpf.Views
             MouseHoverWorker.DoWork += MouseHoverWorker_DoWork;
 
             KotorClassLookup = KotorClassDescriptionLookup.ToDictionary((c) => c.Value, (c) => c.Key);
+            KotorPartyMembers = Kotor2PartyMembers;
             DataContext = this;
         }
 
@@ -1339,6 +1340,9 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInExperienceBox { get; set; } = 1000;
         public int ValueInSetCreditsBox { get; set; } = 10000;
 
+        public int ValueInAlignmentBox { get; set; } = 50;
+        public int ValueInInfluenceBox { get; set; } = 50;
+
         // Classes
         private Dictionary<kmih.CLASSES, string> KotorClassDescriptionLookup = new Dictionary<kmih.CLASSES, string>()
         {
@@ -1394,7 +1398,7 @@ namespace WalkmeshVisualizerWpf.Views
             get => _kotorFeats;
             set => SetField(ref _kotorFeats, value);
         }
-        private List<string> _kotorFeats = new List<string>();
+        private List<string> _kotorFeats = [];
 
         // Powers
         public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.SPELLS)).Cast<int>().ToList()
@@ -1409,7 +1413,17 @@ namespace WalkmeshVisualizerWpf.Views
             get => _kotorPowers;
             set => SetField(ref _kotorPowers, value);
         }
-        private List<string> _kotorPowers = new List<string>();
+        private List<string> _kotorPowers = [];
+
+        // K2 Party Members
+        public static List<string> Kotor2PartyMembers => [ALL_ABILITIES, .. Enum.GetNames(typeof(kmih.PARTY_NPCS_K2)).OrderBy(p => p)];
+
+        public List<string> KotorPartyMembers
+        {
+            get => _kotorPartyMembers;
+            set => SetField(ref _kotorPartyMembers, value);
+        }
+        private List<string> _kotorPartyMembers = [];
 
         #endregion // ENDREGION Live Tools: Abilities
 
@@ -4603,6 +4617,10 @@ namespace WalkmeshVisualizerWpf.Views
                                 KotorClasses = version == 1 ? Kotor1Classes : Kotor2Classes;
                                 KotorFeats = version == 1 ? Kotor1Feats : Kotor2Feats;
                                 KotorPowers = version == 1 ? Kotor1Powers : Kotor2Powers;
+                                txtInfluence.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
+                                cbInfluence.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
+                                tbInfluenceValue.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
+                                btnInfluence.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
                             });
                             lastVersion = version;
 
@@ -5277,6 +5295,43 @@ namespace WalkmeshVisualizerWpf.Views
             kmia.SendMessage(km.pr.h, kmia.SwapToTarget(target));
         }
 
+        private void SetAlignment_Click(object sender, RoutedEventArgs e)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+
+            uint id;
+            if (cbAlignmentTarget.Text == "Player")
+                id = kmih.getPlayerServerID(km.pr.h);
+            else
+                id = kmih.getLookingAtServerID(km.pr.h);
+            var obj = kmia.GetServerObject(km.pr.h, id);
+            km.RefreshAddresses();
+
+            kmih.SetAlignment(km.pr.h, obj, (short)ValueInAlignmentBox);
+        }
+
+        private void SetInfluence_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbInfluence.Text == string.Empty || Game != K2_NAME) return;    // Only works for K2. Exit if no influence target is selected.
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+
+            // Get party members to adjust influence.
+            var npcs = new List<string>();
+            if (cbInfluence.Text == ALL_ABILITIES)
+                npcs = [.. KotorPartyMembers];
+            else npcs.Add(cbInfluence.Text);
+
+            // Adjust influence.
+            foreach (var npc in npcs)
+            {
+                if (npc == ALL_ABILITIES) continue;
+                km.RefreshAddresses();
+                kmia.SetPCInfluenceKotor2(km.pr.h, npc.ToEnum<kmih.PARTY_NPCS_K2>(), ValueInInfluenceBox);
+            }
+        }
+
         /*
          * Attributes, Skills, Feats, and Powers (Abilities)
          */
@@ -5614,6 +5669,13 @@ namespace WalkmeshVisualizerWpf.Views
             var km = new KotorManager(GetRunningKotor());
             if (!km.TestRead() || !km.SetLoadDirection()) return;
             kmia.SendMessage(km.pr.h, kmia.Invulnerability());
+        }
+
+        private void ShowCustomMessageBox(string message, bool showCancel = false)
+        {
+            var km = new KotorManager(GetRunningKotor());
+            if (!km.TestRead() || !km.SetLoadDirection()) return;
+            kmia.CreatePopUp(km.pr.h, message, showCancel);
         }
 
         #endregion // Live Tools Panel Methods
