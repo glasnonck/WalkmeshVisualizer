@@ -11,6 +11,12 @@
 	<Copyright>2025</Copyright>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\Icons\Backspace.png" />
+    <None Remove="Resources\Icons\Edit.png" />
+    <None Remove="Resources\Icons\Filter.png" />
+    <None Remove="Resources\Icons\RemoveIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="KotorMessageInjector">
       <HintPath>..\..\KotorMessageInjector\KotorMessageInjector\bin\Debug\netstandard2.0\KotorMessageInjector.dll</HintPath>
     </Reference>
@@ -52,11 +58,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\Icons\Backspace.png" />
+    <Resource Include="Resources\Icons\Edit.png" />
+    <Resource Include="Resources\Icons\Filter.png" />
     <Resource Include="Resources\Icons\RefreshIcon.png" />
     <Resource Include="Resources\Icons\AddIcon.png" />
     <Resource Include="Resources\Icons\ClearIcon.png" />
     <Resource Include="Resources\Icons\OptionsIcon.png" />
     <Resource Include="Resources\Icons\FolderIcon.png" />
+    <Resource Include="Resources\Icons\RemoveIcon.png" />
     <Resource Include="Resources\Icons\UndoIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLeftClickIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLockIcon.png" />

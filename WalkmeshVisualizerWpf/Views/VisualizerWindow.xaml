@@ -2894,7 +2894,7 @@
                 <Grid x:Name="globalsPanel" Grid.Column="1" d:MinWidth="240"
                       Visibility="{Binding ShowGlobalsPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -2963,7 +2963,7 @@
                                                 </Border>
                                             </ControlTemplate>
                                         </Button.Template>
-                                        <Image Margin="0" Width="14" Source="/Resources/Icons/ClearIcon.png" />
+                                        <Image Margin="0" Width="14" Source="/Resources/Icons/RemoveIcon.png" />
                                     </Button>
                                 </Grid>
                             </DataTemplate>
@@ -2983,7 +2983,7 @@
                                                 </Border>
                                             </ControlTemplate>
                                         </Button.Template>
-                                        <Image Margin="0" Width="14" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                                        <Image Margin="0" Width="14" Source="/Resources/Icons/Edit.png" />
                                     </Button>
                                 </Grid>
                             </DataTemplate>
@@ -3021,7 +3021,7 @@
                             <DockPanel Grid.Row="1">
                                 <TextBlock DockPanel.Dock="Left" Text="Filter:" />
                                 <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsFindFilter_Click">
-                                    <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                                    <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
                                 </Button>
                                 <TextBox x:Name="txtGlobalsFindFilter" TextChanged="TxtGlobalsFindFilter_TextChanged" d:Text="filter" />
                             </DockPanel>
@@ -3074,7 +3074,7 @@
                             <DockPanel Grid.Row="1">
                                 <TextBlock DockPanel.Dock="Left" Text="Filter:" />
                                 <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsWatchFilter_Click">
-                                    <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                                    <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
                                 </Button>
                                 <TextBox x:Name="txtGlobalsWatchFilter" TextChanged="TxtGlobalsWatchFilter_TextChanged" d:Text="filter" />
                             </DockPanel>
@@ -3163,7 +3163,7 @@
                 <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
                       Visibility="{Binding ShowWireTargetPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                          FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -3176,33 +3176,54 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Target ID -->
-                    <TextBlock Grid.Column="0" Text="Target ID = " Margin="0,0,4,3" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" x:Name="txtTargetID" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,3"
-                               d:Text="0xFFFFFFFF" />
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="22" Height="22" Margin="4,0,0,3" Padding="0,0" Click="SearchForId_Click">
-                            <Image Width="18" Height="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                    <Grid Grid.ColumnSpan="3" Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Target ID -->
+                        <TextBlock Grid.Column="0" Text="Target ID:" Margin="0,0,8,4" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" x:Name="txtTargetID" Margin="3,0,0,4" d:Text="0xFFFFFFFF"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        <CheckBox Grid.Column="2" Margin="4,0,0,4" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    IsChecked="{Binding UpdateLookingAtId, Mode=TwoWay}"
+                                    ToolTip="Automatically refresh the ID of the live game target." />
+                        <Button Grid.Column="3" Margin="4,0,0,4" VerticalAlignment="Center" Click="GetTargetID_Click"
+                                ToolTip="Get the ID of the live game target.">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="ShowLivePosition" />
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="UpdateLookingAtId" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                            <Image Width="18" Source="/Resources/Icons/RefreshIcon.png" />
                         </Button>
-                        <ToggleButton Width="22" Height="22" Margin="4,0,0,3" Padding="0,0"
-                                                IsChecked="{Binding UpdateLookingAtId, Mode=TwoWay}" VerticalAlignment="Center"
-                                                ToolTip="Load the selected module using the warp cheat.">
-                            <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
-                        </ToggleButton>
-                    </StackPanel>
 
-                    <!-- Area IDs Filter -->
-                    <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,3">
-                        <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="0,0,5,0" VerticalAlignment="Center" />
-                        <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearAreaIdsFilter_Click">
-                            <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                        <!-- Area IDs Filter -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Filter:" Margin="0,0,4,0" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1"  x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
+                                VerticalContentAlignment="Center"
+                                d:Text="FilterText" />
+                        <Button Grid.Row="1" Grid.Column="2" Margin="4,0,0,0" Click="ClearAreaIdsFilter_Click"
+                            ToolTip="Clear filter.">
+                            <Image Width="18" Source="/Resources/Icons/Backspace.png" />
                         </Button>
-                        <TextBox x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
-                                 d:Text="FilterText" />
-                    </DockPanel>
-
+                        <Button Grid.Row="1" Grid.Column="3" Margin="4,0,0,0" Click="SearchForId_Click"
+                            ToolTip="Filter using current target ID.">
+                            <Image Width="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                        </Button>
+                    </Grid>
+                    
                     <!-- Refresh Area IDs -->
-                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Live Module IDs" Click="GetAllIDs_Click" Margin="0,0,0,3">
+                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Live Module IDs" Click="GetAllIDs_Click" Margin="0,0,0,4">
                         <Button.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                 <Binding Path="ShowLivePosition" />
@@ -3757,7 +3778,7 @@
                         <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,5">
                             <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="20,0,5,0" VerticalAlignment="Center" />
                             <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearOffRimsFilter_Click">
-                                <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                                <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
                             </Button>
                             <TextBox x:Name="txtRimsFilter" TextChanged="TxtOffRimsFilter_TextChanged" />
                         </DockPanel>
