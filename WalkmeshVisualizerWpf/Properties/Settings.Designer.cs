@@ -538,5 +538,17 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowWireTargetPanel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowGlobalsPanel {
+            get {
+                return ((bool)(this["ShowGlobalsPanel"]));
+            }
+            set {
+                this["ShowGlobalsPanel"] = value;
+            }
+        }
     }
 }
