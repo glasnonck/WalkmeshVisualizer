@@ -15,6 +15,7 @@
     <None Remove="Resources\Icons\Edit.png" />
     <None Remove="Resources\Icons\Filter.png" />
     <None Remove="Resources\Icons\RemoveIcon.png" />
+    <None Remove="Resources\Icons\Save.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="KotorMessageInjector">
@@ -67,6 +68,7 @@
     <Resource Include="Resources\Icons\OptionsIcon.png" />
     <Resource Include="Resources\Icons\FolderIcon.png" />
     <Resource Include="Resources\Icons\RemoveIcon.png" />
+    <Resource Include="Resources\Icons\Save.png" />
     <Resource Include="Resources\Icons\UndoIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLeftClickIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLockIcon.png" />

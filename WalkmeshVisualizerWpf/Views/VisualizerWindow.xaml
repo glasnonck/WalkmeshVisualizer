@@ -2894,7 +2894,7 @@
                 <Grid x:Name="globalsPanel" Grid.Column="1" d:MinWidth="240"
                       Visibility="{Binding ShowGlobalsPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                          FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -2916,6 +2916,7 @@
                                       Tag="ReadWrite" Content="Read/Write" />
                     </StackPanel>
 
+                    <!-- Globals Sub-Panels -->
                     <Grid Margin="4,0,0,0" Grid.Column="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" x:Name="rowGlobalsFind" />
@@ -2933,8 +2934,21 @@
                                 <Setter Property="VerticalAlignment" Value="Center" />
                                 <Setter Property="FontWeight" Value="Bold" />
                             </Style>
+                            <Style TargetType="TextBlock" x:Key="tbHighlight">
+                                <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="Foreground" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding GlobalsFindSelectedItem.HasChanged}" Value="True">
+                                        <DataTrigger.Setters>
+                                            <Setter Property="Foreground" Value="Red" />
+                                        </DataTrigger.Setters>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
                             <Style TargetType="TextBox">
                                 <Setter Property="Margin" Value="0,0,0,4" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
                             </Style>
                             <Style TargetType="ListView">
                                 <Setter Property="Margin" Value="0,0,0,6" />
@@ -2990,7 +3004,7 @@
                             <DataTemplate x:Key="dtAddWatch">
                                 <Grid Margin="-4">
                                     <Button Margin="0" Padding="0" Background="Transparent"
-                                            BorderBrush="Transparent" BorderThickness="0"
+                                            BorderBrush="Transparent" BorderThickness="1"
                                             Click="AddGlobalWatch_Click">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
@@ -3003,12 +3017,35 @@
                                                 </Border>
                                             </ControlTemplate>
                                         </Button.Template>
-                                        <Image Margin="0" Width="14" Source="/Resources/Icons/AddIcon.png" />
+                                        <Border>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="Lavender" />
+                                                            <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Image Margin="0" Width="14" Source="/Resources/Icons/AddIcon.png" />
+                                        </Border>
                                     </Button>
                                 </Grid>
                             </DataTemplate>
+                            <Style TargetType="ListViewItem" x:Key="FindGlobalStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasChanged}" Value="True">
+                                        <Setter Property="Foreground" Value="Red" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
                         </Grid.Resources>
 
+                        <!-- Find Globals -->
                         <Grid Grid.Row="0" x:Name="gridGlobalsFind">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -3028,26 +3065,26 @@
 
                             <ListView Grid.Row="2" x:Name="lvGlobalsFind"
                                       ItemsSource="{Binding KotorFindGlobals}"
+                                      ItemContainerStyle="{StaticResource FindGlobalStyle}"
+                                      SelectedItem="{Binding GlobalsFindSelectedItem, Mode=OneWayToSource}"
+                                      SelectionChanged="LvGlobalsFind_SelectionChanged"
                                       d:ItemsSource="{d:SampleData}">
                                 <ListView.View>
                                     <GridView>
-                                        <GridViewColumn Width="20" CellTemplate="{StaticResource dtAddWatch}">
+                                        <GridViewColumn Width="22" CellTemplate="{StaticResource dtAddWatch}">
                                             <GridViewColumn.Header>
                                                 <GridViewColumnHeader Tag="Add" Content="" />
                                             </GridViewColumn.Header>
                                         </GridViewColumn>
-                                        <GridViewColumn Width="20" CellTemplate="{StaticResource dtEdit}">
-                                            <GridViewColumn.Header>
-                                                <GridViewColumnHeader Tag="Edit" Content="" />
-                                            </GridViewColumn.Header>
-                                        </GridViewColumn>
                                         <GridViewColumn Width="60" Header="Type" DisplayMemberBinding="{Binding Type}" />
                                         <GridViewColumn Width="140" Header="Name" DisplayMemberBinding="{Binding Name}" />
+                                        <GridViewColumn Width="100" Header="Value" DisplayMemberBinding="{Binding Value}" />
                                     </GridView>
                                 </ListView.View>
                             </ListView>
                         </Grid>
 
+                        <!-- Watch Globals TODO: Delete -->
                         <Grid Grid.Row="1" x:Name="gridGlobalsWatch">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -3058,13 +3095,13 @@
                             <TextBlock Text="Watch" Style="{StaticResource tbHeader}" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <CheckBox x:Name="cbAutoRefreshGlobalWatch" ToolTip="Auto-refresh periodically"
-                                          IsChecked="{Binding DoGlobalAutoRefresh, Mode=TwoWay}" />
+                                          IsChecked="{Binding DoGlobalWatchAutoRefresh, Mode=TwoWay}" />
                                 <Button ToolTip="Refresh" Click="RefreshGlobalWatch_Click">
                                     <Button.IsEnabled>
                                         <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                             <Binding Path="ShowLivePosition" />
                                             <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                            <Binding Path="DoGlobalAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
+                                            <Binding Path="DoGlobalWatchAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
                                         </MultiBinding>
                                     </Button.IsEnabled>
                                     <Image Height="14" Source="/Resources/Icons/RefreshIcon.png" />
@@ -3081,6 +3118,7 @@
 
                             <ListView Grid.Row="2" x:Name="lvGlobalsWatch"
                                       ItemsSource="{Binding KotorWatchGlobals}"
+                                      ItemContainerStyle="{StaticResource FindGlobalStyle}"
                                       d:ItemsSource="{d:SampleData}">
                                 <ListView.View>
                                     <GridView>
@@ -3089,15 +3127,9 @@
                                                 <GridViewColumnHeader Tag="Remove" Content="" />
                                             </GridViewColumn.Header>
                                         </GridViewColumn>
-                                        <GridViewColumn Width="20" CellTemplate="{StaticResource dtEdit}">
-                                            <GridViewColumn.Header>
-                                                <GridViewColumnHeader Tag="Edit" Content="" />
-                                            </GridViewColumn.Header>
-                                        </GridViewColumn>
                                         <GridViewColumn Width="20" Header="T"
                                             DisplayMemberBinding="{Binding Type,
                                                 Converter={StaticResource FirstCharacterConverter}}" />
-                                        <GridViewColumn Width="40" Header="!" DisplayMemberBinding="{Binding HasChanged}" />
                                         <GridViewColumn Width="140" Header="Name" DisplayMemberBinding="{Binding Name}" />
                                         <GridViewColumn Width="100" Header="Value" DisplayMemberBinding="{Binding Value}" />
                                     </GridView>
@@ -3105,10 +3137,13 @@
                             </ListView>
                         </Grid>
 
+                        <!-- Read / Write Globals -->
                         <Grid Grid.Row="2" x:Name="gridGlobalsReadWrite">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="4" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -3116,43 +3151,48 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Read / Write"
-                                       Style="{StaticResource tbHeader}" />
-                            
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Global Name:" />
-                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtGlobalName" />
+                            <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Read / Write" Style="{StaticResource tbHeader}" />
+                            <CheckBox Grid.Row="0" Grid.Column="2" Margin="0,0,0,4"
+                                      HorizontalAlignment="Right" VerticalAlignment="Center"
+                                      IsChecked="{Binding DoGlobalReadAutoRefresh, Mode=TwoWay}" />
+                            <Button Grid.Row="0" Grid.Column="3" Margin="4,0,0,4" Click="ReadGlobal_Click">
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                        <Binding Path="ShowLivePosition" />
+                                        <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="DoGlobalReadAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                                <Image Height="14" Source="/Resources/Icons/RefreshIcon.png" />
+                            </Button>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Number Value:" />
-                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtGlobalNumberValue" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.Name}" />
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Boolean Value:" />
-                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtGlobalBooleanValue" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Value:" Style="{StaticResource tbHighlight}" />
+                            <TextBlock Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.Value}" Style="{StaticResource tbHighlight}" />
 
-                            <Grid Grid.Row="4" Grid.ColumnSpan="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="5" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="Read" Click="ReadGlobal_Click">
-                                    <Button.IsEnabled>
-                                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
-                                            <Binding Path="ShowLivePosition" />
-                                            <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                        </MultiBinding>
-                                    </Button.IsEnabled>
-                                </Button>
-                                <Button Grid.Column="2" Content="Write" Click="WriteGlobal_Click">
-                                    <Button.IsEnabled>
-                                        <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
-                                            <Binding Path="ShowLivePosition" />
-                                            <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                        </MultiBinding>
-                                    </Button.IsEnabled>
-                                </Button>
-                            </Grid>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Last Value:" />
+                            <TextBlock Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.LastValue}" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Read At:" />
+                            <TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.LastReadAt}" />
+
+                            <Border Grid.Row="5" Grid.ColumnSpan="4" BorderThickness="0,0,0,1" BorderBrush="Black" Margin="0,0,0,2" />
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Message:" />
+                            <TextBlock Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalReadMessage}" />
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Set Value:" Margin="0" />
+                            <TextBox Grid.Row="7" Grid.Column="2" x:Name="txtGlobalSetValue" Margin="0" />
+                            <Button Grid.Row="7" Grid.Column="3" Margin="4,0,0,0" Click="WriteGlobal_Click">
+                                <Image Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
+                            </Button>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -3163,7 +3203,7 @@
                 <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
                       Visibility="{Binding ShowWireTargetPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
