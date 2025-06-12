@@ -1,4 +1,8 @@
-﻿using System;
+﻿using KotOR_IO;
+using KotOR_IO.GffFile;
+using KotOR_IO.Helpers;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,32 +11,118 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using System.Windows.Xps.Packaging;
-using KotOR_IO;
-using KotOR_IO.GffFile;
-using KotOR_IO.Helpers;
-using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
-using kmih = KotorMessageInjector.KotorHelpers;
-using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-using System.Windows.Documents;
+using kmia = KotorMessageInjector.Adapter;
+using kmih = KotorMessageInjector.KotorHelpers;
 
 namespace WalkmeshVisualizerWpf.Views
 {
+    public enum KotorGlobalType
+    {
+        Unknown = 0,
+        Boolean,
+        Number,
+        Location,
+        String,
+    }
+
+    public class KotorGlobal : INotifyPropertyChanged
+    {
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            NotifyPropertyChanged(propertyName);
+            NotifyPropertyChanged(nameof(HasChanged));
+            return true;
+        }
+        #endregion // INotifyPropertyChanged Implementation
+
+        #region Properties
+        public int ID
+        {
+            get => _id;
+            set => SetField(ref _id, value);
+        }
+        private int _id;
+
+        public string Name
+        {
+            get => _name;
+            set => SetField(ref _name, value);
+        }
+        private string _name;
+
+        public KotorGlobalType Type
+        {
+            get => _type;
+            set => SetField(ref _type, value);
+        }
+        private KotorGlobalType _type;
+
+        public string Value
+        {
+            get => _value;
+            set => SetField(ref _value, value);
+        }
+        private string _value;
+
+        public string LastValue
+        {
+            get => _lastValue;
+            set => SetField(ref _lastValue, value);
+        }
+        private string _lastValue;
+
+        public DateTime LastReadAt
+        {
+            get => _lastReadAt;
+            set => SetField(ref _lastReadAt, value);
+        }
+        private DateTime _lastReadAt;
+
+        public bool HasChanged => Value != LastValue;
+        #endregion // Properties
+    }
+
+    public class KotorGameObject
+    {
+        public uint VTable { get; set; }
+        public uint ID { get; set; }
+        public GameObjectTypes Type { get; set; }
+        public string Tag { get; set; }
+        public string Name { get; set; }
+
+        public override string ToString() =>
+            "id: 0x" + ID.ToString("X") +
+            ", type: " + Type +
+            ", tag: " + Tag;
+    }
+
     /// <summary>
     /// Interaction logic for VisualizerWindow.xaml
     /// </summary>
@@ -1336,6 +1426,8 @@ namespace WalkmeshVisualizerWpf.Views
         #region Live Tools: Abilities
 
         private const string ALL_ABILITIES = "ALL";
+        private const string GLOBAL_READ_MESSAGE_DEFAULT = "Double-click a global to read / write.";
+
         //private const string ALL_BAD_SPELLS = "Bad Spells";                 // Starts or Ends with XXX
         //private const string ALL_SPECIAL_ABILITIES = "Special Abilities";   // Starts with SPECIAL_ABILITY_
         //private const string ALL_ITEM_ABILITY = "Item Abilities";           // Starts with ITEM_ABILITY_
@@ -1474,26 +1566,6 @@ namespace WalkmeshVisualizerWpf.Views
 
         #region Global Panel Properties
 
-        public enum KotorGlobalType
-        {
-            Unknown = 0,
-            Boolean,
-            Number,
-            Location,
-            String,
-        }
-
-        public class KotorGlobal
-        {
-            public int ID { get; set; }
-            public string Name { get; set; }
-            public KotorGlobalType Type { get; set; }
-            public string Value { get; set; }
-            public string LastValue { get; set; }
-            public DateTime LastReadAt { get; set; }
-            public bool HasChanged => Value != LastValue;
-        }
-
         public bool ShowGlobalsReadWrite
         {
             get => _showGlobalsReadWrite;
@@ -1515,7 +1587,21 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showGlobalsWatch = true;
 
-        public bool DoGlobalAutoRefresh
+        public bool GlobalReadChanged
+        {
+            get => _globalReadChanged;
+            set => SetField(ref _globalReadChanged, value);
+        }
+        private bool _globalReadChanged = false;
+
+        public bool DoGlobalReadAutoRefresh
+        {
+            get => _doGlobalReadAutoRefresh;
+            set => SetField(ref _doGlobalReadAutoRefresh, value);
+        }
+        private bool _doGlobalReadAutoRefresh = false;
+
+        public bool DoGlobalWatchAutoRefresh
         {
             get => _doGlobalAutoRefresh;
             set => SetField(ref _doGlobalAutoRefresh, value);
@@ -1560,6 +1646,20 @@ namespace WalkmeshVisualizerWpf.Views
             "K_KOTOR_MASTER",
             "G_PazzakDeck",
         ];
+
+        public KotorGlobal GlobalsFindSelectedItem
+        {
+            get => _globalsFindSelectedItem;
+            set => SetField(ref _globalsFindSelectedItem, value);
+        }
+        private KotorGlobal _globalsFindSelectedItem;
+
+        public string GlobalReadMessage
+        {
+            get => _globalReadMessage;
+            set => SetField(ref _globalReadMessage, value);
+        }
+        private string _globalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
 
         #endregion // Global Panel Properties
 
@@ -4765,8 +4865,10 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void LivePositionWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            var swAutoRefresh = new Stopwatch();
-            swAutoRefresh.Start();
+            var swReadRefresh = new Stopwatch();
+            swReadRefresh.Start();
+            var swWatchRefresh = new Stopwatch();
+            swWatchRefresh.Start();
             var sw = new Stopwatch();
             sw.Start();
             var bw = sender as BackgroundWorker;
@@ -4826,18 +4928,28 @@ namespace WalkmeshVisualizerWpf.Views
                                 catch (Exception) { }
                             });
 
-                            // Global Watch Auto-Refresh
-                            if (!IsBusy && DoGlobalAutoRefresh && swAutoRefresh.ElapsedMilliseconds >= 5000)
+                            // Global Read Auto-Refresh
+                            if (!IsBusy && DoGlobalReadAutoRefresh && (GlobalReadChanged ||
+                                swReadRefresh.ElapsedMilliseconds >= 5000))
                             {
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
-                                    try
-                                    {
-                                        RefreshGlobalWatch_Click(null, null);
-                                    }
+                                    try { ReadGlobal_Click(null, null); }
                                     catch (Exception) { }
                                 });
-                                swAutoRefresh.Restart();
+                                swReadRefresh.Restart();
+                                GlobalReadChanged = false;
+                            }
+
+                            // Global Watch Auto-Refresh
+                            if (!IsBusy && DoGlobalWatchAutoRefresh && swWatchRefresh.ElapsedMilliseconds >= 5000)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    try { RefreshGlobalWatch_Click(null, null); }
+                                    catch (Exception) { }
+                                });
+                                swWatchRefresh.Restart();
                             }
 
                             string nextModuleName = string.Empty;
@@ -5892,20 +6004,6 @@ namespace WalkmeshVisualizerWpf.Views
             txtTargetID.Text = "0x" + id.ToString("X");
         }
 
-        public class KotorGameObject
-        {
-            public uint VTable { get; set; }
-            public uint ID { get; set; }
-            public GameObjectTypes Type { get; set; }
-            public string Tag { get; set; }
-            public string Name { get; set; }
-
-            public override string ToString() =>
-                "id: 0x" + ID.ToString("X") +
-                ", type: " + Type +
-                ", tag: " + Tag;
-        }
-
         private void GetAllIDs_Click(object sender, RoutedEventArgs e)
         {
             AreaGameObjects.Clear();
@@ -6033,109 +6131,87 @@ namespace WalkmeshVisualizerWpf.Views
             return kg.Name.Contains(txtGlobalsWatchFilter.Text, StringComparison.OrdinalIgnoreCase);
         }
 
+        private void RefreshGlobalListing(KotorGlobal global)
+        {
+            var idx = KotorFindGlobals.IndexOf(global);
+            if (idx != -1)
+            {
+                KotorFindGlobals.Remove(global);
+                KotorFindGlobals.Insert(idx, global);
+            }
+            else
+            {
+                idx = KotorWatchGlobals.IndexOf(global);
+                KotorWatchGlobals.Remove(global);
+                KotorWatchGlobals.Insert(idx, global);
+            }
+        }
+
         private void ReadGlobal_Click(object sender, RoutedEventArgs e)
         {
             var km = GetKotorManager();
             if (km == null) return;
-            var global = KotorGlobals.FirstOrDefault(g => g.Name.Equals(txtGlobalName.Text, StringComparison.OrdinalIgnoreCase));
+            var global = GlobalsFindSelectedItem;
             if (global == null)
             {
-                txtGlobalBooleanValue.Text = "Unknown Global";
-                txtGlobalNumberValue.Text = "Unknown Global";
+                GlobalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
+                return;
             }
-            else
-            {
-                global.LastValue = global.Value;
-                global.LastReadAt = DateTime.Now;
 
-                if (global.Type == KotorGlobalType.Boolean)
-                {
-                    global.Value = kmia.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
-                    txtGlobalBooleanValue.Text = global.Value;
-                    txtGlobalNumberValue.Clear();
-                }
-                if (global.Type == KotorGlobalType.Number)
-                {
-                    global.Value = kmia.GetGlobalNumber(km.pr.h, global.Name).ToString();
-                    txtGlobalNumberValue.Text = global.Value;
-                    txtGlobalBooleanValue.Clear();
-                }
+            global.LastValue = global.Value;
+            global.LastReadAt = DateTime.Now;
 
-                var idx = KotorFindGlobals.IndexOf(global);
-                if (idx != -1)
-                {
-                    KotorFindGlobals.Remove(global);
-                    KotorFindGlobals.Insert(idx, global);
-                }
-                else
-                {
-                    idx = KotorWatchGlobals.IndexOf(global);
-                    KotorWatchGlobals.Remove(global);
-                    KotorWatchGlobals.Insert(idx, global);
-                }
-            }
+            if (global.Type == KotorGlobalType.Boolean)
+                global.Value = kmia.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
+
+            if (global.Type == KotorGlobalType.Number)
+                global.Value = kmia.GetGlobalNumber(km.pr.h, global.Name).ToString();
+
+            GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] read successful";
+            //RefreshGlobalListing(global);
         }
 
         private void WriteGlobal_Click(object sender, RoutedEventArgs e)
         {
             var km = GetKotorManager();
             if (km == null) return;
-            var global = KotorGlobals.FirstOrDefault(g => g.Name.Equals(txtGlobalName.Text, StringComparison.OrdinalIgnoreCase));
+            var global = GlobalsFindSelectedItem;
             if (global == null)
             {
-                txtGlobalBooleanValue.Text = "Unknown Global";
-                txtGlobalNumberValue.Text = "Unknown Global";
+                GlobalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
+                return;
             }
-            else
-            {
-                bool valueSet = false;
-                if (global.Type == KotorGlobalType.Boolean)
-                {
-                    if (bool.TryParse(txtGlobalBooleanValue.Text, out bool bResult))
-                    {
-                        kmia.SetGlobalBoolean(km.pr.h, global.Name, bResult);
-                        txtGlobalNumberValue.Text = "Boolean set";
-                        global.LastValue = global.Value;
-                        global.Value = txtGlobalBooleanValue.Text;
-                        valueSet = true;
-                    }
-                    else
-                    {
-                        txtGlobalNumberValue.Text = "Invalid boolean value";
-                    }
-                }
-                if (global.Type == KotorGlobalType.Number)
-                {
-                    if (byte.TryParse(txtGlobalNumberValue.Text, out byte nResult))
-                    {
-                        kmia.SetGlobalNumber(km.pr.h, global.Name, nResult);
-                        txtGlobalBooleanValue.Text = "Number set";
-                        global.LastValue = global.Value;
-                        global.Value = txtGlobalNumberValue.Text;
-                        valueSet = true;
-                    }
-                    else
-                    {
-                        txtGlobalBooleanValue.Text = "Invalid number value";
-                    }
-                }
 
-                if (valueSet)
+            bool valueSet = false;
+            string value = string.Empty;
+            if (global.Type == KotorGlobalType.Boolean)
+            {
+                if (bool.TryParse(txtGlobalSetValue.Text, out bool bResult))
                 {
-                    global.LastReadAt = DateTime.Now;
-                    var idx = KotorFindGlobals.IndexOf(global);
-                    if (idx != -1)
-                    {
-                        KotorFindGlobals.Remove(global);
-                        KotorFindGlobals.Insert(idx, global);
-                    }
-                    else
-                    {
-                        idx = KotorWatchGlobals.IndexOf(global);
-                        KotorWatchGlobals.Remove(global);
-                        KotorWatchGlobals.Insert(idx, global);
-                    }
+                    kmia.SetGlobalBoolean(km.pr.h, global.Name, bResult);
+                    value = bResult.ToString();
+                    valueSet = true;
                 }
+                else GlobalReadMessage = $"[{DateTime.Now:HH:mm:ss}] Invalid value: must be True or False";
+            }
+            if (global.Type == KotorGlobalType.Number)
+            {
+                if (byte.TryParse(txtGlobalSetValue.Text, out byte nResult))
+                {
+                    kmia.SetGlobalNumber(km.pr.h, global.Name, nResult);
+                    value = nResult.ToString();
+                    valueSet = true;
+                }
+                else GlobalReadMessage = $"[{DateTime.Now:HH:mm:ss}] Invalid value: must be an integer between -2b and +2b";
+            }
+
+            if (valueSet)
+            {
+                global.LastValue = global.Value;
+                global.Value = value;
+                global.LastReadAt = DateTime.Now;
+                GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] value set";
+                //RefreshGlobalListing(global);
             }
         }
 
@@ -6159,8 +6235,8 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void EditGlobal_Click(object sender, RoutedEventArgs e)
         {
-            var global = (sender as Button).DataContext as KotorGlobal;
-            txtGlobalName.Text = global.Name;
+            //var global = (sender as Button).DataContext as KotorGlobal;
+            //txtGlobalName.Text = global.Name;
         }
 
         private void RefreshGlobalWatch_Click(object sender, RoutedEventArgs e)
@@ -6197,6 +6273,16 @@ namespace WalkmeshVisualizerWpf.Views
                 global.LastReadAt = DateTime.Now;
             }
             km.RefreshAddresses();
+        }
+
+        private void LvFindGlobal_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void LvGlobalsFind_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GlobalReadChanged = true;
         }
 
         #endregion // Globals Panel Methods
