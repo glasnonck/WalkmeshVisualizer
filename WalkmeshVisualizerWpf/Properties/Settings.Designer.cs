@@ -550,5 +550,29 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowGlobalsPanel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        public double PrevBottomPanelSize {
+            get {
+                return ((double)(this["PrevBottomPanelSize"]));
+            }
+            set {
+                this["PrevBottomPanelSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowGlobalWatchPanel {
+            get {
+                return ((bool)(this["ShowGlobalWatchPanel"]));
+            }
+            set {
+                this["ShowGlobalWatchPanel"] = value;
+            }
+        }
     }
 }

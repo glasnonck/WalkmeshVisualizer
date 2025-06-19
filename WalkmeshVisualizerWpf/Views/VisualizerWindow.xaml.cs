@@ -132,15 +132,20 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
             ShowLeftClickGatherPartyRange = settings.ShowLeftClickGatherPartyRange;
+            
+            prevLeftPanelSize = settings.PrevLeftPanelSize;
             ShowCoordinatePanel = settings.ShowCoordinatePanel;
             ShowRimDataPanel = settings.ShowRimDataPanel;
             ShowDistancePanel = settings.ShowDistancePanel;
-            ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
             ShowToolsPanel = settings.ShowToolsPanel;
             ShowGlobalsPanel = settings.ShowGlobalsPanel;
             ShowWireTargetPanel = settings.ShowWireTargetPanel;
-            prevLeftPanelSize = settings.PrevLeftPanelSize;
+
             prevRightPanelSize = settings.PrevRightPanelSize;
+            ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
+
+            prevBottomPanelSize = settings.PrevBottomPanelSize;
+            ShowGlobalWatchPanel = settings.ShowGlobalWatchPanel;
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
             SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
@@ -188,6 +193,9 @@ namespace WalkmeshVisualizerWpf.Views
 
             // Right Panel
             if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+
+            // Bottom Panel
+            if (ShowGlobalWatchPanel) rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
 
             // Set up RIM data panel filters
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimDoor.ItemsSource)).Filter = RimDataFilter;
@@ -4103,6 +4111,7 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
             settings.ShowGatherPartyRange = ShowGatherPartyRange;
             settings.ShowLeftClickGatherPartyRange = ShowLeftClickGatherPartyRange;
+
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.ShowDistancePanel = ShowDistancePanel;
@@ -4112,10 +4121,17 @@ namespace WalkmeshVisualizerWpf.Views
             settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel || ShowGlobalsPanel || ShowWireTargetPanel)
                 ? columnLeftPanel.ActualWidth
                 : prevLeftPanelSize;
+            
             settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
             settings.PrevRightPanelSize = ShowWalkmeshPanel
-                ?  columnRightPanel.ActualWidth
+                ? columnRightPanel.ActualWidth
                 : prevRightPanelSize;
+
+            settings.ShowGlobalWatchPanel = ShowGlobalWatchPanel;
+            settings.PrevBottomPanelSize = ShowGlobalWatchPanel
+                ? rowBottomPanel.ActualHeight
+                : prevBottomPanelSize;
+
             settings.SelectedPaletteName = SelectedPalette.FileName;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
             settings.ShowRimDataDoors = ShowRimDataDoors;
@@ -4492,26 +4508,6 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        private void MinimizeGlobalWatchPanel_Click(object sender, RoutedEventArgs e)
-        {
-            ShowGlobalWatchPanel = false;
-        }
-
-        private void gsBottomPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (ShowGlobalWatchPanel)
-            {
-                rowBottomPanel.MinHeight = 150;
-                rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
-            }
-            else
-            {
-                rowBottomPanel.MinHeight = 0;
-                prevBottomPanelSize = rowBottomPanel.ActualHeight;
-                rowBottomPanel.Height = new GridLength(1, GridUnitType.Auto);
-            }
-        }
-
         private void SetRimDataTypePanelVisibility(bool isVisible, string type)
         {
             if (type == "Door")
@@ -4775,6 +4771,31 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion // END REGION Left Panel Methods
+
+        #region Bottom Panel Methods
+
+        private void MinimizeGlobalWatchPanel_Click(object sender, RoutedEventArgs e)
+        {
+            ShowGlobalWatchPanel = false;
+        }
+
+        private void gsBottomPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (ShowGlobalWatchPanel)
+            {
+                rowBottomPanel.MinHeight = 200;
+                rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
+            }
+            else
+            {
+                rowBottomPanel.MinHeight = 0;
+                prevBottomPanelSize = rowBottomPanel.ActualHeight;
+                rowBottomPanel.Height = new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+
+        #endregion // Bottom Panel Methods
 
         #region Right Panel Methods
 
