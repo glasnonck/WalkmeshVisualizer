@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
@@ -23,7 +23,7 @@
       <HintPath>..\..\KotorMessageInjector\KotorMessageInjector\bin\Debug\netstandard2.0\KotorMessageInjector.dll</HintPath>
     </Reference>
     <Reference Include="KotOR_IO">
-      <HintPath>..\..\KotOR_IO\KotOR_IO\bin\Debug\KotOR_IO.dll</HintPath>
+      <HintPath>..\..\KotOR_IO\KotOR_IO\bin\Debug\net8.0\KotOR_IO.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
