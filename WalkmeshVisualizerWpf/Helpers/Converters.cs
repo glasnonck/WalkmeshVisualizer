@@ -7,7 +7,6 @@ using WalkmeshVisualizerWpf.Models;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Collections.Generic;
-using System.Windows.Controls;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
@@ -356,6 +355,28 @@ namespace WalkmeshVisualizerWpf.Helpers
         {
             throw new NotImplementedException();
         }
+        #endregion
+    }
+
+    public class StringEqualsMultiConverter : IMultiValueConverter
+    {
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool result = true;
+            string target = values.FirstOrDefault()?.ToString() ?? string.Empty;
+            foreach (var value in values)
+            {
+                if (value == null || value.ToString() != target)
+                {
+                    result = false;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
         #endregion
     }
 

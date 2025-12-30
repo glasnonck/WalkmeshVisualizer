@@ -146,6 +146,7 @@ namespace WalkmeshVisualizerWpf.Views
 
             prevBottomPanelSize = settings.PrevBottomPanelSize;
             ShowGlobalWatchPanel = settings.ShowGlobalWatchPanel;
+            GlobalAutoRefreshRate = settings.GlobalAutoRefreshRate;
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
             SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
@@ -218,6 +219,18 @@ namespace WalkmeshVisualizerWpf.Views
 
             view = (CollectionView)CollectionViewSource.GetDefaultView(lvGlobalsWatch.ItemsSource);
             if (view != null) view.Filter = HandleGlobalsWatchFilter;
+
+            foreach (var item in miGlobalAutoRefreshRate.Items)
+            {
+                if (item is not MenuItem mi) continue;
+                if (mi.Icon is not RadioButton rb) continue;
+                if (mi.Tag is null) continue;
+                if (int.Parse(mi.Tag.ToString()) == GlobalAutoRefreshRate)
+                {
+                    rb.IsChecked = true;
+                    break;
+                }
+            }
         }
 
         #endregion // END REGION Constructors
@@ -1582,6 +1595,16 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private string _globalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
 
+        /// <summary>
+        /// Refresh rate in miliseconds for auto-refreshing values in the watch and global panels.
+        /// </summary>
+        public int GlobalAutoRefreshRate
+        {
+            get => _globalAutoRefreshRate;
+            set => SetField(ref _globalAutoRefreshRate, value);
+        }
+        private int _globalAutoRefreshRate = 5000;
+
         #endregion // Global Panel Properties
 
         #region ZoomAndPanControl
@@ -2333,12 +2356,20 @@ namespace WalkmeshVisualizerWpf.Views
                 var key = new KEY(Paths.chitin);
                 var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Data");
 
+                string cachePath = string.Empty;
+                if (Game == K1_NAME)
+                    cachePath = System.IO.Path.Combine(Environment.CurrentDirectory, "KotOR 1 Data", "RimFileCache");
+                if (Game == K2_NAME)
+                    cachePath = System.IO.Path.Combine(Environment.CurrentDirectory, "KotOR 2 Data", "RimFileCache");
+                bool cacheExists = Directory.Exists(cachePath);
+
+                // Load RIM file data if not already loaded.
                 var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
                 if (!thisGameLoaded)
                 {
-                    if (Directory.Exists(path))
+                    if (cacheExists && VerifyRimFileCache(Game, cachePath))
                     {
-                        ReadRimFileCache(path);
+                        ReadRimFileCache(cachePath);
                     }
                     else
                     {
@@ -2439,9 +2470,7 @@ namespace WalkmeshVisualizerWpf.Views
                 var rimModels = new List<RimModel>();
                 foreach (var xmlrim in CurrentGame.Rims)
                 {
-                    Brush brush = null;
-                    if (RimToBrushUsed.ContainsKey(xmlrim.FileName))
-                        brush = RimToBrushUsed[xmlrim.FileName];
+                    RimToBrushUsed.TryGetValue(xmlrim.FileName, out Brush brush);
 
                     rimModels.Add(new RimModel
                     {
@@ -2466,9 +2495,9 @@ namespace WalkmeshVisualizerWpf.Views
 
                 Application.Current.Dispatcher.Invoke(() => SelectedGame = e.Argument?.ToString() ?? DEFAULT);
 
-                if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
+                if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(cachePath))
                 {
-                    SaveRimFileCache(path);
+                    SaveRimFileCache(cachePath);
                 }
 
                 if (Game == K1_NAME) K1Loaded = true;
@@ -2489,6 +2518,23 @@ namespace WalkmeshVisualizerWpf.Views
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
+        }
+
+        private static bool VerifyRimFileCache(string game, string path)
+        {
+            const int K1_FILE_COUNT = 1048;
+            const int K2_FILE_COUNT = 1206;
+
+            // Verify expected number of wok files exist.
+            var gameDir = new DirectoryInfo(path);
+            var totalWoks = gameDir.EnumerateFiles("*.wok", SearchOption.AllDirectories).Count();
+            var result = (game == K1_NAME && totalWoks == K1_FILE_COUNT) ||
+                         (game == K2_NAME && totalWoks == K2_FILE_COUNT);
+
+            // If verification failed, delete the cache folder.
+            if (!result && Directory.Exists(path))
+                Directory.Delete(path, true);
+            return result;
         }
 
         /// <summary>
@@ -2648,7 +2694,7 @@ namespace WalkmeshVisualizerWpf.Views
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR: no layout file corresponds to the name '{lytResRef}'.");
+                    Debug.WriteLine($"ERROR: no layout file corresponds to the name '{lytResRef}'.");
                 }
             }
         }
@@ -3571,7 +3617,7 @@ namespace WalkmeshVisualizerWpf.Views
                 RimPolysCreated.Add(rimToAdd.FileName);
             }
 
-            Console.WriteLine($"OFF: {LeftOffset:N2}, {BottomOffset:N2}");
+            Debug.WriteLine($"OFF: {LeftOffset:N2}, {BottomOffset:N2}");
         }
 
         /// <summary>
@@ -4128,6 +4174,7 @@ namespace WalkmeshVisualizerWpf.Views
                 : prevRightPanelSize;
 
             settings.ShowGlobalWatchPanel = ShowGlobalWatchPanel;
+            settings.GlobalAutoRefreshRate = GlobalAutoRefreshRate;
             settings.PrevBottomPanelSize = ShowGlobalWatchPanel
                 ? rowBottomPanel.ActualHeight
                 : prevBottomPanelSize;
@@ -4924,7 +4971,7 @@ namespace WalkmeshVisualizerWpf.Views
 
                             // Global Read Auto-Refresh
                             if (!IsBusy && DoGlobalReadAutoRefresh && (GlobalReadChanged ||
-                                swReadRefresh.ElapsedMilliseconds >= 5000))
+                                swReadRefresh.ElapsedMilliseconds >= GlobalAutoRefreshRate))
                             {
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
@@ -4936,7 +4983,7 @@ namespace WalkmeshVisualizerWpf.Views
                             }
 
                             // Global Watch Auto-Refresh
-                            if (!IsBusy && DoGlobalWatchAutoRefresh && swWatchRefresh.ElapsedMilliseconds >= 5000)
+                            if (!IsBusy && DoGlobalWatchAutoRefresh && swWatchRefresh.ElapsedMilliseconds >= GlobalAutoRefreshRate)
                             {
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
@@ -5070,35 +5117,35 @@ namespace WalkmeshVisualizerWpf.Views
                         }
                         catch (NullReferenceException ex)
                         {
-                            Console.WriteLine($"NullReferenceException caught: {ex.Message}");
+                            Debug.WriteLine($"NullReferenceException caught: {ex.Message}");
                             km = null;
                             continue;
                         }
                         catch (Win32Exception ex)
                         {
-                            Console.WriteLine($"Win32Exception caught: {ex.Message}");
+                            Debug.WriteLine($"Win32Exception caught: {ex.Message}");
                             km = null;
                             continue;
                         }
                     }
-                    //Console.WriteLine(sw.ElapsedMilliseconds);
+                    //Debug.WriteLine(sw.ElapsedMilliseconds);
                     Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
                     sw.Restart();
                 }
                 catch (NullReferenceException ex)
                 {
-                    Console.WriteLine($"NullReferenceException caught: {ex.Message}");
+                    Debug.WriteLine($"NullReferenceException caught: {ex.Message}");
                     km = null;
                     continue;
                 }
                 catch (Win32Exception ex)
                 {
-                    Console.WriteLine($"Win32Exception caught: {ex.Message}");
+                    Debug.WriteLine($"Win32Exception caught: {ex.Message}");
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Unknown exception caught: {ex}");
+                    Debug.WriteLine($"Unknown exception caught: {ex}");
                     break;
                 }
             }
@@ -5107,9 +5154,10 @@ namespace WalkmeshVisualizerWpf.Views
         private static void WriteToConsoleAllDoorsInLiveModule(KotorManager km, string nextModuleName)
         {
             var doors = km.GetDoorCorners();
-            Console.WriteLine();
-            Console.WriteLine($"\t\t\"Module\": \"{nextModuleName.ToLower()}\",");
-            Console.WriteLine($"\t\t\"Doors\": [");
+            
+            Debug.WriteLine("");
+            Debug.WriteLine($"\t\t\"Module\": \"{nextModuleName.ToLower()}\",");
+            Debug.WriteLine($"\t\t\"Doors\": [");
             for (int i = 0; i < doors.Count; i++)
             {
                 var door = doors[i];
@@ -5127,16 +5175,16 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
 
-                Console.WriteLine("\t\t\t{");
-                Console.WriteLine($"\t\t\t\t\"ResRef\": \"{door.Item1.ToLower()}\",");
-                Console.WriteLine($"\t\t\t\t\"CornersX\": [{cornersX}],");
-                Console.WriteLine($"\t\t\t\t\"CornersY\": [{cornersY}]");
+                Debug.WriteLine("\t\t\t{");
+                Debug.WriteLine($"\t\t\t\t\"ResRef\": \"{door.Item1.ToLower()}\",");
+                Debug.WriteLine($"\t\t\t\t\"CornersX\": [{cornersX}],");
+                Debug.WriteLine($"\t\t\t\t\"CornersY\": [{cornersY}]");
                 var text = "\t\t\t}";
                 if (i+1 != doors.Count) text += ",";
-                Console.WriteLine(text);
+                Debug.WriteLine(text);
             }
-            Console.WriteLine($"\t\t]");
-            Console.WriteLine();
+            Debug.WriteLine($"\t\t]");
+            Debug.WriteLine("");
         }
 
         private int GetRunningKotor()
@@ -6425,6 +6473,12 @@ namespace WalkmeshVisualizerWpf.Views
                 item.IsWatched = true;
                 KotorWatchGlobals.Add(item);
             }
+        }
+
+        private void GlobalWatchRadioButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem mi) return;
+            GlobalAutoRefreshRate = int.Parse(mi.Tag.ToString());
         }
 
         #endregion // Globals Panel Methods

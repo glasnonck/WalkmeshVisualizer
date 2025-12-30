@@ -77,11 +77,9 @@ namespace WalkmeshVisualizerWpf.Models
         public void LoadDlzDataFile()
         {
             var dataFilePath = @"Resources\Data\DlzData.txt";
-            using (var r = new StreamReader(dataFilePath))
-            {
-                var json = r.ReadToEnd();
-                RimData = JsonConvert.DeserializeObject<ObservableCollection<RimData>>(json);
-            }
+            using var r = new StreamReader(dataFilePath);
+            var json = r.ReadToEnd();
+            RimData = JsonConvert.DeserializeObject<ObservableCollection<RimData>>(json);
         }
 
         public void LoadGameData(string gamePath)
@@ -99,12 +97,6 @@ namespace WalkmeshVisualizerWpf.Models
                 var rim = new RIM(rimFileInfo.FullName);
                 var srim = new RIM(rimFileInfo.FullName.Substring(0, rimFileInfo.FullName.Length - 4) + "_s.rim");
 
-                //var rimDoors = ParseRimDoors(rim, srim, bif, tlk);
-                var rimTriggers = ParseRimTriggers(rim, srim, bif, tlk);
-                var rimTraps = ParseRimTraps(rim, srim, bif, tlk);
-                var rimZones = ParseRimZones(rim, srim, bif, tlk);
-                var rimEncounters = ParseRimEncounters(rim, srim, bif, tlk);
-
                 RimData module = RimData.FirstOrDefault(m => m.Module == moduleName);
                 if (module == null)
                 {
@@ -112,18 +104,40 @@ namespace WalkmeshVisualizerWpf.Models
                     RimData.Add(module);
                 }
 
+                //var rimDoors = ParseRimDoors(rim, srim, bif, tlk);
                 foreach (var door in module.Doors)
                 {
+                    if (door.Geometry.Count != 0) continue;
                     door.RimDataType = RimDataType.Door;
                     door.Module = module.Module;
                     door.OnEnter = door.ResRef;
                     for (int i = 0; i < door.CornersX.Count; i++)
                         door.Geometry.Add(new Tuple<float, float>(door.CornersX[i], door.CornersY[i]));
                 }
-                module.Triggers = rimTriggers.Select(t => new RimDataInfo(t, module.Module)).ToList();
-                module.Traps = rimTraps.Select(t => new RimDataInfo(t, module.Module, RimDataType.Trap)).ToList();
-                module.Zones = rimZones.Select(t => new RimDataInfo(t, module.Module, RimDataType.Zone)).ToList();
-                module.Encounters = rimEncounters.Select(e => new RimDataInfo(e, module.Module)).ToList();
+
+                if (module.Triggers.Count == 0)
+                {
+                    var rimTriggers = ParseRimTriggers(rim, srim, bif, tlk);
+                    module.Triggers = rimTriggers.Select(t => new RimDataInfo(t, module.Module)).ToList();
+                }
+
+                if (module.Traps.Count == 0)
+                {
+                    var rimTraps = ParseRimTraps(rim, srim, bif, tlk);
+                    module.Traps = rimTraps.Select(t => new RimDataInfo(t, module.Module, RimDataType.Trap)).ToList();
+                }
+
+                if (module.Zones.Count == 0)
+                {
+                    var rimZones = ParseRimZones(rim, srim, bif, tlk);
+                    module.Zones = rimZones.Select(t => new RimDataInfo(t, module.Module, RimDataType.Zone)).ToList();
+                }
+
+                if (module.Encounters.Count == 0)
+                {
+                    var rimEncounters = ParseRimEncounters(rim, srim, bif, tlk);
+                    module.Encounters = rimEncounters.Select(e => new RimDataInfo(e, module.Module)).ToList();
+                }
 
                 // Handle Swoop Modules
                 if (!moduleToLayoutLookup.ContainsKey(moduleName) && IsSwoopModule(moduleName))

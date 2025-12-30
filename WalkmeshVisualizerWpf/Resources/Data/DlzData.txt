@@ -498,6 +498,22 @@
 		]
 	},
 	{
+		"Module": "korr_m35aa",
+		"Name": "Korriban - Sith Academy",
+		"Doors": [
+			{
+				"ResRef": "korr_m36aa",
+				"CornersX": ["125.26193", "125.2618", "118.0118", "118.01193"],
+				"CornersY": ["159.19826", "160.19826", "160.1973", "159.1973"]
+			},
+			{
+				"ResRef": "korr_m33ab",
+				"CornersX": ["117.74313", "117.74313", "124.99313", "124.99313"],
+				"CornersY": ["52.297543", "51.297543", "51.297543", "52.297543"]
+			}
+		],
+	},
+	{
 		"Module": "korr_m36aa",
 		"Name": "Korriban - Valley of the Dark Lords",
 		"Doors": [

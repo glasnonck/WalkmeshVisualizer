@@ -169,6 +169,7 @@
         <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
         <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
         <help:UintGreaterEqualConverter x:Key="UintGreaterEqualConverter" />
+        <help:StringEqualsMultiConverter x:Key="StringEqualsMultiConverter" />
         <help:BoolMultiConverter x:Key="BoolMultiConverter" />
         <help:BoolToVisibilityMultiConverter x:Key="BoolToVisibilityMultiConverter" />
         <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
@@ -184,6 +185,10 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="Black" />
+        </Style>
+
+        <Style TargetType="ToolTip">
+            <Setter Property="Placement" Value="Mouse" />
         </Style>
     </Window.Resources>
 
@@ -503,6 +508,32 @@
                             <Image Source="../Resources/Icons/HotswapIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Global Auto Refresh Rate" x:Name="miGlobalAutoRefreshRate">
+                        <MenuItem.Resources>
+                            <RadioButton x:Key="RadioButtonResource" x:Shared="false" HorizontalAlignment="Center"
+                                         GroupName="GlobalRefreshRadio" IsHitTestVisible="False">
+                                <RadioButton.IsChecked>
+                                    <MultiBinding Converter="{StaticResource StringEqualsMultiConverter}">
+                                        <Binding Mode="OneWay" Path="Tag" RelativeSource="{RelativeSource AncestorType=MenuItem}" />
+                                        <Binding Mode="OneWay" Path="GlobalAutoRefreshRate" />
+                                    </MultiBinding>
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </MenuItem.Resources>
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Icon" Value="{DynamicResource RadioButtonResource}" />
+                                <EventSetter Event="Click" Handler="GlobalWatchRadioButton_Click" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                        <MenuItem Header="2 seconds" Tag="2000" />
+                        <MenuItem Header="5 seconds" Tag="5000" />
+                        <MenuItem Header="10 seconds" Tag="10000" />
+                        <MenuItem Header="15 seconds" Tag="15000" />
+                        <MenuItem Header="20 seconds" Tag="20000" />
+                    </MenuItem>
+                    
                     <!--<Separator />
                     <MenuItem Header="Live Position Fill Color" />
                     <MenuItem Header="Live Position Stroke Color" />-->
@@ -974,32 +1005,118 @@
                                       IsChecked="{Binding ShowCoordinatePanel}"
                                       Click="CoordinatePanelButton_Click"
                                       Style="{StaticResource panelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Find Overlapping Coordinates" />
+                                    <TextBlock>
+                                        Search all walkmeshes for coordinates that overlap on walkable
+                                        <LineBreak />
+                                        and non-walkable faces. This helps find coordinate warps to
+                                        <LineBreak />
+                                        bypass locked doors or cover vast distances.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                         <ToggleButton Content="RIM Triggers"
                                       IsChecked="{Binding ShowRimDataPanel}"
                                       Click="RimDataPanelButton_Click"
                                       Style="{StaticResource panelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Display Module Triggers" />
+                                    <TextBlock>
+                                        Display doors, triggers, traps, zones, and encounters in
+                                        <LineBreak />
+                                        the active modules.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                         <ToggleButton Content="Distance"
                                       IsChecked="{Binding ShowDistancePanel}"
                                       Click="DistancePanelButton_Click"
                                       Style="{StaticResource panelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Calculate Distance" />
+                                    <TextBlock>
+                                        Calculate and compare distances of different paths through a
+                                        <LineBreak />
+                                        module. Right-click and drag to create a segment, and then
+                                        <LineBreak />
+                                        add it to the blue, red, or green color paths. Estimate path
+                                        <LineBreak />
+                                        time for different in-game movement speeds.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                         <ToggleButton Content="Live Tools"
                                       IsChecked="{Binding ShowToolsPanel}"
                                       Click="ToolsPanelButton_Click"
                                       Style="{StaticResource panelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Live Game Debug Tools" />
+                                    <TextBlock>
+                                        Access debug tools and console command cheats. This panel
+                                        <LineBreak />
+                                        gives access to a variety of tools without needing to enable the
+                                        <LineBreak />
+                                        in-game cheat console: warp around; unlock party members;
+                                        <LineBreak />
+                                        set attributes, skills, and feats; and render triggers.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">Panel requires the Show Live Position feature to be enabled.</TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                         <ToggleButton Content="Globals"
                                       IsChecked="{Binding ShowGlobalsPanel}"
                                       Click="GlobalsPanelButton_Click"
                                       Style="{StaticResource panelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Read/Write Globals" />
+                                    <TextBlock>
+                                        Browse, read, and write to in-game global variables. This
+                                        <LineBreak />
+                                        panel lets you manage the global watch list and to read or
+                                        <LineBreak />
+                                        write global values one at a time.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">Panel requires the Show Live Position feature to be enabled.</TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                         <ToggleButton Content="Wire Target"
                                       IsChecked="{Binding ShowWireTargetPanel}"
                                       Click="WireTargetPanelButton_Click"
                                       Style="{StaticResource panelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Find Wire Targets" />
+                                    <TextBlock>
+                                        Find the in-game object ID for the Wire Targeting glitch.
+                                        <LineBreak />
+                                        With a desired target in the filter, manually search other
+                                        <LineBreak />
+                                        modules for another object that shares the same object ID.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">Panel requires the Show Live Position feature to be enabled.</TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                     </StackPanel>
                 
                     <!-- Bottom Panel Buttons -->
@@ -3074,6 +3191,10 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
+
+                        <TextBlock Grid.Row="2" Margin="8,24,8,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="Select a game to populate globals."
+                                   Visibility="{Binding KotorFindGlobals.Count, Converter={StaticResource IsZeroToVisibilityConverter}}"
+                                   />
                     </Grid>
 
                     <!-- Read / Write Globals -->
@@ -3196,9 +3317,8 @@
 
                         <!-- Area IDs Filter -->
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Filter:" Margin="0,0,4,0" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="1" Grid.Column="1"  x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
-                                VerticalContentAlignment="Center"
-                                d:Text="FilterText" />
+                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
+                                 VerticalContentAlignment="Center" d:Text="FilterText" />
                         <Button Grid.Row="1" Grid.Column="2" Margin="4,0,0,0" Click="ClearAreaIdsFilter_Click"
                             ToolTip="Clear filter.">
                             <Image Width="18" Source="/Resources/Icons/Backspace.png" />
@@ -3934,20 +4054,6 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
-
-                        <!--<Button Grid.Row="2" Margin="0,5" Content="Remove All"
-                                Command="{StaticResource Commands.RemoveAll}">
-                            <Button.IsEnabled>
-                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
-                                    <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
-                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                </MultiBinding>
-                            </Button.IsEnabled>
-                        </Button>-->
                     </Grid>
 
                     <!-- Resize the active and inactive lists. -->
@@ -4033,7 +4139,18 @@
                         <ToggleButton Content="Walkmeshes"
                                       IsChecked="{Binding ShowWalkmeshPanel}"
                                       Style="{StaticResource rightPanelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Walkmeshes" />
+                                    <TextBlock>
+                                        Browse and display module walkmeshes. This panel shows the
+                                        <LineBreak />
+                                        currently displayed game levels.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                     </StackPanel>
 
                     <!-- Bottom Panel Buttons Column -->
@@ -4041,7 +4158,24 @@
                         <ToggleButton Content="Watch"
                                       IsChecked="{Binding ShowGlobalWatchPanel}"
                                       Style="{StaticResource rightPanelToggleButton}"
-                                      />
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Global Watch List" />
+                                    <TextBlock>
+                                        Monitor a list of global variables over time. Automatically
+                                        <LineBreak />
+                                        read key in-game values while playing.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">
+                                        Panel requires the Show Live Position feature to be enabled
+                                        <LineBreak />
+                                        to read global values.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
                     </StackPanel>
                 </Grid>
             </Grid>

@@ -574,5 +574,17 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowGlobalWatchPanel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5000")]
+        public int GlobalAutoRefreshRate {
+            get {
+                return ((int)(this["GlobalAutoRefreshRate"]));
+            }
+            set {
+                this["GlobalAutoRefreshRate"] = value;
+            }
+        }
     }
 }
