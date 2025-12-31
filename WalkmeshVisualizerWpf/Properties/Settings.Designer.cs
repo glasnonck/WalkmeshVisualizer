@@ -538,5 +538,53 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["ShowWireTargetPanel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowGlobalsPanel {
+            get {
+                return ((bool)(this["ShowGlobalsPanel"]));
+            }
+            set {
+                this["ShowGlobalsPanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        public double PrevBottomPanelSize {
+            get {
+                return ((double)(this["PrevBottomPanelSize"]));
+            }
+            set {
+                this["PrevBottomPanelSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowGlobalWatchPanel {
+            get {
+                return ((bool)(this["ShowGlobalWatchPanel"]));
+            }
+            set {
+                this["ShowGlobalWatchPanel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5000")]
+        public int GlobalAutoRefreshRate {
+            get {
+                return ((int)(this["GlobalAutoRefreshRate"]));
+            }
+            set {
+                this["GlobalAutoRefreshRate"] = value;
+            }
+        }
     }
 }

@@ -7,11 +7,19 @@ using WalkmeshVisualizerWpf.Models;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Collections.Generic;
-using System.Windows.Controls;
 
 namespace WalkmeshVisualizerWpf.Helpers
 {
     #region Single Converters
+
+    public class FirstCharacterConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value.ToString()[0];
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
 
     public class IsNullConverter : IValueConverter
     {
@@ -176,15 +184,11 @@ namespace WalkmeshVisualizerWpf.Helpers
         #region IValueConverter Members
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
-
             return (bool)value ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be a boolean.");
-
             return (Visibility)value == Visibility.Visible;
         }
         #endregion
@@ -212,15 +216,13 @@ namespace WalkmeshVisualizerWpf.Helpers
         #region IValueConverter Members
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(Visibility)) throw new InvalidOperationException("The target must be of type Visibility.");
-
+            if (value == null) return Visibility.Visible;
             return (bool)value ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (targetType != typeof(bool)) throw new InvalidOperationException("The target must be a boolean.");
-
+            if (value == null) return false;
             return (Visibility)value == Visibility.Collapsed;
         }
         #endregion
@@ -353,6 +355,28 @@ namespace WalkmeshVisualizerWpf.Helpers
         {
             throw new NotImplementedException();
         }
+        #endregion
+    }
+
+    public class StringEqualsMultiConverter : IMultiValueConverter
+    {
+        #region IMultiValueConverter Members
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool result = true;
+            string target = values.FirstOrDefault()?.ToString() ?? string.Empty;
+            foreach (var value in values)
+            {
+                if (value == null || value.ToString() != target)
+                {
+                    result = false;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
         #endregion
     }
 

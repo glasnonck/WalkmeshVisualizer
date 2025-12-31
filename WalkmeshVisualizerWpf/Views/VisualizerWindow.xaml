@@ -11,8 +11,8 @@
     xmlns:xctk="http//schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     Title="{Binding WindowTitle, Mode=OneTime}"
-    MinHeight="600" Height="800" d:Height="1100"
-    MinWidth="800" Width="1200"
+    MinHeight="600" Height="800" d:Height="800"
+    MinWidth="800" Width="1200" d:Width="800"
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
     Closed="MainWindow_Closed"
@@ -169,6 +169,7 @@
         <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
         <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
         <help:UintGreaterEqualConverter x:Key="UintGreaterEqualConverter" />
+        <help:StringEqualsMultiConverter x:Key="StringEqualsMultiConverter" />
         <help:BoolMultiConverter x:Key="BoolMultiConverter" />
         <help:BoolToVisibilityMultiConverter x:Key="BoolToVisibilityMultiConverter" />
         <help:AndBoolToVisibilityMultiConverter x:Key="AndBoolToVisibilityMultiConverter" />
@@ -178,11 +179,16 @@
         <help:IsNonZeroToVisibilityConverter x:Key="IsNonZeroToVisibilityConverter" />
         <help:IsZeroToVisibilityConverter x:Key="IsZeroToVisibilityConverter" />
         <help:BlackIfTransparentConverter x:Key="BlackIfTransparentConverter" />
+        <help:FirstCharacterConverter x:Key="FirstCharacterConverter" />
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="Black" />
+        </Style>
+
+        <Style TargetType="ToolTip">
+            <Setter Property="Placement" Value="Mouse" />
         </Style>
     </Window.Resources>
 
@@ -502,6 +508,32 @@
                             <Image Source="../Resources/Icons/HotswapIcon.png" />
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Global Auto Refresh Rate" x:Name="miGlobalAutoRefreshRate">
+                        <MenuItem.Resources>
+                            <RadioButton x:Key="RadioButtonResource" x:Shared="false" HorizontalAlignment="Center"
+                                         GroupName="GlobalRefreshRadio" IsHitTestVisible="False">
+                                <RadioButton.IsChecked>
+                                    <MultiBinding Converter="{StaticResource StringEqualsMultiConverter}">
+                                        <Binding Mode="OneWay" Path="Tag" RelativeSource="{RelativeSource AncestorType=MenuItem}" />
+                                        <Binding Mode="OneWay" Path="GlobalAutoRefreshRate" />
+                                    </MultiBinding>
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </MenuItem.Resources>
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Icon" Value="{DynamicResource RadioButtonResource}" />
+                                <EventSetter Event="Click" Handler="GlobalWatchRadioButton_Click" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                        <MenuItem Header="2 seconds" Tag="2000" />
+                        <MenuItem Header="5 seconds" Tag="5000" />
+                        <MenuItem Header="10 seconds" Tag="10000" />
+                        <MenuItem Header="15 seconds" Tag="15000" />
+                        <MenuItem Header="20 seconds" Tag="20000" />
+                    </MenuItem>
+                    
                     <!--<Separator />
                     <MenuItem Header="Live Position Fill Color" />
                     <MenuItem Header="Live Position Stroke Color" />-->
@@ -870,7 +902,7 @@
                     </Style>
                     <Style TargetType="ToggleButton" x:Key="panelHorizontalToggleButton">
                         <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="BorderBrush" Value="#FF707070" />
+                        <Setter Property="BorderBrush" Value="#FFA0A0A0" />
                         <Setter Property="BorderThickness" Value="0,0,0,4" />
                         <Setter Property="Margin" Value="0,0,3,0" />
                         <Setter Property="Height" Value="22" />
@@ -897,7 +929,7 @@
                     </Style>
                     <Style TargetType="ToggleButton" x:Key="panelToggleButton">
                         <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="BorderBrush" Value="#FF707070" />
+                        <Setter Property="BorderBrush" Value="#FFA0A0A0" />
                         <Setter Property="BorderThickness" Value="0,0,0,4" />
                         <Setter Property="Margin" Value="0,0,0,4" />
                         <Setter Property="Height" Value="22" />
@@ -926,38 +958,175 @@
                             </Trigger>
                         </Style.Triggers>
                     </Style>
+                    <Style TargetType="ToggleButton" x:Key="rightPanelToggleButton">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="#FFA0A0A0" />
+                        <Setter Property="BorderThickness" Value="0,4,0,0" />
+                        <Setter Property="Margin" Value="0,0,0,4" />
+                        <Setter Property="Width" Value="80" />
+                        <Setter Property="LayoutTransform">
+                            <Setter.Value>
+                                <RotateTransform Angle="90" />
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                <Setter Property="Background" Value="Lavender" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="BorderBrush" Value="Indigo" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
                 </Grid.Resources>
                 
                 <!--
-                Left Panel Buttons Column
+                Left Buttons Column
                 -->
-                <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <ToggleButton Content="Coordinates"
-                                  IsChecked="{Binding ShowCoordinatePanel}"
-                                  Click="CoordinatePanelButton_Click"
-                                  Style="{StaticResource panelToggleButton}"
-                                  />
-                    <ToggleButton Content="RIM Triggers"
-                                  IsChecked="{Binding ShowRimDataPanel}"
-                                  Click="RimDataPanelButton_Click"
-                                  Style="{StaticResource panelToggleButton}"
-                                  />
-                    <ToggleButton Content="Distance"
-                                  IsChecked="{Binding ShowDistancePanel}"
-                                  Click="DistancePanelButton_Click"
-                                  Style="{StaticResource panelToggleButton}"
-                                  />
-                    <ToggleButton Content="Live Tools"
-                                  IsChecked="{Binding ShowToolsPanel}"
-                                  Click="ToolsPanelButton_Click"
-                                  Style="{StaticResource panelToggleButton}"
-                                  />
-                    <ToggleButton Content="Wire Target"
-                                  IsChecked="{Binding ShowWireTargetPanel}"
-                                  Click="WireTargetPanelButton_Click"
-                                  Style="{StaticResource panelToggleButton}"
-                                  />
-                </StackPanel>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Left Panel Buttons -->
+                    <StackPanel Orientation="Vertical">
+                        <ToggleButton Content="Coordinates"
+                                      IsChecked="{Binding ShowCoordinatePanel}"
+                                      Click="CoordinatePanelButton_Click"
+                                      Style="{StaticResource panelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Find Overlapping Coordinates" />
+                                    <TextBlock>
+                                        Search all walkmeshes for coordinates that overlap on walkable
+                                        <LineBreak />
+                                        and non-walkable faces. This helps find coordinate warps to
+                                        <LineBreak />
+                                        bypass locked doors or cover vast distances.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                        <ToggleButton Content="RIM Triggers"
+                                      IsChecked="{Binding ShowRimDataPanel}"
+                                      Click="RimDataPanelButton_Click"
+                                      Style="{StaticResource panelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Display Module Triggers" />
+                                    <TextBlock>
+                                        Display doors, triggers, traps, zones, and encounters in
+                                        <LineBreak />
+                                        the active modules.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                        <ToggleButton Content="Distance"
+                                      IsChecked="{Binding ShowDistancePanel}"
+                                      Click="DistancePanelButton_Click"
+                                      Style="{StaticResource panelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Calculate Distance" />
+                                    <TextBlock>
+                                        Calculate and compare distances of different paths through a
+                                        <LineBreak />
+                                        module. Right-click and drag to create a segment, and then
+                                        <LineBreak />
+                                        add it to the blue, red, or green color paths. Estimate path
+                                        <LineBreak />
+                                        time for different in-game movement speeds.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                        <ToggleButton Content="Live Tools"
+                                      IsChecked="{Binding ShowToolsPanel}"
+                                      Click="ToolsPanelButton_Click"
+                                      Style="{StaticResource panelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Live Game Debug Tools" />
+                                    <TextBlock>
+                                        Access debug tools and console command cheats. This panel
+                                        <LineBreak />
+                                        gives access to a variety of tools without needing to enable the
+                                        <LineBreak />
+                                        in-game cheat console: warp around; unlock party members;
+                                        <LineBreak />
+                                        set attributes, skills, and feats; and render triggers.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">Panel requires the Show Live Position feature to be enabled.</TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                        <ToggleButton Content="Globals"
+                                      IsChecked="{Binding ShowGlobalsPanel}"
+                                      Click="GlobalsPanelButton_Click"
+                                      Style="{StaticResource panelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Read/Write Globals" />
+                                    <TextBlock>
+                                        Browse, read, and write to in-game global variables. This
+                                        <LineBreak />
+                                        panel lets you manage the global watch list and to read or
+                                        <LineBreak />
+                                        write global values one at a time.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">Panel requires the Show Live Position feature to be enabled.</TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                        <ToggleButton Content="Wire Target"
+                                      IsChecked="{Binding ShowWireTargetPanel}"
+                                      Click="WireTargetPanelButton_Click"
+                                      Style="{StaticResource panelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Find Wire Targets" />
+                                    <TextBlock>
+                                        Find the in-game object ID for the Wire Targeting glitch.
+                                        <LineBreak />
+                                        With a desired target in the filter, manually search other
+                                        <LineBreak />
+                                        modules for another object that shares the same object ID.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">Panel requires the Show Live Position feature to be enabled.</TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                    </StackPanel>
+                
+                    <!-- Bottom Panel Buttons -->
+                    <!--<StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Bottom" Margin="0,0,0,-4">
+                        <ToggleButton Content="Watch"
+                                      IsChecked="{Binding ShowGlobalWatchPanel}"
+                                      Style="{StaticResource panelToggleButton}"
+                                      />
+                    </StackPanel>-->
+                </Grid>
 
                 <!--
                 Left Panel: Coordinates Panel
@@ -2883,12 +3052,226 @@
                 </ScrollViewer>
                 
                 <!--
+                Left Panel: Globals Panel
+                -->
+                <Grid x:Name="globalsPanel" Grid.Column="1" d:MinWidth="240" d:Width="240"
+                      Margin="4,0,0,0"
+                      Visibility="{Binding ShowGlobalsPanel,
+                          Converter={StaticResource BoolToVisibilityConverter},
+                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" x:Name="rowGlobalsFind" />
+                        <RowDefinition Height="Auto" x:Name="rowGlobalsReadWrite" />
+                    </Grid.RowDefinitions>
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Margin" Value="0,0,4,4" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                        <Style TargetType="TextBlock" x:Key="tbHeader">
+                            <Setter Property="Margin" Value="0,0,4,4" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </Style>
+                        <Style TargetType="TextBlock" x:Key="tbHighlight">
+                            <Setter Property="Margin" Value="0,0,4,4" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Foreground" Value="Black" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding GlobalsFindSelectedItem.HasChanged}" Value="True">
+                                    <DataTrigger.Setters>
+                                        <Setter Property="Foreground" Value="Red" />
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Margin" Value="0,0,0,4" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                        <Style TargetType="ListView">
+                            <Setter Property="Margin" Value="0,0,0,6" />
+                        </Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Margin" Value="0,0,0,4" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                        <Style TargetType="CheckBox">
+                            <Setter Property="Margin" Value="0,0,4,4" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                        <DataTemplate x:Key="dtAddWatch">
+                            <Grid Margin="-4">
+                                <Button Margin="0" Padding="0" Background="Transparent"
+                                        BorderBrush="Transparent" BorderThickness="1"
+                                        Click="ToggleGlobalWatch_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                <ContentPresenter
+                                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <Border>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="BorderBrush" Value="Transparent" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="Lavender" />
+                                                        <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Image Margin="0" Width="14" Source="/Resources/Icons/AddIcon.png"
+                                                    Visibility="{Binding IsWatched,
+                                                        Converter={StaticResource InverseBoolToVisibilityConverter},
+                                                        TargetNullValue=Collapsed, FallbackValue=Collapsed}" />
+                                            <Image Margin="0" Width="14" Source="/Resources/Icons/RemoveIcon.png"
+                                                    Visibility="{Binding IsWatched,
+                                                        Converter={StaticResource BoolToVisibilityConverter},
+                                                        TargetNullValue=Visible, FallbackValue=Visible}" />
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                        <Style TargetType="ListViewItem" x:Key="FindGlobalStyle" BasedOn="{StaticResource BaseItemStyle}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasChanged}" Value="True">
+                                    <Setter Property="Foreground" Value="Red" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Resources>
+
+                    <!-- Find Globals -->
+                    <Grid Grid.Row="0" x:Name="gridGlobalsFind">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Find" Style="{StaticResource tbHeader}" />
+                            
+                        <DockPanel Grid.Row="1">
+                            <TextBlock DockPanel.Dock="Left" Text="Filter:" />
+                            <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsFindFilter_Click">
+                                <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
+                            </Button>
+                            <TextBox x:Name="txtGlobalsFindFilter" TextChanged="TxtGlobalsFindFilter_TextChanged" d:Text="filter" />
+                        </DockPanel>
+
+                        <ListView Grid.Row="2" x:Name="lvGlobalsFind"
+                                    ItemsSource="{Binding KotorFindGlobals}"
+                                    ItemContainerStyle="{StaticResource FindGlobalStyle}"
+                                    SelectedItem="{Binding GlobalsFindSelectedItem, Mode=TwoWay}"
+                                    SelectionChanged="LvGlobalsFind_SelectionChanged"
+                                    d:ItemsSource="{d:SampleData}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="22" CellTemplate="{StaticResource dtAddWatch}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Add" Content="" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="60" Header="Type" DisplayMemberBinding="{Binding Type}" />
+                                    <GridViewColumn Width="140" Header="Name" DisplayMemberBinding="{Binding Name}" />
+                                    <GridViewColumn Width="100" Header="Value" DisplayMemberBinding="{Binding Value}" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+                        <TextBlock Grid.Row="2" Margin="8,24,8,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="Select a game to populate globals."
+                                   Visibility="{Binding KotorFindGlobals.Count, Converter={StaticResource IsZeroToVisibilityConverter}}"
+                                   />
+                    </Grid>
+
+                    <!-- Read / Write Globals -->
+                    <Grid Grid.Row="1" x:Name="gridGlobalsReadWrite">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Read / Write" Style="{StaticResource tbHeader}" />
+                        <CheckBox Grid.Row="0" Grid.Column="2" Margin="0,0,0,4"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    IsChecked="{Binding DoGlobalReadAutoRefresh, Mode=TwoWay}"
+                                    ToolTip="Periodically read selected global variable." />
+                        <Button Grid.Row="0" Grid.Column="3" Margin="4,0,0,4" Click="ReadGlobal_Click"
+                                ToolTip="Read selected global variable.">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="ShowLivePosition" />
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="DoGlobalReadAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                            <Image Height="14" Source="/Resources/Icons/RefreshIcon.png" />
+                        </Button>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.Name}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Value:" Style="{StaticResource tbHighlight}" />
+                        <TextBlock Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.Value}" Style="{StaticResource tbHighlight}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Last Value:" />
+                        <TextBlock Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.LastValue}" />
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Read At:" />
+                        <TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalsFindSelectedItem.LastReadAt}" />
+
+                        <Border Grid.Row="5" Grid.ColumnSpan="4" BorderThickness="0,0,0,1" BorderBrush="Black" Margin="0,0,0,2" />
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Message:" />
+                        <TextBlock Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding GlobalReadMessage}" />
+
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Set Value:" Margin="0" />
+                        <TextBox Grid.Row="7" Grid.Column="2" x:Name="txtGlobalSetValue" Margin="0" />
+                        <Button Grid.Row="7" Grid.Column="3" Margin="4,0,0,0" Click="WriteGlobal_Click">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="ShowLivePosition" />
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                            <Image Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
+                        </Button>
+                    </Grid>
+                </Grid>
+                
+                <!--
                 Left Panel: Wire Target Panel
                 -->
                 <Grid x:Name="wireTargetPanel" Grid.Column="1" d:MinWidth="240"
+                      Margin="4,0,0,0"
                       Visibility="{Binding ShowWireTargetPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -2901,33 +3284,53 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Target ID -->
-                    <TextBlock Grid.Column="0" Text="Target ID = " Margin="0,0,4,3" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" x:Name="txtTargetID" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,3"
-                               d:Text="0xFFFFFFFF" />
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="22" Height="22" Margin="4,0,0,3" Padding="0,0" Click="SearchForId_Click">
-                            <Image Width="18" Height="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                    <Grid Grid.ColumnSpan="3" Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Target ID -->
+                        <TextBlock Grid.Column="0" Text="Target ID:" Margin="0,0,8,4" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" x:Name="txtTargetID" Margin="3,0,0,4" d:Text="0xFFFFFFFF"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        <CheckBox Grid.Column="2" Margin="4,0,0,4" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    IsChecked="{Binding UpdateLookingAtId, Mode=TwoWay}"
+                                    ToolTip="Automatically refresh the ID of the live game target." />
+                        <Button Grid.Column="3" Margin="4,0,0,4" VerticalAlignment="Center" Click="GetTargetID_Click"
+                                ToolTip="Get the ID of the live game target.">
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                    <Binding Path="ShowLivePosition" />
+                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                    <Binding Path="UpdateLookingAtId" Converter="{StaticResource InverseBooleanConverter}" />
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                            <Image Width="18" Source="/Resources/Icons/RefreshIcon.png" />
                         </Button>
-                        <ToggleButton Width="22" Height="22" Margin="4,0,0,3" Padding="0,0"
-                                                IsChecked="{Binding UpdateLookingAtId, Mode=TwoWay}" VerticalAlignment="Center"
-                                                ToolTip="Load the selected module using the warp cheat.">
-                            <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
-                        </ToggleButton>
-                    </StackPanel>
 
-                    <!-- Area IDs Filter -->
-                    <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,3">
-                        <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="0,0,5,0" VerticalAlignment="Center" />
-                        <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearAreaIdsFilter_Click">
-                            <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                        <!-- Area IDs Filter -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Filter:" Margin="0,0,4,0" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
+                                 VerticalContentAlignment="Center" d:Text="FilterText" />
+                        <Button Grid.Row="1" Grid.Column="2" Margin="4,0,0,0" Click="ClearAreaIdsFilter_Click"
+                            ToolTip="Clear filter.">
+                            <Image Width="18" Source="/Resources/Icons/Backspace.png" />
                         </Button>
-                        <TextBox x:Name="txtAreaIdsFilter" TextChanged="TxtAreaIdsFilter_TextChanged"
-                                 d:Text="FilterText" />
-                    </DockPanel>
-
+                        <Button Grid.Row="1" Grid.Column="3" Margin="4,0,0,0" Click="SearchForId_Click"
+                            ToolTip="Filter using current target ID.">
+                            <Image Width="18" Source="/Resources/Icons/ShowCurrentModuleIcon.png" />
+                        </Button>
+                    </Grid>
+                    
                     <!-- Refresh Area IDs -->
-                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Live Module IDs" Click="GetAllIDs_Click" Margin="0,0,0,3">
+                    <Button Grid.Row="2" Grid.ColumnSpan="3" Content="Refresh Live Module IDs" Click="GetAllIDs_Click" Margin="0,0,0,4">
                         <Button.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
                                 <Binding Path="ShowLivePosition" />
@@ -2964,348 +3367,557 @@
                             <Binding Path="ShowRimDataPanel" />
                             <Binding Path="ShowDistancePanel" />
                             <Binding Path="ShowToolsPanel" />
+                            <Binding Path="ShowGlobalsPanel" />
                             <Binding Path="ShowWireTargetPanel" />
                         </MultiBinding>
                     </GridSplitter.Visibility>
                 </GridSplitter>
 
                 <!--
-                Walkmesh Canvas    
+                Canvas and Bottom Panel
                 -->
-                <ScrollViewer
-                    x:Name="scroller"
-                    Grid.Column="3"
-                    CanContentScroll="True"
-                    VerticalScrollBarVisibility="Visible"
-                    HorizontalScrollBarVisibility="Visible"
-                    >
+                <Grid Grid.Column="3" Margin="4,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" x:Name="rowBottomPanel" />
+                    </Grid.RowDefinitions>
 
-                    <!-- This is the control that handles zooming and panning. -->
-                    <ZoomAndPan:ZoomAndPanControl
-                        x:Name="zoomAndPanControl"
-                        Background="LightGray"
-                        MouseDown="zoomAndPanControl_MouseDown"
-                        MouseUp="zoomAndPanControl_MouseUp"
-                        MouseMove="zoomAndPanControl_MouseMove"
-                        MouseWheel="zoomAndPanControl_MouseWheel"
-                        MouseDoubleClick="zoomAndPanControl_MouseDoubleClick"
-                        ContentScale="3"
-                        MinContentScale=".1"
-                        MaxContentScale="50"
+                    <!--
+                    Walkmesh Canvas    
+                    -->
+                    <ScrollViewer
+                        x:Name="scroller"
+                        Grid.Column="3"
+                        CanContentScroll="True"
+                        VerticalScrollBarVisibility="Visible"
+                        HorizontalScrollBarVisibility="Visible"
                         >
 
-                        <!-- This is the content that is displayed. -->
-                        <Grid x:Name="theGrid" Width="250" Height="200">
-                            <!-- This Canvas is the main part of the content that is displayed. -->
-                            <Canvas x:Name="content" Background="White">
-                                <Canvas.Resources>
-                                    <!--<help:ThresholdEffect x:Key="shader"
-                                        Threshold=".25"
-                                        BlankColor="Blue"
-                                        />-->
+                        <!-- This is the control that handles zooming and panning. -->
+                        <ZoomAndPan:ZoomAndPanControl
+                            x:Name="zoomAndPanControl"
+                            Background="LightGray"
+                            MouseDown="zoomAndPanControl_MouseDown"
+                            MouseUp="zoomAndPanControl_MouseUp"
+                            MouseMove="zoomAndPanControl_MouseMove"
+                            MouseWheel="zoomAndPanControl_MouseWheel"
+                            MouseDoubleClick="zoomAndPanControl_MouseDoubleClick"
+                            ContentScale="3"
+                            MinContentScale=".1"
+                            MaxContentScale="50"
+                            >
 
-                                    <TransformGroup x:Key="CartesianTransform">
-                                        <TranslateTransform Y="{Binding BottomOffset}" X="{Binding LeftOffset}"/>
-                                        <ScaleTransform ScaleY="-1" />
-                                        <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
-                                    </TransformGroup>
+                            <!-- This is the content that is displayed. -->
+                            <Grid x:Name="theGrid" Width="250" Height="200">
+                                <!-- This Canvas is the main part of the content that is displayed. -->
+                                <Canvas x:Name="content" Background="White">
+                                    <Canvas.Resources>
+                                        <!--<help:ThresholdEffect x:Key="shader"
+                                            Threshold=".25"
+                                            BlankColor="Blue"
+                                            />-->
 
-                                    <TransformGroup x:Key="OffsetTransform">
-                                        <TranslateTransform X="{Binding LeftOffset}" Y="{Binding BottomOffset}" />
-                                        <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
-                                    </TransformGroup>
+                                        <TransformGroup x:Key="CartesianTransform">
+                                            <TranslateTransform Y="{Binding BottomOffset}" X="{Binding LeftOffset}"/>
+                                            <ScaleTransform ScaleY="-1" />
+                                            <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
+                                        </TransformGroup>
 
-                                    <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />
+                                        <TransformGroup x:Key="OffsetTransform">
+                                            <TranslateTransform X="{Binding LeftOffset}" Y="{Binding BottomOffset}" />
+                                            <TranslateTransform Y="{Binding ElementName=theGrid, Path=Height}" />
+                                        </TransformGroup>
 
-                                    <Style TargetType="Ellipse" x:Key="CoordPoint">
-                                        <Setter Property="Width" Value="1" />
-                                        <Setter Property="Height" Value="1" />
-                                        <Setter Property="StrokeThickness" Value=".1" />
-                                    </Style>
+                                        <TranslateTransform x:Key="CoordOffsetTransform" X="2" Y="1.5" />
 
-                                    <Style TargetType="Polygon">
-                                        <Setter Property="RenderTransform" Value="{StaticResource CartesianTransform}" />
-                                    </Style>
+                                        <Style TargetType="Ellipse" x:Key="CoordPoint">
+                                            <Setter Property="Width" Value="1" />
+                                            <Setter Property="Height" Value="1" />
+                                            <Setter Property="StrokeThickness" Value=".1" />
+                                        </Style>
 
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Margin" Value="0" />
-                                        <Setter Property="Orientation" Value="Horizontal" />
-                                        <Setter Property="RenderTransform" Value="{StaticResource CoordOffsetTransform}" />
-                                    </Style>
+                                        <Style TargetType="Polygon">
+                                            <Setter Property="RenderTransform" Value="{StaticResource CartesianTransform}" />
+                                        </Style>
 
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontSize" Value="4" />
-                                        <Setter Property="Foreground" Value="{Binding CoordinateTextBrush}" />
-                                    </Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Margin" Value="0" />
+                                            <Setter Property="Orientation" Value="Horizontal" />
+                                            <Setter Property="RenderTransform" Value="{StaticResource CoordOffsetTransform}" />
+                                        </Style>
 
-                                    <Style TargetType="Path">
-                                        <Setter Property="StrokeThickness" Value=".35" />
-                                        <Setter Property="StrokeStartLineCap" Value="Round" />
-                                        <Setter Property="StrokeEndLineCap" Value="Round" />
-                                        <!--<Setter Property="StrokeLineJoin" Value="" />-->
-                                    </Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontSize" Value="4" />
+                                            <Setter Property="Foreground" Value="{Binding CoordinateTextBrush}" />
+                                        </Style>
 
-                                    <Style TargetType="Line" x:Key="baseLine">
-                                        <Setter Property="StrokeThickness" Value=".35" />
-                                        <Setter Property="StrokeEndLineCap" Value="Round" />
-                                        <Setter Property="StrokeStartLineCap" Value="Round" />
-                                    </Style>
-                                </Canvas.Resources>
+                                        <Style TargetType="Path">
+                                            <Setter Property="StrokeThickness" Value=".35" />
+                                            <Setter Property="StrokeStartLineCap" Value="Round" />
+                                            <Setter Property="StrokeEndLineCap" Value="Round" />
+                                            <!--<Setter Property="StrokeLineJoin" Value="" />-->
+                                        </Style>
 
-                                <!--
-                                This Ellipse and StackPanel act as the point and text field for users to check map coordinates.
-                                To maintain these data bindings, they will be saved in case the canvas is cleared.
-                                If a module is added or removed, both will be hidden using the PointClicked boolean.
-                                -->
-                                <Ellipse
-                                    x:Name="leftClickEllipse" Fill="Black" Stroke="White"
-                                    Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Canvas.Left="{Binding LeftClickPoint.X}"
-                                    Canvas.Bottom="{Binding LeftClickPoint.Y}"
-                                    Style="{StaticResource CoordPoint}"
-                                    />
-                                <Border x:Name="leftClickCoords"
+                                        <Style TargetType="Line" x:Key="baseLine">
+                                            <Setter Property="StrokeThickness" Value=".35" />
+                                            <Setter Property="StrokeEndLineCap" Value="Round" />
+                                            <Setter Property="StrokeStartLineCap" Value="Round" />
+                                        </Style>
+                                    </Canvas.Resources>
+
+                                    <!--
+                                    This Ellipse and StackPanel act as the point and text field for users to check map coordinates.
+                                    To maintain these data bindings, they will be saved in case the canvas is cleared.
+                                    If a module is added or removed, both will be hidden using the PointClicked boolean.
+                                    -->
+                                    <Ellipse
+                                        x:Name="leftClickEllipse" Fill="Black" Stroke="White"
                                         Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        Canvas.Left="{Binding LeftClickPoint.X}" Canvas.Bottom="{Binding LeftClickPoint.Y}">
-                                    <StackPanel Visibility="{Binding ShowLeftClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <TextBlock Text="(" />
-                                        <TextBlock Text="{Binding LeftClickModuleCoords.X, StringFormat=N2}" />
-                                        <TextBlock Text=", " />
-                                        <TextBlock Text="{Binding LeftClickModuleCoords.Y, StringFormat=N2}" />
-                                        <TextBlock Text=")" />
-                                    </StackPanel>
-                                </Border>
-                                <Grid x:Name="leftClickGatherPartyRange" Margin="0"
-                                      Canvas.Left="{Binding LeftClickPoint.X}"
-                                      Canvas.Bottom="{Binding LeftClickPoint.Y}"
-                                      Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Ellipse Stroke="{Binding LeftClickGatherPartyRangeStrokeBrush}"
-                                             Fill="{Binding LeftClickGatherPartyRangeFillBrush}"
-                                             StrokeThickness=".1" Width="60" Height="60"
-                                             Visibility="{Binding ShowLeftClickGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <Ellipse.RenderTransform>
-                                            <TranslateTransform X="-29.5" Y="29.5" />
-                                        </Ellipse.RenderTransform>
-                                    </Ellipse>
-                                </Grid>
+                                        Canvas.Left="{Binding LeftClickPoint.X}"
+                                        Canvas.Bottom="{Binding LeftClickPoint.Y}"
+                                        Style="{StaticResource CoordPoint}"
+                                        />
+                                    <Border x:Name="leftClickCoords"
+                                            Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Canvas.Left="{Binding LeftClickPoint.X}" Canvas.Bottom="{Binding LeftClickPoint.Y}">
+                                        <StackPanel Visibility="{Binding ShowLeftClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <TextBlock Text="(" />
+                                            <TextBlock Text="{Binding LeftClickModuleCoords.X, StringFormat=N2}" />
+                                            <TextBlock Text=", " />
+                                            <TextBlock Text="{Binding LeftClickModuleCoords.Y, StringFormat=N2}" />
+                                            <TextBlock Text=")" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Grid x:Name="leftClickGatherPartyRange" Margin="0"
+                                          Canvas.Left="{Binding LeftClickPoint.X}"
+                                          Canvas.Bottom="{Binding LeftClickPoint.Y}"
+                                          Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Ellipse Stroke="{Binding LeftClickGatherPartyRangeStrokeBrush}"
+                                                 Fill="{Binding LeftClickGatherPartyRangeFillBrush}"
+                                                 StrokeThickness=".1" Width="60" Height="60"
+                                                 Visibility="{Binding ShowLeftClickGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Ellipse.RenderTransform>
+                                                <TranslateTransform X="-29.5" Y="29.5" />
+                                            </Ellipse.RenderTransform>
+                                        </Ellipse>
+                                    </Grid>
 
-                                <Ellipse
-                                    x:Name="rightClickEllipse" Fill="White" Stroke="Black"
-                                    Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Canvas.Left="{Binding RightClickPoint.X}"
-                                    Canvas.Bottom="{Binding RightClickPoint.Y}"
-                                    Style="{StaticResource CoordPoint}"
-                                    />
-                                <Border
-                                    x:Name="rightClickCoords"
-                                    Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    Canvas.Left="{Binding RightClickPoint.X}"
-                                    Canvas.Bottom="{Binding RightClickPoint.Y}"
-                                    >
-                                    <StackPanel Visibility="{Binding ShowRightClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <TextBlock Text="(" />
-                                        <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
-                                        <TextBlock Text=", " />
-                                        <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
-                                        <TextBlock Text=")" />
-                                    </StackPanel>
-                                </Border>
+                                    <Ellipse
+                                        x:Name="rightClickEllipse" Fill="White" Stroke="Black"
+                                        Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Canvas.Left="{Binding RightClickPoint.X}"
+                                        Canvas.Bottom="{Binding RightClickPoint.Y}"
+                                        Style="{StaticResource CoordPoint}"
+                                        />
+                                    <Border
+                                        x:Name="rightClickCoords"
+                                        Visibility="{Binding RightClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Canvas.Left="{Binding RightClickPoint.X}"
+                                        Canvas.Bottom="{Binding RightClickPoint.Y}"
+                                        >
+                                        <StackPanel Visibility="{Binding ShowRightClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <TextBlock Text="(" />
+                                            <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
+                                            <TextBlock Text=", " />
+                                            <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
+                                            <TextBlock Text=")" />
+                                        </StackPanel>
+                                    </Border>
 
-                                <!--Points="0.5,0.25 0,0 0.5,1 1,0 0.5,0.25"-->
-                                <!--Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"-->
-                                <!--Points="0,0 -1,-0.5 0,1 1,-0.5"-->
+                                    <!--Points="0.5,0.25 0,0 0.5,1 1,0 0.5,0.25"-->
+                                    <!--Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"-->
+                                    <!--Points="0,0 -1,-0.5 0,1 1,-0.5"-->
 
-                                <!-- Leader Icon -->
-                                <Grid x:Name="livePositionArrow" Margin="0"
-                                      Canvas.Left="{Binding LivePositionEllipsePoint.X}"
-                                      Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
-                                      Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Ellipse Stroke="Black" Fill="#4E6BDF"
-                                             Style="{StaticResource CoordPoint}" />
-                                    <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
-                                             Stroke="Black" Fill="#42BFA4"
-                                             StrokeLineJoin="Round" StrokeThickness=".1">
+                                    <!-- Leader Icon -->
+                                    <Grid x:Name="livePositionArrow" Margin="0"
+                                          Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                          Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}"
+                                          Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Ellipse Stroke="Black" Fill="#4E6BDF"
+                                                 Style="{StaticResource CoordPoint}" />
+                                        <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
+                                                 Stroke="Black" Fill="#42BFA4"
+                                                 StrokeLineJoin="Round" StrokeThickness=".1">
+                                            <Polygon.RenderTransform>
+                                                <TransformGroup>
+                                                    <RotateTransform Angle="{Binding LiveLeaderBearing}" />
+                                                    <TranslateTransform X=".5" Y="-.5" />
+                                                    <ScaleTransform ScaleY="-1"/>
+                                                </TransformGroup>
+                                            </Polygon.RenderTransform>
+                                        </Polygon>
+                                    </Grid>
+                                    <Grid Name="lastGatherPartyRangePosition" Margin="0"
+                                          Canvas.Left="{Binding LastGatherPartyRangePoint.X}"
+                                          Canvas.Bottom="{Binding LastGatherPartyRangePoint.Y}"
+                                          Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Ellipse Fill="{Binding LiveGatherPartyRangeStrokeBrush}"
+                                                 Stroke="Goldenrod" StrokeThickness=".1"
+                                                 Width="1" Height="1">
+                                            <Ellipse.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
+                                                    <Binding Path="ShowGatherPartyRange" />
+                                                    <Binding Path="LockGatherPartyRange" />
+                                                </MultiBinding>
+                                            </Ellipse.Visibility>
+                                        </Ellipse>
+                                    </Grid>
+                                    <Grid x:Name="liveGatherPartyRange" Margin="0"
+                                          Canvas.Left="{Binding LiveGatherPartyRangePoint.X}"
+                                          Canvas.Bottom="{Binding LiveGatherPartyRangePoint.Y}"
+                                          Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Ellipse Stroke="{Binding LiveGatherPartyRangeStrokeBrush}"
+                                                 Fill="{Binding LiveGatherPartyRangeFillBrush}"
+                                                 StrokeThickness=".1" Width="60" Height="60"
+                                                 Visibility="{Binding ShowGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Ellipse.RenderTransform>
+                                                <TranslateTransform X="-29.5" Y="29.5" />
+                                            </Ellipse.RenderTransform>
+                                        </Ellipse>
+                                    </Grid>
+
+                                    <!--Octagon for correct player shape-->
+                                    <!--<Polygon Points="-2.4142,-1  -1,-2.4142  1,-2.4142  2.4142,-1  2.4142,1  1,2.4142  -1,2.4142  -2.4142,1"
+                                             Stroke="Black" Fill="#42BFA4" StrokeThickness=".4">
                                         <Polygon.RenderTransform>
                                             <TransformGroup>
-                                                <RotateTransform Angle="{Binding LiveLeaderBearing}" />
-                                                <TranslateTransform X=".5" Y="-.5" />
-                                                <ScaleTransform ScaleY="-1"/>
+                                                <RotateTransform Angle="22.5" />
+                                                <TranslateTransform X="5" Y="15" />
+                                                <ScaleTransform ScaleX="0.2071" ScaleY="0.2071" />
                                             </TransformGroup>
                                         </Polygon.RenderTransform>
-                                    </Polygon>
-                                </Grid>
-                                <Grid Name="lastGatherPartyRangePosition" Margin="0"
-                                      Canvas.Left="{Binding LastGatherPartyRangePoint.X}"
-                                      Canvas.Bottom="{Binding LastGatherPartyRangePoint.Y}"
-                                      Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Ellipse Fill="{Binding LiveGatherPartyRangeStrokeBrush}"
-                                             Stroke="Goldenrod" StrokeThickness=".1"
-                                             Width="1" Height="1">
-                                        <Ellipse.Visibility>
-                                            <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
-                                                <Binding Path="ShowGatherPartyRange" />
-                                                <Binding Path="LockGatherPartyRange" />
-                                            </MultiBinding>
-                                        </Ellipse.Visibility>
-                                    </Ellipse>
-                                </Grid>
-                                <Grid x:Name="liveGatherPartyRange" Margin="0"
-                                      Canvas.Left="{Binding LiveGatherPartyRangePoint.X}"
-                                      Canvas.Bottom="{Binding LiveGatherPartyRangePoint.Y}"
-                                      Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Ellipse Stroke="{Binding LiveGatherPartyRangeStrokeBrush}"
-                                             Fill="{Binding LiveGatherPartyRangeFillBrush}"
-                                             StrokeThickness=".1" Width="60" Height="60"
-                                             Visibility="{Binding ShowGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <Ellipse.RenderTransform>
-                                            <TranslateTransform X="-29.5" Y="29.5" />
-                                        </Ellipse.RenderTransform>
-                                    </Ellipse>
-                                </Grid>
+                                    </Polygon>-->
 
-                                <!--Octagon for correct player shape-->
-                                <!--<Polygon Points="-2.4142,-1  -1,-2.4142  1,-2.4142  2.4142,-1  2.4142,1  1,2.4142  -1,2.4142  -2.4142,1"
-                                         Stroke="Black" Fill="#42BFA4" StrokeThickness=".4">
-                                    <Polygon.RenderTransform>
-                                        <TransformGroup>
-                                            <RotateTransform Angle="22.5" />
-                                            <TranslateTransform X="5" Y="15" />
-                                            <ScaleTransform ScaleX="0.2071" ScaleY="0.2071" />
-                                        </TransformGroup>
-                                    </Polygon.RenderTransform>
-                                </Polygon>-->
-
-                                <!-- Party Member 1 Icon -->
-                                <Grid x:Name="livePositionArrowPC1" Margin="0"
-                                      Canvas.Left="{Binding LivePositionEllipsePointPC1.X}"
-                                      Canvas.Bottom="{Binding LivePositionEllipsePointPC1.Y}"
-                                      Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Grid>
-                                        <Grid.Visibility>
-                                            <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or">
-                                                <Binding Path="LivePartyCount" Converter="{StaticResource UintGreaterEqualConverter}" ConverterParameter="2" />
-                                            </MultiBinding>
-                                        </Grid.Visibility>
-                                        <Ellipse Stroke="Black" Fill="#FA7300" Style="{StaticResource CoordPoint}" />
-                                        <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
-                                             Stroke="Black" Fill="#4E6BDF"
-                                             StrokeLineJoin="Round" StrokeThickness=".1">
-                                            <Polygon.RenderTransform>
-                                                <TransformGroup>
-                                                    <RotateTransform Angle="{Binding LiveBearingPC1}" />
-                                                    <TranslateTransform X=".5" Y="-.5" />
-                                                    <ScaleTransform ScaleY="-1"/>
-                                                </TransformGroup>
-                                            </Polygon.RenderTransform>
-                                        </Polygon>
+                                    <!-- Party Member 1 Icon -->
+                                    <Grid x:Name="livePositionArrowPC1" Margin="0"
+                                          Canvas.Left="{Binding LivePositionEllipsePointPC1.X}"
+                                          Canvas.Bottom="{Binding LivePositionEllipsePointPC1.Y}"
+                                          Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid>
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or">
+                                                    <Binding Path="LivePartyCount" Converter="{StaticResource UintGreaterEqualConverter}" ConverterParameter="2" />
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <Ellipse Stroke="Black" Fill="#FA7300" Style="{StaticResource CoordPoint}" />
+                                            <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
+                                                 Stroke="Black" Fill="#4E6BDF"
+                                                 StrokeLineJoin="Round" StrokeThickness=".1">
+                                                <Polygon.RenderTransform>
+                                                    <TransformGroup>
+                                                        <RotateTransform Angle="{Binding LiveBearingPC1}" />
+                                                        <TranslateTransform X=".5" Y="-.5" />
+                                                        <ScaleTransform ScaleY="-1"/>
+                                                    </TransformGroup>
+                                                </Polygon.RenderTransform>
+                                            </Polygon>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
 
-                                <!-- Party Member 2 Icon -->
-                                <Grid x:Name="livePositionArrowPC2" Margin="0"
-                                      Canvas.Left="{Binding LivePositionEllipsePointPC2.X}"
-                                      Canvas.Bottom="{Binding LivePositionEllipsePointPC2.Y}"
-                                      Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Grid Margin="0">
-                                        <Grid.Visibility>
-                                            <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or">
-                                                <Binding Path="LivePartyCount" Converter="{StaticResource UintGreaterEqualConverter}" ConverterParameter="3" />
-                                            </MultiBinding>
-                                        </Grid.Visibility>
-                                        <Ellipse Stroke="Black" Fill="#FA7300" Style="{StaticResource CoordPoint}" />
-                                        <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
-                                             Stroke="Black" Fill="#4E6BDF"
-                                             StrokeLineJoin="Round" StrokeThickness=".1">
-                                            <Polygon.RenderTransform>
-                                                <TransformGroup>
-                                                    <RotateTransform Angle="{Binding LiveBearingPC2}" />
-                                                    <TranslateTransform X=".5" Y="-.5" />
-                                                    <ScaleTransform ScaleY="-1"/>
-                                                </TransformGroup>
-                                            </Polygon.RenderTransform>
-                                        </Polygon>
+                                    <!-- Party Member 2 Icon -->
+                                    <Grid x:Name="livePositionArrowPC2" Margin="0"
+                                          Canvas.Left="{Binding LivePositionEllipsePointPC2.X}"
+                                          Canvas.Bottom="{Binding LivePositionEllipsePointPC2.Y}"
+                                          Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid Margin="0">
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or">
+                                                    <Binding Path="LivePartyCount" Converter="{StaticResource UintGreaterEqualConverter}" ConverterParameter="3" />
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <Ellipse Stroke="Black" Fill="#FA7300" Style="{StaticResource CoordPoint}" />
+                                            <Polygon Points="0,0 -0.5,-0.25 0,0.5 0.5,-0.25"
+                                                 Stroke="Black" Fill="#4E6BDF"
+                                                 StrokeLineJoin="Round" StrokeThickness=".1">
+                                                <Polygon.RenderTransform>
+                                                    <TransformGroup>
+                                                        <RotateTransform Angle="{Binding LiveBearingPC2}" />
+                                                        <TranslateTransform X=".5" Y="-.5" />
+                                                        <ScaleTransform ScaleY="-1"/>
+                                                    </TransformGroup>
+                                                </Polygon.RenderTransform>
+                                            </Polygon>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
 
-                                <Border x:Name="livePositionCoords"
-                                        Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        Canvas.Left="{Binding LivePositionEllipsePoint.X}"
-                                        Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}">
-                                    <StackPanel Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <TextBlock Text="(" />
-                                        <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
-                                        <TextBlock Text=", " />
-                                        <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
-                                        <TextBlock Text=")" />
-                                    </StackPanel>
-                                </Border>
+                                    <Border x:Name="livePositionCoords"
+                                            Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Canvas.Left="{Binding LivePositionEllipsePoint.X}"
+                                            Canvas.Bottom="{Binding LivePositionEllipsePoint.Y}">
+                                        <StackPanel Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <TextBlock Text="(" />
+                                            <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
+                                            <TextBlock Text=", " />
+                                            <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
+                                            <TextBlock Text=")" />
+                                        </StackPanel>
+                                    </Border>
 
-                                <Path x:Name="tempSegment" Stroke="Black" Visibility="{Binding TempSegmentVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Path.Data>
-                                        <LineGeometry StartPoint="{Binding TempSegmentStart}" EndPoint="{Binding TempSegmentEnd, Mode=TwoWay}" />
-                                    </Path.Data>
-                                </Path>
+                                    <Path x:Name="tempSegment" Stroke="Black" Visibility="{Binding TempSegmentVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Path.Data>
+                                            <LineGeometry StartPoint="{Binding TempSegmentStart}" EndPoint="{Binding TempSegmentEnd, Mode=TwoWay}" />
+                                        </Path.Data>
+                                    </Path>
 
-                                <Grid x:Name="BluePathGrid" Visibility="{Binding BluePathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Grid.Resources>
-                                        <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
-                                            <Setter Property="Stroke" Value="Blue" />
-                                        </Style>
-                                    </Grid.Resources>
-                                </Grid>
-                                <Grid x:Name="RedPathGrid" Visibility="{Binding RedPathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Grid.Resources>
-                                        <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
-                                            <Setter Property="Stroke" Value="Red" />
-                                        </Style>
-                                    </Grid.Resources>
-                                </Grid>
-                                <Grid x:Name="GreenPathGrid" Visibility="{Binding GreenPathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Grid.Resources>
-                                        <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
-                                            <Setter Property="Stroke" Value="Green" />
-                                        </Style>
-                                    </Grid.Resources>
-                                </Grid>
-                            </Canvas>
+                                    <Grid x:Name="BluePathGrid" Visibility="{Binding BluePathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid.Resources>
+                                            <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
+                                                <Setter Property="Stroke" Value="Blue" />
+                                            </Style>
+                                        </Grid.Resources>
+                                    </Grid>
+                                    <Grid x:Name="RedPathGrid" Visibility="{Binding RedPathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid.Resources>
+                                            <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
+                                                <Setter Property="Stroke" Value="Red" />
+                                            </Style>
+                                        </Grid.Resources>
+                                    </Grid>
+                                    <Grid x:Name="GreenPathGrid" Visibility="{Binding GreenPathVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid.Resources>
+                                            <Style TargetType="Line" BasedOn="{StaticResource baseLine}">
+                                                <Setter Property="Stroke" Value="Green" />
+                                            </Style>
+                                        </Grid.Resources>
+                                    </Grid>
+                                </Canvas>
 
-                            <!--
-                            This Canvas and Border are used as a very simple way to render a drag rectangle that
-                            the user uses to specify an area to zoom in on.
-                            -->
-                            <Canvas
-                                x:Name="dragZoomCanvas"
-                                Visibility="Collapsed"
-                                >
-                                <Border 
-                                    x:Name="dragZoomBorder"
-                                    BorderBrush="Black"
-                                    BorderThickness="1"
-                                    Background="Silver"
-                                    CornerRadius="1"
-                                    Opacity="0"
-                                    />
-                            </Canvas>
-                        </Grid>
-                    </ZoomAndPan:ZoomAndPanControl>
-                </ScrollViewer>
+                                <!--
+                                This Canvas and Border are used as a very simple way to render a drag rectangle that
+                                the user uses to specify an area to zoom in on.
+                                -->
+                                <Canvas
+                                    x:Name="dragZoomCanvas"
+                                    Visibility="Collapsed"
+                                    >
+                                    <Border 
+                                        x:Name="dragZoomBorder"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        Background="Silver"
+                                        CornerRadius="1"
+                                        Opacity="0"
+                                        />
+                                </Canvas>
+                            </Grid>
+                        </ZoomAndPan:ZoomAndPanControl>
+                    </ScrollViewer>
 
-                <!--
-                Mouse Hover Information Grid
-                -->
-                <uc:MouseHoverDisplayControl
-                    x:Name="mouseHoverDisplay"
-                    Grid.Column="3"
-                    ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse, FallbackValue=False}"
-                    RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}"
-                    ShowMeshColor="True"
-                    ShowType="{Binding ElementName=thisWindow, Path=ShowTypeUnderMouse, FallbackValue=True}"
-                    ShowResRef="{Binding ElementName=thisWindow, Path=ShowResRefUnderMouse, FallbackValue=True}"
-                    ShowTag="{Binding ElementName=thisWindow, Path=ShowTagUnderMouse, FallbackValue=True}"
-                    ShowLocalizedName="{Binding ElementName=thisWindow, Path=ShowLocalizedNameUnderMouse, FallbackValue=True}"
-                    ShowOnEnter="{Binding ElementName=thisWindow, Path=ShowOnEnterUnderMouse, FallbackValue=True}"
-                    />
+                    <!--
+                    Mouse Hover Information Grid
+                    -->
+                    <uc:MouseHoverDisplayControl
+                        x:Name="mouseHoverDisplay"
+                        Grid.Column="3"
+                        ShowRimDataUnderMouse="{Binding ElementName=thisWindow, Path=ShowRimDataUnderMouse, FallbackValue=False}"
+                        RimDataUnderMouse="{Binding ElementName=thisWindow, Path=RimDataUnderMouse}"
+                        ShowMeshColor="True"
+                        ShowType="{Binding ElementName=thisWindow, Path=ShowTypeUnderMouse, FallbackValue=True}"
+                        ShowResRef="{Binding ElementName=thisWindow, Path=ShowResRefUnderMouse, FallbackValue=True}"
+                        ShowTag="{Binding ElementName=thisWindow, Path=ShowTagUnderMouse, FallbackValue=True}"
+                        ShowLocalizedName="{Binding ElementName=thisWindow, Path=ShowLocalizedNameUnderMouse, FallbackValue=True}"
+                        ShowOnEnter="{Binding ElementName=thisWindow, Path=ShowOnEnterUnderMouse, FallbackValue=True}"
+                        />
                 
+                    <!--
+                    Bottom Panel Grid Splitter
+                    -->
+                    <GridSplitter x:Name="gsBottomPanel" Grid.Row="1" Height="3" Background="#FF707070"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                              IsVisibleChanged="gsBottomPanel_IsVisibleChanged">
+                        <GridSplitter.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="Or"
+                                          FallbackValue="Collapsed" TargetNullValue="Collapsed">
+                                <Binding Path="ShowGlobalWatchPanel" />
+                            </MultiBinding>
+                        </GridSplitter.Visibility>
+                    </GridSplitter>
+
+                    <!--
+                    Bottom Panel: Global Watch
+                    -->
+                    <Grid Margin="0,4,0,0" Grid.Row="2" x:Name="gridGlobalsWatch"
+                          Visibility="{Binding ShowGlobalWatchPanel,
+                              Converter={StaticResource BoolToVisibilityConverter},
+                              FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="TextBlock" x:Key="tbHeader">
+                                <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </Style>
+                            <Style TargetType="TextBlock" x:Key="tbHighlight">
+                                <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="Foreground" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding GlobalsFindSelectedItem.HasChanged}" Value="True">
+                                        <DataTrigger.Setters>
+                                            <Setter Property="Foreground" Value="Red" />
+                                        </DataTrigger.Setters>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Margin" Value="0,0,0,4" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="ListView">
+                                <Setter Property="Margin" Value="0" />
+                            </Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Margin" Value="0,0,0,4" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="CheckBox">
+                                <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <DataTemplate x:Key="dtRemoveWatch">
+                                <Grid Margin="-4">
+                                    <Button Margin="0" Padding="0" Background="Transparent"
+                                            BorderBrush="Transparent" BorderThickness="1"
+                                            Click="RemoveGlobalWatch_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                                    <ContentPresenter
+                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <Border>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="Lavender" />
+                                                            <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Image Margin="0" Width="14" Source="/Resources/Icons/RemoveIcon.png" />
+                                        </Border>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                            <Style TargetType="ListViewItem" x:Key="GlobalWatchStyle" BasedOn="{StaticResource BaseItemStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasChanged}" Value="True">
+                                        <Setter Property="Foreground" Value="Red" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                                <EventSetter Event="MouseDoubleClick" Handler="lviGlobalWatch_DoubleClick" />
+                                <EventSetter Event="KeyDown" Handler="lviGlobalWatch_KeyDown" />
+                            </Style>
+                        </Grid.Resources>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <!--Load-->
+                            <Button Margin="0,0,4,4" Click="LoadGlobalWatch_Click"
+                                    ToolTip="Open global watch file.">
+                                <Image Height="16" Source="/Resources/Icons/FolderIcon.png" />
+                            </Button>
+                            <!--Save-->
+                            <Button Margin="0,0,4,4" Padding="2" Click="SaveGlobalWatch_Click"
+                                    ToolTip="Save global watch file.">
+                                <Image Height="14" Source="/Resources/Icons/Save.png" />
+                            </Button>
+                            <!--Clear-->
+                            <Button Margin="0,0,4,4" Click="ClearGlobalWatch_Click"
+                                    ToolTip="Clear global watch list.">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                                    <TextBlock Text="Clear" Margin="4,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <!--Reset-->
+                            <Button Margin="0,0,4,4" Click="ResetGlobalWatch_Click"
+                                    ToolTip="Reset global watch list to defaults.">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Height="14" Source="/Resources/Icons/UndoIcon.png" />
+                                    <TextBlock Text="Reset" Margin="4,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                        
+                        <DockPanel Grid.Column="1">
+                            <TextBlock DockPanel.Dock="Left" Text="Filter:" />
+                            <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsWatchFilter_Click">
+                                <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
+                            </Button>
+                            <TextBox x:Name="txtGlobalsWatchFilter" TextChanged="TxtGlobalsWatchFilter_TextChanged" d:Text="filter" />
+                        </DockPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <CheckBox x:Name="cbAutoRefreshGlobalWatch" Content="Auto" Margin="4,0,4,4"
+                                      ToolTip="Periodically read all watched global variables."
+                                      IsChecked="{Binding DoGlobalWatchAutoRefresh, Mode=TwoWay}" />
+                            
+                            <Button Click="RefreshGlobalWatch_Click"
+                                    ToolTip="Read all watched global vairables.">
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                        <Binding Path="ShowLivePosition" />
+                                        <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="DoGlobalWatchAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Height="14" Source="/Resources/Icons/RefreshIcon.png" />
+                                    <TextBlock Text="Refresh" Margin="4,0,0,0" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Content="___" Padding="3.5,0,0,0" Margin="4,0,0,4" Width="20" Height="20"
+                                    ToolTip="Minimize the watch panel." Click="MinimizeGlobalWatchPanel_Click" />
+                        </StackPanel>
+
+                        <ListView Grid.Row="1" Grid.ColumnSpan="3" x:Name="lvGlobalsWatch"
+                                    ItemsSource="{Binding KotorWatchGlobals}"
+                                    ItemContainerStyle="{StaticResource GlobalWatchStyle}"
+                                    d:ItemsSource="{d:SampleData}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="20" CellTemplate="{StaticResource dtRemoveWatch}">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Tag="Remove" Content="" />
+                                        </GridViewColumn.Header>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="20" Header="T" DisplayMemberBinding="{Binding Type}" />
+                                    <GridViewColumn Width="140" Header="Name" DisplayMemberBinding="{Binding Name}" />
+                                    <GridViewColumn Width="100" Header="Value" DisplayMemberBinding="{Binding Value}" />
+                                    <GridViewColumn Width="100" Header="Last Value" DisplayMemberBinding="{Binding LastValue}" />
+                                    <GridViewColumn Width="100" Header="Read At" DisplayMemberBinding="{Binding LastReadAt, StringFormat=HH:mm:ss}" />
+                                    <GridViewColumn Width="100" Header="Last Change At" DisplayMemberBinding="{Binding LastChangeAt, StringFormat=HH:mm:ss}" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </Grid>
+
                 <!--
                 Right Panel Grid Splitter
                 -->
@@ -3326,7 +3938,7 @@
                 <Grid x:Name="optionsGrid" Grid.Column="5" Margin="5,0"
                       Visibility="{Binding ShowWalkmeshPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -3442,20 +4054,6 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
-
-                        <!--<Button Grid.Row="2" Margin="0,5" Content="Remove All"
-                                Command="{StaticResource Commands.RemoveAll}">
-                            <Button.IsEnabled>
-                                <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
-                                    <Binding Path="OnRims.Count" Converter="{StaticResource IntGreaterEqualConverter}" ConverterParameter="1" />
-                                    <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="GameDataWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="AddPolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="UpdateLayerVisibilityWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                    <Binding Path="RemovePolyWorker.IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
-                                </MultiBinding>
-                            </Button.IsEnabled>
-                        </Button>-->
                     </Grid>
 
                     <!-- Resize the active and inactive lists. -->
@@ -3481,7 +4079,7 @@
                         <DockPanel Grid.Row="1" Grid.ColumnSpan="5" Margin="0,0,0,5">
                             <TextBlock DockPanel.Dock="Left" Text="Filter:" Margin="20,0,5,0" VerticalAlignment="Center" />
                             <Button DockPanel.Dock="Right" Margin="5,0,0,0" Click="ClearOffRimsFilter_Click">
-                                <Image Height="14" Source="/Resources/Icons/ClearIcon.png" />
+                                <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
                             </Button>
                             <TextBox x:Name="txtRimsFilter" TextChanged="TxtOffRimsFilter_TextChanged" />
                         </DockPanel>
@@ -3528,43 +4126,58 @@
                 </Grid>
 
                 <!--
-                Right Panel Buttons Column
+                Right Buttons Column
                 -->
-                <StackPanel Grid.Column="6" Orientation="Vertical" Margin="4,0,0,0">
-                    <StackPanel.Resources>
-                        <Style TargetType="ToggleButton">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderBrush" Value="#FF707070" />
-                            <Setter Property="BorderThickness" Value="0,4,0,0" />
-                            <Setter Property="Margin" Value="0,0,0,4" />
-                            <Setter Property="Width" Value="80" />
-                            <Setter Property="LayoutTransform">
-                                <Setter.Value>
-                                    <RotateTransform Angle="90" />
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="BorderBrush" Value="MediumSlateBlue" />
-                                    <Setter Property="Background" Value="Lavender" />
-                                </Trigger>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter Property="BorderBrush" Value="Indigo" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Resources>
-                    <ToggleButton Content="Walkmeshes" IsChecked="{Binding ShowWalkmeshPanel}" />
-                </StackPanel>
+                <Grid Grid.Column="6" Margin="4,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Right Panel Buttons Column -->
+                    <StackPanel Grid.Row="0" Orientation="Vertical">
+                        <ToggleButton Content="Walkmeshes"
+                                      IsChecked="{Binding ShowWalkmeshPanel}"
+                                      Style="{StaticResource rightPanelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Walkmeshes" />
+                                    <TextBlock>
+                                        Browse and display module walkmeshes. This panel shows the
+                                        <LineBreak />
+                                        currently displayed game levels.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                    </StackPanel>
+
+                    <!-- Bottom Panel Buttons Column -->
+                    <StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Bottom" Margin="0,0,0,-4">
+                        <ToggleButton Content="Watch"
+                                      IsChecked="{Binding ShowGlobalWatchPanel}"
+                                      Style="{StaticResource rightPanelToggleButton}"
+                                      >
+                            <ToggleButton.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" FontSize="14" Margin="0,0,0,5" Text="Global Watch List" />
+                                    <TextBlock>
+                                        Monitor a list of global variables over time. Automatically
+                                        <LineBreak />
+                                        read key in-game values while playing.
+                                    </TextBlock>
+                                    <Border BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+                                    <TextBlock FontStyle="Italic">
+                                        Panel requires the Show Live Position feature to be enabled
+                                        <LineBreak />
+                                        to read global values.
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton.ToolTip>
+                        </ToggleButton>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Grid>
     </DockPanel>

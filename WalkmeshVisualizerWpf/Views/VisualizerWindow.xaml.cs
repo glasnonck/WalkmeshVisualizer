@@ -1,4 +1,9 @@
-﻿using System;
+﻿using KotOR_IO;
+using KotOR_IO.GffFile;
+using KotOR_IO.Helpers;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,32 +12,42 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using System.Windows.Xps.Packaging;
-using KotOR_IO;
-using KotOR_IO.GffFile;
-using KotOR_IO.Helpers;
-using Microsoft.Win32;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
-using kmih = KotorMessageInjector.KotorHelpers;
-using kmia = KotorMessageInjector.Adapter;
 using ZoomAndPan;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-using System.Windows.Documents;
+using kmia = KotorMessageInjector.Adapter;
+using kmih = KotorMessageInjector.KotorHelpers;
 
 namespace WalkmeshVisualizerWpf.Views
 {
+    public class KotorGameObject
+    {
+        public uint VTable { get; set; }
+        public uint ID { get; set; }
+        public GameObjectTypes Type { get; set; }
+        public string Tag { get; set; }
+        public string Name { get; set; }
+
+        public override string ToString() =>
+            "id: 0x" + ID.ToString("X") +
+            ", type: " + Type +
+            ", tag: " + Tag;
+    }
+
     /// <summary>
     /// Interaction logic for VisualizerWindow.xaml
     /// </summary>
@@ -117,14 +132,21 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataUnderMouse = settings.ShowRimDataUnderMouse;
             ShowGatherPartyRange = settings.ShowGatherPartyRange;
             ShowLeftClickGatherPartyRange = settings.ShowLeftClickGatherPartyRange;
+            
+            prevLeftPanelSize = settings.PrevLeftPanelSize;
             ShowCoordinatePanel = settings.ShowCoordinatePanel;
             ShowRimDataPanel = settings.ShowRimDataPanel;
             ShowDistancePanel = settings.ShowDistancePanel;
-            ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
             ShowToolsPanel = settings.ShowToolsPanel;
+            ShowGlobalsPanel = settings.ShowGlobalsPanel;
             ShowWireTargetPanel = settings.ShowWireTargetPanel;
-            prevLeftPanelSize = settings.PrevLeftPanelSize;
+
             prevRightPanelSize = settings.PrevRightPanelSize;
+            ShowWalkmeshPanel = settings.ShowWalkmeshPanel;
+
+            prevBottomPanelSize = settings.PrevBottomPanelSize;
+            ShowGlobalWatchPanel = settings.ShowGlobalWatchPanel;
+            GlobalAutoRefreshRate = settings.GlobalAutoRefreshRate;
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
             SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
@@ -160,7 +182,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (ShowRimDataUnderMouse) RunMouseHoverWorker_Executed(this, null);
 
             // Left Panel
-            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel)
+            if (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel || ShowGlobalsPanel || ShowWireTargetPanel)
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
 
             // - Rim Data Panel
@@ -172,6 +194,9 @@ namespace WalkmeshVisualizerWpf.Views
 
             // Right Panel
             if (ShowWalkmeshPanel) columnRightPanel.Width = new GridLength(prevRightPanelSize, GridUnitType.Pixel);
+
+            // Bottom Panel
+            if (ShowGlobalWatchPanel) rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
 
             // Set up RIM data panel filters
             ((CollectionView)CollectionViewSource.GetDefaultView(lvRimDoor.ItemsSource)).Filter = RimDataFilter;
@@ -187,6 +212,25 @@ namespace WalkmeshVisualizerWpf.Views
             // Set up Area ID filter
             view = (CollectionView)CollectionViewSource.GetDefaultView(lvAreaIds.ItemsSource);
             if (view != null) view.Filter = HandleAreaIdsFilter;
+
+            // Set up Global filters
+            view = (CollectionView)CollectionViewSource.GetDefaultView(lvGlobalsFind.ItemsSource);
+            if (view != null) view.Filter = HandleGlobalsFindFilter;
+
+            view = (CollectionView)CollectionViewSource.GetDefaultView(lvGlobalsWatch.ItemsSource);
+            if (view != null) view.Filter = HandleGlobalsWatchFilter;
+
+            foreach (var item in miGlobalAutoRefreshRate.Items)
+            {
+                if (item is not MenuItem mi) continue;
+                if (mi.Icon is not RadioButton rb) continue;
+                if (mi.Tag is null) continue;
+                if (int.Parse(mi.Tag.ToString()) == GlobalAutoRefreshRate)
+                {
+                    rb.IsChecked = true;
+                    break;
+                }
+            }
         }
 
         #endregion // END REGION Constructors
@@ -399,6 +443,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private double prevLeftPanelSize = 304.0;
         private double prevRightPanelSize = 315.0;
+        private double prevBottomPanelSize = 150.0;
 
         public string Game { get; private set; }
 
@@ -438,6 +483,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showToolsPanel, value);
         }
         private bool _showToolsPanel = false;
+
+        public bool ShowGlobalsPanel
+        {
+            get => _showGlobalsPanel;
+            set => SetField(ref _showGlobalsPanel, value);
+        }
+        private bool _showGlobalsPanel = false;
 
         public bool ShowWireTargetPanel
         {
@@ -480,6 +532,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _showRimDataEncounters, value);
         }
         private bool _showRimDataEncounters = false;
+
+        public bool ShowGlobalWatchPanel
+        {
+            get => _showGlobalWatchPanel;
+            set => SetField(ref _showGlobalWatchPanel, value);
+        }
+        private bool _showGlobalWatchPanel = true;
 
         public bool ShowWalkmeshPanel
         {
@@ -1321,6 +1380,8 @@ namespace WalkmeshVisualizerWpf.Views
         #region Live Tools: Abilities
 
         private const string ALL_ABILITIES = "ALL";
+        private const string GLOBAL_READ_MESSAGE_DEFAULT = "Double-click a global to read / write.";
+
         //private const string ALL_BAD_SPELLS = "Bad Spells";                 // Starts or Ends with XXX
         //private const string ALL_SPECIAL_ABILITIES = "Special Abilities";   // Starts with SPECIAL_ABILITY_
         //private const string ALL_ITEM_ABILITY = "Item Abilities";           // Starts with ITEM_ABILITY_
@@ -1456,6 +1517,95 @@ namespace WalkmeshVisualizerWpf.Views
         #endregion // Wire Targeting
 
         #endregion // ENDREGION DataBinding Members
+
+        #region Global Panel Properties
+
+        public bool GlobalReadChanged
+        {
+            get => _globalReadChanged;
+            set => SetField(ref _globalReadChanged, value);
+        }
+        private bool _globalReadChanged = true;
+
+        public bool DoGlobalReadAutoRefresh
+        {
+            get => _doGlobalReadAutoRefresh;
+            set => SetField(ref _doGlobalReadAutoRefresh, value);
+        }
+        private bool _doGlobalReadAutoRefresh = false;
+
+        public bool DoGlobalWatchAutoRefresh
+        {
+            get => _doGlobalAutoRefresh;
+            set => SetField(ref _doGlobalAutoRefresh, value);
+        }
+        private bool _doGlobalAutoRefresh = false;
+
+        private List<KotorGlobal> Kotor1Globals = [];
+        private List<KotorGlobal> Kotor2Globals = [];
+
+        public List<KotorGlobal> KotorGlobals = [];
+
+        public ObservableCollection<KotorGlobal> KotorFindGlobals
+        {
+            get => _kotorGlobals;
+            set => SetField(ref _kotorGlobals, value);
+        }
+        private ObservableCollection<KotorGlobal> _kotorGlobals = [];
+
+        public ObservableCollection<KotorGlobal> KotorWatchGlobals
+        {
+            get => _kotorWatchGlobals;
+            set => SetField(ref _kotorWatchGlobals, value);
+        }
+        private ObservableCollection<KotorGlobal> _kotorWatchGlobals = [];
+
+        public List<string> Kotor1DefaultWatchGlobals =
+        [
+            "K_STAR_MAP",
+            "K_KALO_BANDON",
+            "K_CURRENT_PLANET",
+            "K_FUTURE_PLANET",
+            "K_KOTOR_MASTER",
+            "G_PazzakDeck",
+        ];
+
+        public List<string> Kotor2DefaultWatchGlobals =
+        [
+            "K_CURRENT_PLANET",
+            "K_FUTURE_PLANET",
+            "003EBO_RETURN_DEST",
+            "003EBO_Atton_Talk",
+            "003EBO_BACKGROUND",
+            "401DXN_Visited",
+            "900MAL_Open",
+        ];
+
+        public KotorGlobal GlobalsFindSelectedItem
+        {
+            get => _globalsFindSelectedItem;
+            set => SetField(ref _globalsFindSelectedItem, value);
+        }
+        private KotorGlobal _globalsFindSelectedItem;
+
+        public string GlobalReadMessage
+        {
+            get => _globalReadMessage;
+            set => SetField(ref _globalReadMessage, value);
+        }
+        private string _globalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
+
+        /// <summary>
+        /// Refresh rate in miliseconds for auto-refreshing values in the watch and global panels.
+        /// </summary>
+        public int GlobalAutoRefreshRate
+        {
+            get => _globalAutoRefreshRate;
+            set => SetField(ref _globalAutoRefreshRate, value);
+        }
+        private int _globalAutoRefreshRate = 5000;
+
+        #endregion // Global Panel Properties
 
         #region ZoomAndPanControl
 
@@ -2206,12 +2356,20 @@ namespace WalkmeshVisualizerWpf.Views
                 var key = new KEY(Paths.chitin);
                 var path = System.IO.Path.Combine(Environment.CurrentDirectory, $"{Game} Data");
 
+                string cachePath = string.Empty;
+                if (Game == K1_NAME)
+                    cachePath = System.IO.Path.Combine(Environment.CurrentDirectory, "KotOR 1 Data", "RimFileCache");
+                if (Game == K2_NAME)
+                    cachePath = System.IO.Path.Combine(Environment.CurrentDirectory, "KotOR 2 Data", "RimFileCache");
+                bool cacheExists = Directory.Exists(cachePath);
+
+                // Load RIM file data if not already loaded.
                 var thisGameLoaded = (Game == K1_NAME && K1Loaded) || (Game == K2_NAME && K2Loaded);
                 if (!thisGameLoaded)
                 {
-                    if (Directory.Exists(path))
+                    if (cacheExists && VerifyRimFileCache(Game, cachePath))
                     {
-                        ReadRimFileCache(path);
+                        ReadRimFileCache(cachePath);
                     }
                     else
                     {
@@ -2220,13 +2378,99 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
 
+                // Prepare global variable list
+                Application.Current.Dispatcher.Invoke(() => { KotorFindGlobals.Clear(); KotorWatchGlobals.Clear(); });
+                IOrderedEnumerable<KotorGlobal> globals = null;
+                IOrderedEnumerable<KotorGlobal> watchGlobals = null;
+
+                var k1GlobalsFilePath = System.IO.Path.Combine(Environment.CurrentDirectory, "KotOR 1 Data", "globals.json");
+                var k1GlobalsFileExists = File.Exists(k1GlobalsFilePath);
+                var k2GlobalsFilePath = System.IO.Path.Combine(Environment.CurrentDirectory, "KotOR 2 Data", "globals.json");
+                var k2GlobalsFileExists = File.Exists(k2GlobalsFilePath);
+
+                // K1 globals already loaded
+                if (Game == K1_NAME && Kotor1Globals.Count != 0)
+                {
+                    globals = Kotor1Globals.OrderBy(g => g.Name);
+                    KotorGlobals = Kotor1Globals = globals.ToList();
+                    watchGlobals = globals.Where(g => Kotor1DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+                }
+
+                // K2 globals already loaded
+                else if (Game == K2_NAME && Kotor2Globals.Count != 0)
+                {
+                    globals = Kotor2Globals.OrderBy(g => g.Name);
+                    KotorGlobals = Kotor2Globals = globals.ToList();
+                    watchGlobals = globals.Where(g => Kotor2DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+                }
+
+                // K1 globals file exists
+                else if (Game == K1_NAME && k1GlobalsFileExists)
+                {
+                    globals = LoadGlobalsFile(k1GlobalsFilePath).OrderBy(g => g.Name);
+                    KotorGlobals = Kotor1Globals = globals.ToList();
+                    watchGlobals = globals.Where(g => Kotor1DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+                }
+
+                // K2 globals file exists
+                else if (Game == K2_NAME && k2GlobalsFileExists)
+                {
+                    globals = LoadGlobalsFile(k2GlobalsFilePath).OrderBy(g => g.Name);
+                    KotorGlobals = Kotor2Globals = globals.ToList();
+                    watchGlobals = globals.Where(g => Kotor2DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+                }
+
+                // Load globals from game files.
+                else
+                {
+                    // Read global catalog 2DA file.
+                    var b = new BIF(System.IO.Path.Combine(Paths.data, "2da.bif"));
+                    b.AttachKey(key, "data\\2da.bif");
+                    var vre = b.VariableResourceTable.FirstOrDefault(x => x.ResRef == "globalcat");
+                    var t = new TwoDA(vre.EntryData, vre.ResRef);
+                    var list = new List<KotorGlobal>();
+                    for (int i = 0; i < t.RowCount; i++)
+                    {
+                        list.Add(new KotorGlobal
+                        {
+                            ID = int.Parse(t.Data["row_index"][i]),
+                            Name = t.Data["name"][i],
+                            Type = t.Data["type"][i].ToEnum<KotorGlobalType>(),
+                        });
+                    }
+
+                    globals = list.Where(g => g.Type != KotorGlobalType.Location || g.Type != KotorGlobalType.String).OrderBy(g => g.Name);
+                    if (Game == K1_NAME)
+                    {
+                        KotorGlobals = Kotor1Globals = list;
+                        SaveGlobalsFile(Kotor1Globals, k1GlobalsFilePath);
+                        watchGlobals = list.Where(g => Kotor1DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+                    }
+                    else if (Game == K2_NAME)
+                    {
+                        KotorGlobals = Kotor2Globals = list;
+                        SaveGlobalsFile(Kotor2Globals, k2GlobalsFilePath);
+                        watchGlobals = list.Where(g => Kotor2DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+                    }
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var item in globals)
+                        KotorFindGlobals.Add(item);
+
+                    foreach (var item in watchGlobals)
+                    {
+                        item.IsWatched = true;
+                        KotorWatchGlobals.Add(item);
+                    }
+                });
+
                 // Set up game data.
                 var rimModels = new List<RimModel>();
                 foreach (var xmlrim in CurrentGame.Rims)
                 {
-                    Brush brush = null;
-                    if (RimToBrushUsed.ContainsKey(xmlrim.FileName))
-                        brush = RimToBrushUsed[xmlrim.FileName];
+                    RimToBrushUsed.TryGetValue(xmlrim.FileName, out Brush brush);
 
                     rimModels.Add(new RimModel
                     {
@@ -2251,9 +2495,9 @@ namespace WalkmeshVisualizerWpf.Views
 
                 Application.Current.Dispatcher.Invoke(() => SelectedGame = e.Argument?.ToString() ?? DEFAULT);
 
-                if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(path))
+                if (!thisGameLoaded && (Game == K1_NAME || Game == K2_NAME) && !Directory.Exists(cachePath))
                 {
-                    SaveRimFileCache(path);
+                    SaveRimFileCache(cachePath);
                 }
 
                 if (Game == K1_NAME) K1Loaded = true;
@@ -2274,6 +2518,23 @@ namespace WalkmeshVisualizerWpf.Views
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
+        }
+
+        private static bool VerifyRimFileCache(string game, string path)
+        {
+            const int K1_FILE_COUNT = 1048;
+            const int K2_FILE_COUNT = 1206;
+
+            // Verify expected number of wok files exist.
+            var gameDir = new DirectoryInfo(path);
+            var totalWoks = gameDir.EnumerateFiles("*.wok", SearchOption.AllDirectories).Count();
+            var result = (game == K1_NAME && totalWoks == K1_FILE_COUNT) ||
+                         (game == K2_NAME && totalWoks == K2_FILE_COUNT);
+
+            // If verification failed, delete the cache folder.
+            if (!result && Directory.Exists(path))
+                Directory.Delete(path, true);
+            return result;
         }
 
         /// <summary>
@@ -2433,7 +2694,7 @@ namespace WalkmeshVisualizerWpf.Views
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR: no layout file corresponds to the name '{lytResRef}'.");
+                    Debug.WriteLine($"ERROR: no layout file corresponds to the name '{lytResRef}'.");
                 }
             }
         }
@@ -2484,6 +2745,9 @@ namespace WalkmeshVisualizerWpf.Views
             // Reset coordinate matches.
             HideBothPoints();
             ClearBothPointMatches();
+
+            KotorFindGlobals.Clear();
+            KotorWatchGlobals.Clear();
 
             ShowGameButtons();
         }
@@ -3353,7 +3617,7 @@ namespace WalkmeshVisualizerWpf.Views
                 RimPolysCreated.Add(rimToAdd.FileName);
             }
 
-            Console.WriteLine($"OFF: {LeftOffset:N2}, {BottomOffset:N2}");
+            Debug.WriteLine($"OFF: {LeftOffset:N2}, {BottomOffset:N2}");
         }
 
         /// <summary>
@@ -3893,18 +4157,28 @@ namespace WalkmeshVisualizerWpf.Views
             settings.ShowRimDataUnderMouse = ShowRimDataUnderMouse;
             settings.ShowGatherPartyRange = ShowGatherPartyRange;
             settings.ShowLeftClickGatherPartyRange = ShowLeftClickGatherPartyRange;
+
             settings.ShowCoordinatePanel = ShowCoordinatePanel;
             settings.ShowRimDataPanel = ShowRimDataPanel;
             settings.ShowDistancePanel = ShowDistancePanel;
             settings.ShowToolsPanel = ShowToolsPanel;
+            settings.ShowGlobalsPanel = ShowGlobalsPanel;
             settings.ShowWireTargetPanel = ShowWireTargetPanel;
-            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel || ShowWireTargetPanel)
+            settings.PrevLeftPanelSize = (ShowCoordinatePanel || ShowRimDataPanel || ShowDistancePanel || ShowToolsPanel || ShowGlobalsPanel || ShowWireTargetPanel)
                 ? columnLeftPanel.ActualWidth
                 : prevLeftPanelSize;
+            
             settings.ShowWalkmeshPanel = ShowWalkmeshPanel;
             settings.PrevRightPanelSize = ShowWalkmeshPanel
-                ?  columnRightPanel.ActualWidth
+                ? columnRightPanel.ActualWidth
                 : prevRightPanelSize;
+
+            settings.ShowGlobalWatchPanel = ShowGlobalWatchPanel;
+            settings.GlobalAutoRefreshRate = GlobalAutoRefreshRate;
+            settings.PrevBottomPanelSize = ShowGlobalWatchPanel
+                ? rowBottomPanel.ActualHeight
+                : prevBottomPanelSize;
+
             settings.SelectedPaletteName = SelectedPalette.FileName;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
             settings.ShowRimDataDoors = ShowRimDataDoors;
@@ -4213,6 +4487,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
             ShowToolsPanel = false;
+            ShowGlobalsPanel = false;
             ShowWireTargetPanel = false;
         }
 
@@ -4222,6 +4497,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowCoordinatePanel = false;
             ShowDistancePanel = false;
             ShowToolsPanel = false;
+            ShowGlobalsPanel = false;
             ShowWireTargetPanel = false;
         }
 
@@ -4231,6 +4507,7 @@ namespace WalkmeshVisualizerWpf.Views
             ShowCoordinatePanel = false;
             ShowRimDataPanel = false;
             ShowToolsPanel = false;
+            ShowGlobalsPanel = false;
             ShowWireTargetPanel = false;
         }
 
@@ -4240,6 +4517,16 @@ namespace WalkmeshVisualizerWpf.Views
             ShowCoordinatePanel = false;
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
+            ShowGlobalsPanel = false;
+            ShowWireTargetPanel = false;
+        }
+
+        private void GlobalsPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowCoordinatePanel = false;
+            ShowRimDataPanel = false;
+            ShowDistancePanel = false;
+            ShowToolsPanel = false;
             ShowWireTargetPanel = false;
         }
 
@@ -4250,11 +4537,12 @@ namespace WalkmeshVisualizerWpf.Views
             ShowRimDataPanel = false;
             ShowDistancePanel = false;
             ShowToolsPanel = false;
+            ShowGlobalsPanel = false;
         }
 
         private void gsLeftPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel || ShowWireTargetPanel)
+            if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel || ShowGlobalsPanel || ShowWireTargetPanel)
             {
                 columnLeftPanel.MinWidth = 240;
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
@@ -4531,6 +4819,31 @@ namespace WalkmeshVisualizerWpf.Views
 
         #endregion // END REGION Left Panel Methods
 
+        #region Bottom Panel Methods
+
+        private void MinimizeGlobalWatchPanel_Click(object sender, RoutedEventArgs e)
+        {
+            ShowGlobalWatchPanel = false;
+        }
+
+        private void gsBottomPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (ShowGlobalWatchPanel)
+            {
+                rowBottomPanel.MinHeight = 200;
+                rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
+            }
+            else
+            {
+                rowBottomPanel.MinHeight = 0;
+                prevBottomPanelSize = rowBottomPanel.ActualHeight;
+                rowBottomPanel.Height = new GridLength(1, GridUnitType.Auto);
+            }
+        }
+
+
+        #endregion // Bottom Panel Methods
+
         #region Right Panel Methods
 
         private void gsRightPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -4593,6 +4906,10 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void LivePositionWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            var swReadRefresh = new Stopwatch();
+            swReadRefresh.Start();
+            var swWatchRefresh = new Stopwatch();
+            swWatchRefresh.Start();
             var sw = new Stopwatch();
             sw.Start();
             var bw = sender as BackgroundWorker;
@@ -4642,6 +4959,7 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         try
                         {
+                            // Refresh looking at ID
                             if (!IsBusy && UpdateLookingAtId) Application.Current.Dispatcher.Invoke(() =>
                             {
                                 try
@@ -4650,6 +4968,30 @@ namespace WalkmeshVisualizerWpf.Views
                                 }
                                 catch (Exception) { }
                             });
+
+                            // Global Read Auto-Refresh
+                            if (!IsBusy && DoGlobalReadAutoRefresh && (GlobalReadChanged ||
+                                swReadRefresh.ElapsedMilliseconds >= GlobalAutoRefreshRate))
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    try { ReadGlobal_Click(null, null); }
+                                    catch (Exception) { }
+                                });
+                                swReadRefresh.Restart();
+                                GlobalReadChanged = false;
+                            }
+
+                            // Global Watch Auto-Refresh
+                            if (!IsBusy && DoGlobalWatchAutoRefresh && swWatchRefresh.ElapsedMilliseconds >= GlobalAutoRefreshRate)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    try { RefreshGlobalWatch_Click(null, null); }
+                                    catch (Exception) { }
+                                });
+                                swWatchRefresh.Restart();
+                            }
 
                             string nextModuleName = string.Empty;
 
@@ -4775,35 +5117,35 @@ namespace WalkmeshVisualizerWpf.Views
                         }
                         catch (NullReferenceException ex)
                         {
-                            Console.WriteLine($"NullReferenceException caught: {ex.Message}");
+                            Debug.WriteLine($"NullReferenceException caught: {ex.Message}");
                             km = null;
                             continue;
                         }
                         catch (Win32Exception ex)
                         {
-                            Console.WriteLine($"Win32Exception caught: {ex.Message}");
+                            Debug.WriteLine($"Win32Exception caught: {ex.Message}");
                             km = null;
                             continue;
                         }
                     }
-                    //Console.WriteLine(sw.ElapsedMilliseconds);
+                    //Debug.WriteLine(sw.ElapsedMilliseconds);
                     Thread.Sleep(Math.Max(LivePositionUpdateDelay - (int)sw.ElapsedMilliseconds, 0));
                     sw.Restart();
                 }
                 catch (NullReferenceException ex)
                 {
-                    Console.WriteLine($"NullReferenceException caught: {ex.Message}");
+                    Debug.WriteLine($"NullReferenceException caught: {ex.Message}");
                     km = null;
                     continue;
                 }
                 catch (Win32Exception ex)
                 {
-                    Console.WriteLine($"Win32Exception caught: {ex.Message}");
+                    Debug.WriteLine($"Win32Exception caught: {ex.Message}");
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Unknown exception caught: {ex}");
+                    Debug.WriteLine($"Unknown exception caught: {ex}");
                     break;
                 }
             }
@@ -4812,9 +5154,10 @@ namespace WalkmeshVisualizerWpf.Views
         private static void WriteToConsoleAllDoorsInLiveModule(KotorManager km, string nextModuleName)
         {
             var doors = km.GetDoorCorners();
-            Console.WriteLine();
-            Console.WriteLine($"\t\t\"Module\": \"{nextModuleName.ToLower()}\",");
-            Console.WriteLine($"\t\t\"Doors\": [");
+            
+            Debug.WriteLine("");
+            Debug.WriteLine($"\t\t\"Module\": \"{nextModuleName.ToLower()}\",");
+            Debug.WriteLine($"\t\t\"Doors\": [");
             for (int i = 0; i < doors.Count; i++)
             {
                 var door = doors[i];
@@ -4832,16 +5175,16 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
 
-                Console.WriteLine("\t\t\t{");
-                Console.WriteLine($"\t\t\t\t\"ResRef\": \"{door.Item1.ToLower()}\",");
-                Console.WriteLine($"\t\t\t\t\"CornersX\": [{cornersX}],");
-                Console.WriteLine($"\t\t\t\t\"CornersY\": [{cornersY}]");
+                Debug.WriteLine("\t\t\t{");
+                Debug.WriteLine($"\t\t\t\t\"ResRef\": \"{door.Item1.ToLower()}\",");
+                Debug.WriteLine($"\t\t\t\t\"CornersX\": [{cornersX}],");
+                Debug.WriteLine($"\t\t\t\t\"CornersY\": [{cornersY}]");
                 var text = "\t\t\t}";
                 if (i+1 != doors.Count) text += ",";
-                Console.WriteLine(text);
+                Debug.WriteLine(text);
             }
-            Console.WriteLine($"\t\t]");
-            Console.WriteLine();
+            Debug.WriteLine($"\t\t]");
+            Debug.WriteLine("");
         }
 
         private int GetRunningKotor()
@@ -5703,20 +6046,6 @@ namespace WalkmeshVisualizerWpf.Views
             txtTargetID.Text = "0x" + id.ToString("X");
         }
 
-        public class KotorGameObject
-        {
-            public uint VTable { get; set; }
-            public uint ID { get; set; }
-            public GameObjectTypes Type { get; set; }
-            public string Tag { get; set; }
-            public string Name { get; set; }
-
-            public override string ToString() =>
-                "id: 0x" + ID.ToString("X") +
-                ", type: " + Type +
-                ", tag: " + Tag;
-        }
-
         private void GetAllIDs_Click(object sender, RoutedEventArgs e)
         {
             AreaGameObjects.Clear();
@@ -5775,5 +6104,383 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion // Wire Targeting Panel Methods
+
+        #region Globals Panel Methods
+
+        private void ClearGlobalsFindFilter_Click(object sender, RoutedEventArgs e)
+        {
+            txtGlobalsFindFilter.Clear();
+        }
+
+        private void ClearGlobalsWatchFilter_Click(object sender, RoutedEventArgs e)
+        {
+            txtGlobalsWatchFilter.Clear();
+        }
+
+        private void TxtGlobalsFindFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(lvGlobalsFind.ItemsSource).Refresh();
+        }
+
+        private void TxtGlobalsWatchFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(lvGlobalsWatch.ItemsSource).Refresh();
+        }
+
+        private bool HandleGlobalsFindFilter(object item)
+        {
+            if (string.IsNullOrEmpty(txtGlobalsFindFilter.Text)) return true;
+            var kg = item as KotorGlobal;
+            return kg.Name.Contains(txtGlobalsFindFilter.Text, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool HandleGlobalsWatchFilter(object item)
+        {
+            if (string.IsNullOrEmpty(txtGlobalsWatchFilter.Text)) return true;
+            var kg = item as KotorGlobal;
+            return kg.Name.Contains(txtGlobalsWatchFilter.Text, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void RefreshGlobalListing(KotorGlobal global)
+        {
+            var idx = KotorFindGlobals.IndexOf(global);
+            if (idx != -1)
+            {
+                KotorFindGlobals.Remove(global);
+                KotorFindGlobals.Insert(idx, global);
+            }
+            else
+            {
+                idx = KotorWatchGlobals.IndexOf(global);
+                KotorWatchGlobals.Remove(global);
+                KotorWatchGlobals.Insert(idx, global);
+            }
+        }
+
+        private void ReadGlobal_Click(object sender, RoutedEventArgs e)
+        {
+            var km = GetKotorManager();
+            if (km == null) return;
+            var global = GlobalsFindSelectedItem;
+            if (global == null)
+            {
+                GlobalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
+                return;
+            }
+
+            global.LastValue = global.Value;
+            global.LastReadAt = DateTime.Now;
+
+            if (global.Type == KotorGlobalType.Boolean)
+                global.Value = kmia.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
+
+            if (global.Type == KotorGlobalType.Number)
+                global.Value = kmia.GetGlobalNumber(km.pr.h, global.Name).ToString();
+
+            if (global.LastValue != global.Value)
+                global.LastChangeAt = global.LastReadAt;
+
+            GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] read successful";
+            //RefreshGlobalListing(global);
+        }
+
+        private void WriteGlobal_Click(object sender, RoutedEventArgs e)
+        {
+            var km = GetKotorManager();
+            if (km == null) return;
+            var global = GlobalsFindSelectedItem;
+            if (global == null)
+            {
+                GlobalReadMessage = GLOBAL_READ_MESSAGE_DEFAULT;
+                return;
+            }
+
+            bool valueSet = false;
+            string value = string.Empty;
+            if (global.Type == KotorGlobalType.Boolean)
+            {
+                if (bool.TryParse(txtGlobalSetValue.Text, out bool bResult))
+                {
+                    kmia.SetGlobalBoolean(km.pr.h, global.Name, bResult);
+                    value = bResult.ToString();
+                    valueSet = true;
+                }
+                else GlobalReadMessage = $"[{DateTime.Now:HH:mm:ss}] Invalid value: must be True or False";
+            }
+            if (global.Type == KotorGlobalType.Number)
+            {
+                if (byte.TryParse(txtGlobalSetValue.Text, out byte nResult))
+                {
+                    kmia.SetGlobalNumber(km.pr.h, global.Name, nResult);
+                    value = nResult.ToString();
+                    valueSet = true;
+                }
+                else GlobalReadMessage = $"[{DateTime.Now:HH:mm:ss}] Invalid value: must be an integer between -2b and +2b";
+            }
+
+            if (valueSet)
+            {
+                global.LastValue = global.Value;
+                global.Value = value;
+                global.LastReadAt = DateTime.Now;
+                if (global.LastValue != global.Value)
+                    global.LastChangeAt = global.LastReadAt;
+                GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] value set";
+                //RefreshGlobalListing(global);
+            }
+        }
+
+        private void ToggleGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            var globalSender = (sender as Button).DataContext as KotorGlobal;
+
+            // Sender is in selection: multi-toggle.
+            if (lvGlobalsFind.SelectedItems.Contains(globalSender))
+            {
+                var doRemoveWatch = globalSender.IsWatched;
+
+                foreach (KotorGlobal global in lvGlobalsFind.SelectedItems)
+                {
+                    // Remove all selected globals.
+                    if (doRemoveWatch)
+                    {
+                        if (!global.IsWatched) continue;    // skip globals not watched
+                        global.IsWatched = false;
+                        KotorWatchGlobals.Remove(global);
+                    }
+
+                    // Add all selected globals.
+                    else
+                    {
+                        if (global.IsWatched) continue;     // skip globals watched
+                        global.IsWatched = true;
+                        KotorWatchGlobals.Add(global);
+                    }
+                }
+            }
+
+            // Sender is not in selection: single toggle.
+            else
+            {
+                if (KotorWatchGlobals.Contains(globalSender))
+                {
+                    globalSender.IsWatched = false;
+                    KotorWatchGlobals.Remove(globalSender);
+                }
+                else
+                {
+                    ReadGlobal(globalSender);
+                    globalSender.IsWatched = true;
+                    KotorWatchGlobals.Add(globalSender);
+                }
+            }
+        }
+
+        private void RemoveGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            RemoveGlobalWatch((sender as Button).DataContext as KotorGlobal);
+        }
+
+        private void RemoveGlobalWatch(KotorGlobal global)
+        {
+            var idx = KotorWatchGlobals.IndexOf(global);
+            KotorWatchGlobals.RemoveAt(idx);
+            global.IsWatched = false;
+            lvGlobalsWatch.SelectedItem = null;
+        }
+
+        private void RefreshGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            var km = GetKotorManager();
+            if (km == null) return;
+            var globals = KotorWatchGlobals.ToList();
+            foreach (var global in globals)
+                ReadGlobal(global, km);
+        }
+
+        private void ReadGlobal(KotorGlobal global, KotorManager km = null)
+        {
+            var kmExternal = km != null;
+            if (km == null)
+            {
+                km = GetKotorManager();
+                if (km == null) return;
+            }
+            if (global.Type == KotorGlobalType.Boolean)
+            {
+                global.LastValue = global.Value;
+                global.Value = kmia.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
+                global.LastReadAt = DateTime.Now;
+                if (global.LastValue != global.Value)
+                    global.LastChangeAt = global.LastReadAt;
+            }
+            if (global.Type == KotorGlobalType.Number)
+            {
+                global.LastValue = global.Value;
+                global.Value = kmia.GetGlobalNumber(km.pr.h, global.Name).ToString();
+                global.LastReadAt = DateTime.Now;
+                if (global.LastValue != global.Value)
+                    global.LastChangeAt = global.LastReadAt;
+            }
+            if (kmExternal) km.RefreshAddresses();
+        }
+
+        private void LvFindGlobal_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void LvGlobalsFind_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GlobalReadChanged = true;
+        }
+
+        private void SelectAndReadGlobal(KotorGlobal global)
+        {
+            if (!ShowLivePosition) return;
+            GlobalsFindSelectedItem = global;
+            lvGlobalsFind.ScrollIntoView(GlobalsFindSelectedItem);
+            if (!DoGlobalReadAutoRefresh) ReadGlobal_Click(null, null);
+        }
+
+        private void lviGlobalWatch_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SelectAndReadGlobal((sender as ListViewItem).DataContext as KotorGlobal);
+        }
+
+        private void lviGlobalWatch_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Enter:
+                case Key.Space:
+                    SelectAndReadGlobal((sender as ListViewItem).DataContext as KotorGlobal);
+                    break;
+                case Key.Back:
+                case Key.Delete:
+                    RemoveGlobalWatch((sender as ListViewItem).DataContext as KotorGlobal);
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        private static OpenFileDialog GetDialog_OpenGlobalsFile()
+        {
+            return new OpenFileDialog()
+            {
+                Title = "Open Globals Watch File",
+                DefaultExt = ".json",
+                Filter = "JSON Documents (.json)|*.json",
+            };
+        }
+
+        private void LoadGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = GetDialog_OpenGlobalsFile();
+            if (dlg.ShowDialog() == false) return;  // skip if no file selected
+
+            ClearGlobalWatch();
+            var globals = LoadGlobalsFile(dlg.FileName);
+            if (globals == null) return;    // stop if file is empty
+
+            foreach (var name in globals.Select(g => g.Name))
+            {
+                var global = KotorGlobals.FirstOrDefault(g => g.Name == name);
+                if (global == null) continue;
+                global.IsWatched = true;
+                KotorWatchGlobals.Add(global);
+            }
+        }
+
+        private IEnumerable<KotorGlobal> LoadGlobalsFile(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            return JsonConvert.DeserializeObject<IEnumerable<KotorGlobal>>(File.ReadAllText(path));
+        }
+
+        private static SaveFileDialog GetDialog_SaveGlobalsFile()
+        {
+            return new SaveFileDialog()
+            {
+                Title = "Save Globals Watch File",
+                FileName = "watch",
+                DefaultExt = ".json",
+                Filter = "JSON Documents (.json)|*.json",
+            };
+        }
+
+        private void SaveGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = GetDialog_SaveGlobalsFile();
+            if (dlg.ShowDialog() == true)
+                SaveGlobalsFile(KotorWatchGlobals, dlg.FileName);
+        }
+
+        private void SaveGlobalsFile(IEnumerable<KotorGlobal> globals, string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return;
+            var text = JsonConvert.SerializeObject(globals);
+            var di = new FileInfo(path).Directory;
+            if (!di.Exists) di.Create();
+            File.WriteAllText(path, text);
+        }
+
+        private void ClearGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBoxResult.Yes == MessageBox.Show(
+                "Are you sure you want to clear the global watch list?",
+                "Confirmation",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question))
+            {
+                ClearGlobalWatch();
+            }
+        }
+
+        private void ClearGlobalWatch()
+        {
+            foreach (var item in KotorWatchGlobals)
+                item.IsWatched = false;
+            KotorWatchGlobals.Clear();
+        }
+
+        private void ResetGlobalWatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBoxResult.Yes != MessageBox.Show(
+                "Are you sure you want to reset the global watch list to defaults?",
+                "Confirmation",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question))
+            {
+                return;
+            }
+
+            ClearGlobalWatch();
+
+            IOrderedEnumerable<KotorGlobal> watchGlobals = null;
+            if (Game == K1_NAME)
+            {
+                watchGlobals = Kotor1Globals.Where(g => Kotor1DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+            }
+            else if (Game == K2_NAME)
+            {
+                watchGlobals = Kotor2Globals.Where(g => Kotor2DefaultWatchGlobals.Contains(g.Name)).OrderBy(g => g.Name);
+            }
+
+            foreach (var item in watchGlobals)
+            {
+                item.IsWatched = true;
+                KotorWatchGlobals.Add(item);
+            }
+        }
+
+        private void GlobalWatchRadioButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem mi) return;
+            GlobalAutoRefreshRate = int.Parse(mi.Tag.ToString());
+        }
+
+        #endregion // Globals Panel Methods
     }
 }
