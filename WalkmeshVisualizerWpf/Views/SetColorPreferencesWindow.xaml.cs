@@ -106,7 +106,7 @@ namespace WalkmeshVisualizerWpf.Views
             RefreshPalettes();
         }
 
-        private void SelectButton_Click(object sender, RoutedEventArgs e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = _initialPalette != PaletteManager.GetSelectedPalette()
                 || _initialBackground != SelectedBackground;
