@@ -88,7 +88,8 @@ namespace WalkmeshVisualizerWpf.Helpers
     public class StringNotEqualsConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value.ToString().ToLower() != parameter.ToString().ToLower();
+            => !value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase);
+            //=> value.ToString().ToLower() != parameter.ToString().ToLower();
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
             => throw new NotImplementedException();
@@ -97,7 +98,8 @@ namespace WalkmeshVisualizerWpf.Helpers
     public class StringEqualsConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value.ToString().ToLower() == parameter.ToString().ToLower();
+            => value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase);
+            //=> value.ToString().ToLower() == parameter.ToString().ToLower();
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
             => throw new NotImplementedException();
@@ -106,7 +108,8 @@ namespace WalkmeshVisualizerWpf.Helpers
     public class StringEqualsToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => (value.ToString().ToLower() == parameter.ToString().ToLower()) ? Visibility.Visible : Visibility.Collapsed;
+            => value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase) ? Visibility.Visible : Visibility.Collapsed;
+            //=> (value.ToString().ToLower() == parameter.ToString().ToLower()) ? Visibility.Visible : Visibility.Collapsed;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
             => throw new NotImplementedException();
@@ -456,10 +459,9 @@ namespace WalkmeshVisualizerWpf.Helpers
         {
             if (values.Length < 2) return Brushes.Transparent;
 
-            var walk = values[0] as WalkabilityModel;
-            var onrims = values[1] as ObservableCollection<RimModel>;
-
-            if (walk == null || onrims == null) return Brushes.Transparent;
+            if (values[0] is not WalkabilityModel walk ||
+                values[1] is not ObservableCollection<RimModel> onrims)
+                return Brushes.Transparent;
 
             return onrims.Any(r => r.FileName == walk.Rim.FileName) ? walk.Rim.MeshColor : Brushes.Transparent;
         }

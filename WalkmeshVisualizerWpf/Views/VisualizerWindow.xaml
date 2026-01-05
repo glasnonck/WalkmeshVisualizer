@@ -16,7 +16,7 @@
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
     Closed="MainWindow_Closed"
-    Icon="../Resources/Icons/Icon.png"
+    Icon="../Resources/Icons/Icon.ico"
     d:DataContext="{d:DesignInstance views:VisualizerWindow, IsDesignTimeCreatable=False}"
     ResizeMode="CanResizeWithGrip"
     x:Name="thisWindow"
@@ -3185,9 +3185,21 @@
                                             <GridViewColumnHeader Tag="Add" Content="" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
-                                    <GridViewColumn Width="60" Header="Type" DisplayMemberBinding="{Binding Type}" />
-                                    <GridViewColumn Width="140" Header="Name" DisplayMemberBinding="{Binding Name}" />
-                                    <GridViewColumn Width="100" Header="Value" DisplayMemberBinding="{Binding Value}" />
+                                    <GridViewColumn Width="60" DisplayMemberBinding="{Binding Type}">
+                                        <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="Type" Content="Type" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="140" DisplayMemberBinding="{Binding Name}">
+                                        <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="Name" Content="Name" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Value}">
+                                        <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="Value" Content="Value" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastReadAt, StringFormat=HH:mm:ss}">
+                                        <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="LastReadAt" Content="Read At" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastChangeAt, StringFormat=HH:mm:ss}">
+                                        <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="LastChangeAt" Content="Change At" />
+                                    </GridViewColumn>
                                 </GridView>
                             </ListView.View>
                         </ListView>
@@ -3740,7 +3752,7 @@
                     <Grid Margin="0,4,0,0" Grid.Row="2" x:Name="gridGlobalsWatch"
                           Visibility="{Binding ShowGlobalWatchPanel,
                               Converter={StaticResource BoolToVisibilityConverter},
-                              FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                              FallbackValue=Visible, TargetNullValue=Collapsed}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -3906,12 +3918,24 @@
                                             <GridViewColumnHeader Tag="Remove" Content="" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
-                                    <GridViewColumn Width="20" Header="T" DisplayMemberBinding="{Binding Type}" />
-                                    <GridViewColumn Width="140" Header="Name" DisplayMemberBinding="{Binding Name}" />
-                                    <GridViewColumn Width="100" Header="Value" DisplayMemberBinding="{Binding Value}" />
-                                    <GridViewColumn Width="100" Header="Last Value" DisplayMemberBinding="{Binding LastValue}" />
-                                    <GridViewColumn Width="100" Header="Read At" DisplayMemberBinding="{Binding LastReadAt, StringFormat=HH:mm:ss}" />
-                                    <GridViewColumn Width="100" Header="Last Change At" DisplayMemberBinding="{Binding LastChangeAt, StringFormat=HH:mm:ss}" />
+                                    <GridViewColumn Width="20" DisplayMemberBinding="{Binding Type}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Type" Content="T" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="140" DisplayMemberBinding="{Binding Name}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Name" Content="Name" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Value}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Value" Content="Value" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastValue}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="LastValue" Content="Last Value" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastReadAt, StringFormat=HH:mm:ss}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="LastReadAt" Content="Read At" />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastChangeAt, StringFormat=HH:mm:ss}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="LastChangeAt" Content="Change At" />
+                                    </GridViewColumn>
                                 </GridView>
                             </ListView.View>
                         </ListView>
@@ -3935,10 +3959,10 @@
                 <!--
                 Right Panel: Walkmesh Panel
                 -->
-                <Grid x:Name="optionsGrid" Grid.Column="5" Margin="5,0"
+                <Grid x:Name="optionsGrid" Grid.Column="5" Margin="4,0,0,0"
                       Visibility="{Binding ShowWalkmeshPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                            FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -4038,17 +4062,17 @@
                                     </GridViewColumn>
                                     <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                            <GridViewColumnHeader Tag="FileName" Click="LvOn_ColumnHeader_Click" Content="Rim" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
                                     <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                            <GridViewColumnHeader Tag="Planet" Click="LvOn_ColumnHeader_Click" Content="Planet" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
                                     <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                            <GridViewColumnHeader Tag="CommonName" Click="LvOn_ColumnHeader_Click" Content="Common Name" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
                                 </GridView>
@@ -4092,7 +4116,7 @@
                                 <GridView>
                                     <GridViewColumn Width="18">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Color" Content="" />
+                                            <GridViewColumnHeader Tag="MeshColor" Content="" />
                                         </GridViewColumn.Header>
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
@@ -4106,17 +4130,17 @@
                                     </GridViewColumn>
                                     <GridViewColumn Width="80" DisplayMemberBinding="{Binding FileName}">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Rim" Content="Rim" />
+                                            <GridViewColumnHeader Tag="FileName" Click="LvOff_ColumnHeader_Click" Content="Rim" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
                                     <GridViewColumn Width="70" DisplayMemberBinding="{Binding Planet}">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Planet" Content="Planet" />
+                                            <GridViewColumnHeader Tag="Planet" Click="LvOff_ColumnHeader_Click" Content="Planet" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
                                     <GridViewColumn Width="120" DisplayMemberBinding="{Binding CommonName}">
                                         <GridViewColumn.Header>
-                                            <GridViewColumnHeader Tag="Common" Content="Common Name" />
+                                            <GridViewColumnHeader Tag="CommonName" Click="LvOff_ColumnHeader_Click" Content="Common Name" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
                                 </GridView>

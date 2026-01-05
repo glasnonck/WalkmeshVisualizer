@@ -6,9 +6,10 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-	<VersionPrefix>2.0.8</VersionPrefix>
+	<VersionPrefix>2.0.9</VersionPrefix>
 	<Title>WalkmeshVisualizerWpf</Title>
-	<Copyright>2025</Copyright>
+	<Copyright>2026</Copyright>
+	<ApplicationIcon>Resources\Icons\Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\Icons\Backspace.png" />
@@ -20,9 +21,11 @@
   <ItemGroup>
     <Reference Include="KotorMessageInjector">
       <HintPath>..\..\KotorMessageInjector\KotorMessageInjector\bin\Debug\netstandard2.0\KotorMessageInjector.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="KotOR_IO">
       <HintPath>..\..\KotOR_IO\KotOR_IO\bin\Debug\net8.0\KotOR_IO.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -31,31 +34,31 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Update="Resources\Palettes\Baby.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\Bright.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\ElectroPunk.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\ExtraBright.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\Muted.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\Pastel.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\Rainbow.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\Spring.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Palettes\TreeLights.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -82,11 +85,12 @@
     <Resource Include="Resources\Icons\DefaultSpawnPointIcon.png" />
     <Resource Include="Resources\Icons\DisplacedLoadingZoneIcon.png" />
     <Content Include="Resources\Data\DlzData.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Resources\Icons\Icon.ico" />
     <Resource Include="Resources\Icons\DlzIcon.png" />
     <Content Include="Resources\Data\GameData.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Resource Include="Resources\Icons\GatherPartyRegionIcon.png" />
     <Resource Include="Resources\Icons\NonWalkIcon.png" />

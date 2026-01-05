@@ -28,12 +28,12 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public static List<Point> ToPoints(this WOK.Face face)
         {
-            return new List<Point>
-            {
+            return
+            [
                 face.A.ToPoint(),
                 face.B.ToPoint(),
                 face.C.ToPoint(),
-            };
+            ];
         }
 
         public static IEnumerable<List<Point>> ToPolys(this WOK wok)

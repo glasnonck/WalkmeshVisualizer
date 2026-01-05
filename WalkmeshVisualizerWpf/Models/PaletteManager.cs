@@ -29,7 +29,7 @@ namespace WalkmeshVisualizerWpf.Models
                     _instance = new PaletteManager();
 
                     // If no palettes found, create the default palette file.
-                    if (_instance.Palettes.Count == 0) _instance.CreateDefaultPalette();
+                    if (_instance.Palettes.Count == 0) CreateDefaultPalette();
                 }
                 return _instance;
             }
@@ -50,7 +50,7 @@ namespace WalkmeshVisualizerWpf.Models
         }
         private string _errorMessages = null;
 
-        public ObservableCollection<Palette> Palettes { get; set; } = new ObservableCollection<Palette>();
+        public ObservableCollection<Palette> Palettes { get; set; } = [];
 
         public PaletteManager()
         {
@@ -77,7 +77,7 @@ namespace WalkmeshVisualizerWpf.Models
 
                 // Collect error messages.
                 var invalidPalettes = list.Where(p => p.IsInvalid).ToList();
-                if (invalidPalettes.Any())
+                if (invalidPalettes.Count != 0)
                 {
                     ErrorsFound = true;
                     var messages = new List<string> { PALETTES_ERROR_MESSAGE };
@@ -95,7 +95,7 @@ namespace WalkmeshVisualizerWpf.Models
             }
         }
 
-        private void CreateDefaultPalette()
+        private static void CreateDefaultPalette()
         {
             var di = new DirectoryInfo(PALETTE_DIRECTORY);
             if (!di.Exists) di.Create();
@@ -107,7 +107,7 @@ namespace WalkmeshVisualizerWpf.Models
 
         public static Palette GetSelectedPalette()
         {
-            if (Instance.Palettes.Count == 0) Instance.CreateDefaultPalette();
+            if (Instance.Palettes.Count == 0) CreateDefaultPalette();
             return Instance.Palettes.FirstOrDefault(p => p.IsSelected);
             //var pal = Instance.Palettes.FirstOrDefault(p => p.IsSelected);
             //if (pal == null)

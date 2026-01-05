@@ -8,6 +8,15 @@ namespace WalkmeshVisualizerWpf
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            DispatcherUnhandledException += (s, e) =>
+            {
+                MessageBox.Show($"An unhandled exception occurred: {e.Exception}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                e.Handled = true;
+            };
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             EventManager.RegisterClassHandler(typeof(TextBox),

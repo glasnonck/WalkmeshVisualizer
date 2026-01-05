@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:WalkmeshVisualizerWpf.UserControls"
     xmlns:models="clr-namespace:WalkmeshVisualizerWpf.Models"
+    xmlns:sys="clr-namespace:System;assembly=netstandard"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance models:PaletteManager, IsDesignTimeCreatable=False}"
     d:DesignHeight="100" d:DesignWidth="450">
@@ -52,6 +53,9 @@
         <ItemsControl.Template>
             <ControlTemplate>
                 <ScrollViewer d:Background="White" VerticalScrollBarVisibility="Auto">
+                    <!--<ScrollViewer.Resources>
+                        <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">10</sys:Double>
+                    </ScrollViewer.Resources>-->
                     <ItemsPresenter />
                 </ScrollViewer>
             </ControlTemplate>

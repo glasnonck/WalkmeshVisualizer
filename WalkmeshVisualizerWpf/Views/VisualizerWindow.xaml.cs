@@ -561,12 +561,18 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _onRims, value);
         }
 
+        private SortAdorner _lvOnAdorner;
+        private GridViewColumnHeader _lvOnHeader;
+
         private ObservableCollection<RimModel> _offRims = new ObservableCollection<RimModel>();
         public ObservableCollection<RimModel> OffRims
         {
             get => _offRims;
             set => SetField(ref _offRims, value);
         }
+
+        private SortAdorner _lvOffAdorner;
+        private GridViewColumnHeader _lvOffHeader;
 
         public RimDataSet RimDataSet { get; set; } = new RimDataSet();
 
@@ -1604,6 +1610,12 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _globalAutoRefreshRate, value);
         }
         private int _globalAutoRefreshRate = 5000;
+
+        private SortAdorner _lvGlobalsFindAdorner;
+        private GridViewColumnHeader _lvGlobalsFindHeader;
+
+        private SortAdorner _lvGlobalsWatchAdorner;
+        private GridViewColumnHeader _lvGlobalsWatchHeader;
 
         #endregion // Global Panel Properties
 
@@ -6141,21 +6153,21 @@ namespace WalkmeshVisualizerWpf.Views
             return kg.Name.Contains(txtGlobalsWatchFilter.Text, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void RefreshGlobalListing(KotorGlobal global)
-        {
-            var idx = KotorFindGlobals.IndexOf(global);
-            if (idx != -1)
-            {
-                KotorFindGlobals.Remove(global);
-                KotorFindGlobals.Insert(idx, global);
-            }
-            else
-            {
-                idx = KotorWatchGlobals.IndexOf(global);
-                KotorWatchGlobals.Remove(global);
-                KotorWatchGlobals.Insert(idx, global);
-            }
-        }
+        //private void RefreshGlobalListing(KotorGlobal global)
+        //{
+        //    var idx = KotorFindGlobals.IndexOf(global);
+        //    if (idx != -1)
+        //    {
+        //        KotorFindGlobals.Remove(global);
+        //        KotorFindGlobals.Insert(idx, global);
+        //    }
+        //    else
+        //    {
+        //        idx = KotorWatchGlobals.IndexOf(global);
+        //        KotorWatchGlobals.Remove(global);
+        //        KotorWatchGlobals.Insert(idx, global);
+        //    }
+        //}
 
         private void ReadGlobal_Click(object sender, RoutedEventArgs e)
         {
@@ -6182,6 +6194,7 @@ namespace WalkmeshVisualizerWpf.Views
 
             GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] read successful";
             //RefreshGlobalListing(global);
+            RefreshSort_Globals();
         }
 
         private void WriteGlobal_Click(object sender, RoutedEventArgs e)
@@ -6227,6 +6240,7 @@ namespace WalkmeshVisualizerWpf.Views
                     global.LastChangeAt = global.LastReadAt;
                 GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] value set";
                 //RefreshGlobalListing(global);
+                RefreshSort_Globals();
             }
         }
 
@@ -6295,10 +6309,22 @@ namespace WalkmeshVisualizerWpf.Views
             if (km == null) return;
             var globals = KotorWatchGlobals.ToList();
             foreach (var global in globals)
-                ReadGlobal(global, km);
+                ReadGlobal(global, km, false);
+            RefreshSort_Globals();
         }
 
-        private void ReadGlobal(KotorGlobal global, KotorManager km = null)
+        private void RefreshSort_Globals()
+        {
+            var tag = _lvGlobalsFindHeader?.Tag.ToString();
+            if (tag != null && tag != "Name" && tag != "Type")
+                CollectionViewSource.GetDefaultView(lvGlobalsFind.ItemsSource).Refresh();
+
+            tag = _lvGlobalsWatchHeader?.Tag.ToString();
+            if (tag != null && tag != "Name" && tag != "Type")
+                CollectionViewSource.GetDefaultView(lvGlobalsWatch.ItemsSource).Refresh();
+        }
+
+        private void ReadGlobal(KotorGlobal global, KotorManager km = null, bool refreshSort = true)
         {
             var kmExternal = km != null;
             if (km == null)
@@ -6323,6 +6349,7 @@ namespace WalkmeshVisualizerWpf.Views
                     global.LastChangeAt = global.LastReadAt;
             }
             if (kmExternal) km.RefreshAddresses();
+            if (refreshSort) RefreshSort_Globals();
         }
 
         private void LvFindGlobal_DoubleClick(object sender, MouseButtonEventArgs e)
@@ -6393,7 +6420,7 @@ namespace WalkmeshVisualizerWpf.Views
             }
         }
 
-        private IEnumerable<KotorGlobal> LoadGlobalsFile(string path)
+        private static IEnumerable<KotorGlobal> LoadGlobalsFile(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return null;
             return JsonConvert.DeserializeObject<IEnumerable<KotorGlobal>>(File.ReadAllText(path));
@@ -6417,7 +6444,7 @@ namespace WalkmeshVisualizerWpf.Views
                 SaveGlobalsFile(KotorWatchGlobals, dlg.FileName);
         }
 
-        private void SaveGlobalsFile(IEnumerable<KotorGlobal> globals, string path)
+        private static void SaveGlobalsFile(IEnumerable<KotorGlobal> globals, string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return;
             var text = JsonConvert.SerializeObject(globals);
@@ -6482,5 +6509,21 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         #endregion // Globals Panel Methods
+
+        #region Column Sorting
+
+        private static void ColumnHeaderSort(object sender, ref ListView lv, ref GridViewColumnHeader header, ref SortAdorner adorner)
+        {
+            var column = sender as GridViewColumnHeader;
+            var sortby = column.Tag.ToString();
+            SortAdorner.SortColumn(lv, ref header, ref adorner, column, sortby);
+        }
+
+        private void LvOn_ColumnHeader_Click(object sender, RoutedEventArgs e) => ColumnHeaderSort(sender, ref lvOn, ref _lvOnHeader, ref _lvOnAdorner);
+        private void LvOff_ColumnHeader_Click(object sender, RoutedEventArgs e) => ColumnHeaderSort(sender, ref lvOff, ref _lvOffHeader, ref _lvOffAdorner);
+        private void LvGlobalsFind_ColumnHeader_Click(object sender, RoutedEventArgs e) => ColumnHeaderSort(sender, ref lvGlobalsFind, ref _lvGlobalsFindHeader, ref _lvGlobalsFindAdorner);
+        private void LvGlobalsWatch_ColumnHeader_Click(object sender, RoutedEventArgs e) => ColumnHeaderSort(sender, ref lvGlobalsWatch, ref _lvGlobalsWatchHeader, ref _lvGlobalsWatchAdorner);
+
+        #endregion // Column Sorting
     }
 }
