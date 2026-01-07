@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -109,6 +110,45 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            if (CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator != ".")
+                CoordinateSeparator = "; ";
+
+            // Add zoom levels of 1000% or more.
+            cbZoomLevels.Items.Add(  10.ToString("N0"));
+            cbZoomLevels.Items.Add( 100.ToString("N0"));
+            cbZoomLevels.Items.Add( 300.ToString("N0"));
+            cbZoomLevels.Items.Add(1000.ToString("N0"));
+            cbZoomLevels.Items.Add(1500.ToString("N0"));
+            cbZoomLevels.Items.Add(2000.ToString("N0"));
+            cbZoomLevels.Items.Add(3000.ToString("N0"));
+            cbZoomLevels.Items.Add(4000.ToString("N0"));
+            cbZoomLevels.Items.Add(5000.ToString("N0"));
+            cbZoomLevels.SelectedIndex = 2;
+
+            // Add sticky range distances and default.
+            cbStickyRange.Items.Add(0.0.ToString("N1"));
+            cbStickyRange.Items.Add(0.5.ToString("N1"));
+            cbStickyRange.Items.Add(1.0.ToString("N1"));
+            cbStickyRange.Items.Add(1.5.ToString("N1"));
+            cbStickyRange.Items.Add(2.0.ToString("N1"));
+            cbStickyRange.Items.Add(2.5.ToString("N1"));
+            cbStickyRange.Items.Add(3.0.ToString("N1"));
+            cbStickyRange.Items.Add(3.5.ToString("N1"));
+            cbStickyRange.Items.Add(4.0.ToString("N1"));
+            cbStickyRange.Items.Add(4.5.ToString("N1"));
+            cbStickyRange.Items.Add(5.0.ToString("N1"));
+            cbStickyRange.SelectedIndex = 2;
+
+            // Add speed multipliers and default.
+            cbSpeedMultiplier.Items.Add(0.5.ToString("N1"));
+            cbSpeedMultiplier.Items.Add(1.0.ToString("N1"));
+            cbSpeedMultiplier.Items.Add(1.2.ToString("N1"));
+            cbSpeedMultiplier.Items.Add(1.3.ToString("N1"));
+            cbSpeedMultiplier.Items.Add(1.5.ToString("N1"));
+            cbSpeedMultiplier.Items.Add(10.0.ToString("N1"));
+            cbSpeedMultiplier.SelectedIndex = 1;
+
+            // Load saved settings.
             var settings = Properties.Settings.Default;
             ShowWalkableFaces = settings.ShowWalkableFaces;
             ShowNonWalkableFaces = settings.ShowNonWalkableFaces;
@@ -225,7 +265,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (item is not MenuItem mi) continue;
                 if (mi.Icon is not RadioButton rb) continue;
                 if (mi.Tag is null) continue;
-                if (int.Parse(mi.Tag.ToString()) == GlobalAutoRefreshRate)
+                if (int.Parse(mi.Tag.ToString(), CultureInfo.InvariantCulture) == GlobalAutoRefreshRate)
                 {
                     rb.IsChecked = true;
                     break;
@@ -726,6 +766,13 @@ namespace WalkmeshVisualizerWpf.Views
         public bool LeftOrRightClickPointVisible
         {
             get => _leftClickPointVisible || _rightClickPointVisible;
+        }
+
+        private string _coordinateSeparator = ", ";
+        public string CoordinateSeparator
+        {
+            get => _coordinateSeparator;
+            set => SetField(ref _coordinateSeparator, value);
         }
 
         private bool _leftClickPointVisible = false;
@@ -2445,7 +2492,7 @@ namespace WalkmeshVisualizerWpf.Views
                     {
                         list.Add(new KotorGlobal
                         {
-                            ID = int.Parse(t.Data["row_index"][i]),
+                            ID = int.Parse(t.Data["row_index"][i], CultureInfo.InvariantCulture),
                             Name = t.Data["name"][i],
                             Type = t.Data["type"][i].ToEnum<KotorGlobalType>(),
                         });
@@ -4054,8 +4101,8 @@ namespace WalkmeshVisualizerWpf.Views
             if (cid.ShowDialog() == true)
             {
                 ClearLeftPointMatches();
-                var x = double.Parse(cid.X) + LeftOffset;
-                var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
+                var x = double.Parse(cid.X, CultureInfo.CurrentCulture) + LeftOffset;
+                var y = theGrid.Height - double.Parse(cid.Y, CultureInfo.CurrentCulture) - BottomOffset;
                 HandleLeftDoubleClick(new Point(x, y));
                 LastLeftClickModuleCoords = LeftClickModuleCoords;
                 CalculatePointDistance();
@@ -4075,8 +4122,8 @@ namespace WalkmeshVisualizerWpf.Views
             if (cid.ShowDialog() == true)
             {
                 ClearRightPointMatches();
-                var x = double.Parse(cid.X) + LeftOffset;
-                var y = theGrid.Height - double.Parse(cid.Y) - BottomOffset;
+                var x = double.Parse(cid.X, CultureInfo.CurrentCulture) + LeftOffset;
+                var y = theGrid.Height - double.Parse(cid.Y, CultureInfo.CurrentCulture) - BottomOffset;
                 HandleRightDoubleClick(new Point(x, y));
                 LastRightClickModuleCoords = RightClickModuleCoords;
                 CalculatePointDistance();
@@ -4610,7 +4657,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void DistanceSpeedButton_Click(object sender, RoutedEventArgs e)
         {
-            DistanceToTimeMultiplier = double.Parse((sender as ToggleButton).Tag.ToString());
+            DistanceToTimeMultiplier = double.Parse((sender as ToggleButton).Tag.ToString(), CultureInfo.InvariantCulture);
             DurationLeftRight   = DistanceLeftRight   / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
             DurationLiveLeft    = DistanceLiveLeft    / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
             DurationLiveRight   = DistanceLiveRight   / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
@@ -5592,7 +5639,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var km = GetKotorManager();
             if (km == null) return;
-            var isFloat = float.TryParse(MoveSpeedMultiplier, out float msm);
+            var isFloat = float.TryParse(MoveSpeedMultiplier, CultureInfo.CurrentCulture, out float msm);
             if (isFloat)
                 kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * msm);
             else
@@ -6222,7 +6269,7 @@ namespace WalkmeshVisualizerWpf.Views
             }
             if (global.Type == KotorGlobalType.Number)
             {
-                if (byte.TryParse(txtGlobalSetValue.Text, out byte nResult))
+                if (int.TryParse(txtGlobalSetValue.Text, CultureInfo.CurrentCulture, out int nResult))
                 {
                     kmia.SetGlobalNumber(km.pr.h, global.Name, nResult);
                     value = nResult.ToString();
@@ -6505,7 +6552,7 @@ namespace WalkmeshVisualizerWpf.Views
         private void GlobalWatchRadioButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuItem mi) return;
-            GlobalAutoRefreshRate = int.Parse(mi.Tag.ToString());
+            GlobalAutoRefreshRate = int.Parse(mi.Tag.ToString(), CultureInfo.InvariantCulture);
         }
 
         #endregion // Globals Panel Methods

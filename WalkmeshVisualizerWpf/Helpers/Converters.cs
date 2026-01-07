@@ -171,7 +171,8 @@ namespace WalkmeshVisualizerWpf.Helpers
         #region IValueConverter Members
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value is Point p ? $"({p.X:N2}, {p.Y:N2})" : throw new InvalidOperationException("The value must be of type Point.");
+            var separator = culture.NumberFormat.NumberDecimalSeparator != "." ? "; " : ", ";
+            return value is Point p ? $"({p.X:N2}{separator}{p.Y:N2})" : throw new InvalidOperationException("The value must be of type Point.");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

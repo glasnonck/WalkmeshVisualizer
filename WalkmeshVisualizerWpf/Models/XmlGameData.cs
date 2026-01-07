@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -30,11 +31,8 @@ namespace WalkmeshVisualizerWpf.Models
             }
 
             var doc = XDocument.Load(path);
-            var element = doc.Descendants(XML_GAMES).FirstOrDefault();
-            if (element == null)
-            {
-                throw new InvalidDataException($"XmlGameData parsing error: Missing '{nameof(XML_GAMES)}' element.");
-            }
+            var element = doc.Descendants(XML_GAMES).FirstOrDefault()
+                ?? throw new InvalidDataException($"XmlGameData parsing error: Missing '{nameof(XML_GAMES)}' element.");
 
             var games = element.Descendants(XML_GAME);
             if (!games.Any())
@@ -161,8 +159,8 @@ namespace WalkmeshVisualizerWpf.Models
                 FileName = fileNameElement.Value,
                 Planet = planetElement.Value,
                 CommonName = commonNameElement.Value,
-                EntryX = float.Parse(entryXElement.Value),
-                EntryY = float.Parse(entryYElement.Value),
+                EntryX = float.Parse(entryXElement.Value, CultureInfo.InvariantCulture),
+                EntryY = float.Parse(entryYElement.Value, CultureInfo.InvariantCulture),
             };
         }
 

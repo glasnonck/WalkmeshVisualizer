@@ -800,11 +800,13 @@
                             </StackPanel.Resources>
                             <TextBlock>(</TextBlock>
                             <TextBlock
-                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Visibility="{Binding ShowLivePosition,
+                                    Converter={StaticResource BoolToVisibilityConverter}}"
                                 Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
-                            <TextBlock>,</TextBlock>
+                            <TextBlock Text="{Binding CoordinateSeparator}" />
                             <TextBlock
-                                Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Visibility="{Binding ShowLivePosition,
+                                    Converter={StaticResource BoolToVisibilityConverter}}"
                                 Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
                             <TextBlock>)</TextBlock>
                         </StackPanel>
@@ -827,6 +829,7 @@
 
                 <!-- The content zoom selector. -->
                 <ComboBox
+                    Name="cbZoomLevels"
                     IsEditable="True"
                     Width="70" Height="22"
                     Text="{Binding
@@ -852,16 +855,6 @@
                             <Setter Property="ContentTemplate" Value="{StaticResource PercentageTemplate}" />
                         </Style>
                     </ComboBox.Resources>
-
-                    <ComboBoxItem>10</ComboBoxItem>
-                    <ComboBoxItem>100</ComboBoxItem>
-                    <ComboBoxItem>300</ComboBoxItem>
-                    <ComboBoxItem>1,000</ComboBoxItem>
-                    <ComboBoxItem>1,500</ComboBoxItem>
-                    <ComboBoxItem>2,000</ComboBoxItem>
-                    <ComboBoxItem>3,000</ComboBoxItem>
-                    <ComboBoxItem>4,000</ComboBoxItem>
-                    <ComboBoxItem>5,000</ComboBoxItem>
                 </ComboBox>
 
                 <!-- Button to zoom out. -->
@@ -2133,10 +2126,11 @@
                                             <Ellipse Fill="White" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=1.11}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationLeftRight, StringFormat=N2, FallbackValue=1.11}" />
                                     <TextBlock Text="s" />
                                 </StackPanel>
@@ -2154,10 +2148,11 @@
                                             <Ellipse Fill="Black" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceLiveLeft, StringFormat=N2, FallbackValue=69.69}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationLiveLeft, StringFormat=N2, FallbackValue=333.33}" />
                                     <TextBlock Text="s" />
                                 </StackPanel>
@@ -2175,10 +2170,11 @@
                                             <Ellipse Fill="White" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceLiveRight, StringFormat=N2, FallbackValue=333.33}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationLiveRight, StringFormat=N2, FallbackValue=333.33}" />
                                     <TextBlock Text="s" />
                                 </StackPanel>
@@ -2201,20 +2197,9 @@
                                     <CheckBox Grid.Row="1" Grid.Column="0" Content="Sticky Range:"
                                               IsChecked="{Binding SegmentIsSticky, Mode=TwoWay}"
                                               ToolTip="A newly drawn segment will stick to the start and end point of segments in paths within range." />
-                                    <ComboBox Grid.Row="1" Grid.Column="1" Width="70" Height="18" Padding="0"
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Width="70" Height="18" Padding="0" x:Name="cbStickyRange"
                                               HorizontalContentAlignment="Right" IsEnabled="{Binding SegmentIsSticky}"
-                                              Text="{Binding SegmentStickyDistance, StringFormat=N1, Mode=TwoWay, FallbackValue=1.0}">
-                                        <ComboBoxItem>0.0</ComboBoxItem>
-                                        <ComboBoxItem>0.5</ComboBoxItem>
-                                        <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
-                                        <ComboBoxItem>1.5</ComboBoxItem>
-                                        <ComboBoxItem>2.0</ComboBoxItem>
-                                        <ComboBoxItem>2.5</ComboBoxItem>
-                                        <ComboBoxItem>3.0</ComboBoxItem>
-                                        <ComboBoxItem>3.5</ComboBoxItem>
-                                        <ComboBoxItem>4.0</ComboBoxItem>
-                                        <ComboBoxItem>4.5</ComboBoxItem>
-                                        <ComboBoxItem>5.0</ComboBoxItem>
+                                              Text="{Binding SegmentStickyDistance, StringFormat=N1, Mode=TwoWay, FallbackValue=1}">
                                     </ComboBox>
                                 </Grid>
                             </StackPanel>
@@ -2230,10 +2215,11 @@
                                 <StackPanel Orientation="Horizontal" Margin="0">
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Black" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Black" />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceTempSegment, StringFormat=N2, FallbackValue=1.11}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationTempSegment, StringFormat=N2, FallbackValue=333.33}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource stylePointButton}" Click="BuildSegmentFromBlackWhitePoints_Click">
@@ -2262,10 +2248,11 @@
                                 <StackPanel Orientation="Horizontal" Margin="0">
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Blue" />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceBluePath, StringFormat=N2, FallbackValue=1.11}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationBluePath, StringFormat=N2, FallbackValue=1.11}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
@@ -2284,10 +2271,11 @@
                                 <StackPanel Orientation="Horizontal" Margin="0">
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding RedPathVisible}" Tag="Red" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Red" />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceRedPath, StringFormat=N2, FallbackValue=22.22}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationRedPath, StringFormat=N2, FallbackValue=22.22}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding RedPathVisible}" Tag="Red" />
@@ -2298,10 +2286,11 @@
                                 <StackPanel Orientation="Horizontal" Margin="0">
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding GreenPathVisible}" Tag="Green" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Green" />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock TextAlignment="Right" Width="70"
                                            Text="{Binding DistanceGreenPath, StringFormat=N2, FallbackValue=333.33}" />
-                                    <TextBlock Text="m," />
-                                    <TextBlock TextAlignment="Right" Width="50"
+                                    <TextBlock Text="m" />
+                                    <TextBlock Text="{Binding CoordinateSeparator}" />
+                                    <TextBlock TextAlignment="Right" Width="60"
                                            Text="{Binding DurationGreenPath, StringFormat=N2, FallbackValue=333.33}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding GreenPathVisible}" Tag="Green" />
@@ -2375,21 +2364,22 @@
                                     </Grid.ColumnDefinitions>
                                     <!--To Left Click Point-->
                                     <Button Grid.Column="1" Click="TeleportPlayerToPoint_Click" Tag="{Binding LeftClickModuleCoords}" Margin="2,0"
-                                        ToolTip="Teleport player to left double-click (black) point.">
+                                            ToolTip="Teleport player to left double-click (black) point.">
                                         <Ellipse Width="12" Height="12" Fill="Black" Stroke="Black" StrokeThickness="1" />
                                     </Button>
                                     <!--To Right Click Point-->
                                     <Button Grid.Column="2" Click="TeleportPlayerToPoint_Click" Tag="{Binding RightClickModuleCoords}" Margin="2,0"
-                                        ToolTip="Teleport player to right double-click (white) point.">
+                                            ToolTip="Teleport player to right double-click (white) point.">
                                         <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
                                     </Button>
                                     <!--To Custom Coordinates-->
                                     <Button Grid.Column="3" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
-                                        ToolTip="Teleport player to custom coordinates.">
+                                            ToolTip="Teleport player to custom coordinates.">
                                     </Button>
                                 </Grid>
                                 
                                 <!-- Custom Coordinates -->
+                                <!-- TODO: Fix coordinate text boxes -->
                                 <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,2,4,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="20" />
@@ -2400,22 +2390,20 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="1" Text="X: " />
-                                    <TextBox   Grid.Column="2" Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBox   Grid.Column="2" TextAlignment="Right"
+                                               Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0}" />
                                     <TextBlock Grid.Column="4" Text="Y: " />
-                                    <TextBox   Grid.Column="5" Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0.0}" TextAlignment="Right" />
+                                    <TextBox   Grid.Column="5" TextAlignment="Right"
+                                               Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0}" />
                                 </Grid>
                                 
                                 <!-- Movement Speed -->
+                                <!-- TODO: Consider simple buttons for certain speeds. -->
                                 <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,2,6" Text="Speed Mul:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="4,0,0,6" Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}">
-                                    <ComboBoxItem>0.5</ComboBoxItem>
-                                    <ComboBoxItem IsSelected="True">1.0</ComboBoxItem>
-                                    <ComboBoxItem>2.0</ComboBoxItem>
-                                    <ComboBoxItem>5.0</ComboBoxItem>
-                                    <ComboBoxItem>10.0</ComboBoxItem>
-                                </ComboBox>
+                                <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="cbSpeedMultiplier"
+                                          Margin="4,0,0,6" Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}" />
                                 <Button Grid.Row="2" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
-                                    ToolTip="Multiply the default movement speed by the selected value.">
+                                        ToolTip="Multiply the default movement speed by the selected value.">
                                     <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                                 
@@ -2423,7 +2411,7 @@
                                 <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,2,6" Text="Warp To:" VerticalAlignment="Center" />
                                 <ComboBox Grid.Row="3" Grid.Column="1" Margin="4,0,0,6" Grid.ColumnSpan="2" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
                                 <Button Grid.Row="3" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="WarpCheat_Click"
-                                    ToolTip="Load the selected module using the warp cheat.">
+                                        ToolTip="Load the selected module using the warp cheat.">
                                     <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
                             </Grid>
@@ -3496,7 +3484,7 @@
                                         <StackPanel Visibility="{Binding ShowLeftClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <TextBlock Text="(" />
                                             <TextBlock Text="{Binding LeftClickModuleCoords.X, StringFormat=N2}" />
-                                            <TextBlock Text=", " />
+                                            <TextBlock Text="{Binding CoordinateSeparator}" />
                                             <TextBlock Text="{Binding LeftClickModuleCoords.Y, StringFormat=N2}" />
                                             <TextBlock Text=")" />
                                         </StackPanel>
@@ -3531,7 +3519,7 @@
                                         <StackPanel Visibility="{Binding ShowRightClickPointCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <TextBlock Text="(" />
                                             <TextBlock Text="{Binding RightClickModuleCoords.X, StringFormat=N2}" />
-                                            <TextBlock Text=", " />
+                                            <TextBlock Text="{Binding CoordinateSeparator}" />
                                             <TextBlock Text="{Binding RightClickModuleCoords.Y, StringFormat=N2}" />
                                             <TextBlock Text=")" />
                                         </StackPanel>
@@ -3660,7 +3648,7 @@
                                         <StackPanel Visibility="{Binding ShowLivePositionCoordinates, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <TextBlock Text="(" />
                                             <TextBlock Text="{Binding LivePositionPoint.X, StringFormat=N3}" />
-                                            <TextBlock Text=", " />
+                                            <TextBlock Text="{Binding CoordinateSeparator}" />
                                             <TextBlock Text="{Binding LivePositionPoint.Y, StringFormat=N3}" />
                                             <TextBlock Text=")" />
                                         </StackPanel>

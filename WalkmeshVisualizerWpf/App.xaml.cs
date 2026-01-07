@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System.Globalization;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Markup;
 
 namespace WalkmeshVisualizerWpf
 {
@@ -15,6 +17,12 @@ namespace WalkmeshVisualizerWpf
                 MessageBox.Show($"An unhandled exception occurred: {e.Exception}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Handled = true;
             };
+
+            // Override the default FrameworkElement culture for all bindings
+            FrameworkElement.LanguageProperty.OverrideMetadata(
+                typeof(FrameworkElement),
+                new FrameworkPropertyMetadata(
+                    XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.Name)));
         }
 
         protected override void OnStartup(StartupEventArgs e)

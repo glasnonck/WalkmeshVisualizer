@@ -16,7 +16,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             {
                 var valueString = value.ToString();
                 if (valueString.Length > 0)
-                    param = int.Parse(valueString);
+                    param = int.Parse(valueString, CultureInfo.InvariantCulture);
             }
             catch (Exception e)
             {
