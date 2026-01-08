@@ -7,22 +7,13 @@
 
 A visualizer for Star Wars: Knights of the Old Republic (KotOR) 1 and 2 that overlays module walkmeshes. This is intented to be used as an exploratory tool for speedrunners. An installation of either KotOR 1 or 2 is required to make use of this tool.
 
-## Features
-* Display module walkmeshes of KotOR 1 and 2.
-  * Can toggle display of walkable and non-walkable faces.
-  * Can toggle display of transabort points and regions.
-* Compare the coordinates of multiple modules.
-* Get exact coordinates of a point within the module.
-* Find other modules that overlap at one or two points.
-* Walkmesh files are cached to speed up subsequent uses of the app.
-* Save PNG image of the displayed modules.
-
 ## Credits
 The walkmesh visualization projects were created by Glasnonck. This solution uses a couple of additional libraries that are free to use.
 * [KotOR IO](https://github.com/LaneDibello/KotOR_IO) is used to read and write KotOR game files.
+* [KotorMessageInjector](https://github.com/LaneDibello/KotorMessageInjector/) is used to read and write data from a live game process.
 * [ZoomAndPan](https://www.codeproject.com/Articles/85603/A-WPF-custom-control-for-zooming-and-panning) is used for a simple method of displaying walkmeshes.
 
-## Screenshots
+## Features and Screenshots
 
 <table>
   <tr><td colspan="2" align="center"><b id="general">Display Module Walkmeshes</b></td></tr>
@@ -91,10 +82,11 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
   <tr><td colspan="2" align="center"><b id="items">View Live Position</b></td></tr>
   <tr>
     <td align="center">
+      <img height="151px" width="300px" src="Screenshots\Live\position.png" />
     </td>
     <td>
       <ul>
-        <li>View live position and bearing of each party member.</li>
+        <li>Watch party member position and direction update in real time as you play the game.</li>
         <li>Automatically load the walkmesh for the current level in-game, and automatically swap to a new walkmesh when entering a new level.</li>
         <li>Automatically detect which game is running and load the walkmesh data for that game.</li>
       </ul>
@@ -104,11 +96,17 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
   <tr><td colspan="2" align="center"><b id="items">View Gather Party Distance</b></td></tr>
   <tr>
     <td align="center">
+      <img height="200px" width="200px" src="Screenshots/Gather/point_green.png" />
+      <img height="150px" width="364px" src="Screenshots/Gather/live_red.png" />
     </td>
     <td>
       <ul>
         <li>View the maximum distance party members can be from the Leader when traveling through loading zones. The highlighted area will display as Green when party members are in range and red when they are out of range.</li>
         <li>This range can be displayed either from the live Leader position or one of the double click coordinates.</li>
+        <ul>
+            <li>When displayed from the Leader, the circle will be green when all party members are in range and red otherwise.</li>
+            <li>When displayed from the left-double-click point, the circle will be green when the right-double-click point is hidden or in range and red otherwise.</li>
+        </ul>
         <li>The live Leader position GP range can be locked in place temporarily to assist when testing with no party members.</li>
       </ul>
     </td>
@@ -117,12 +115,43 @@ The walkmesh visualization projects were created by Glasnonck. This solution use
   <tr><td colspan="2" align="center"><b id="items">Distance and Real-Time Calculation</b></td></tr>
   <tr>
     <td align="center">
+      <img height="220px" width="218" src="Screenshots/Distance/Grove_LeftPath-RightPath.webp" />
     </td>
     <td>
       <ul>
         <li>In-game distance can be calculated and displayed in both in-game units and the time it takes to travel that distance when running without buffs or with alacrity, hyper-alacrity, or force speed.</li>
         <li>Distance can calculated between double click points and the live Leader position.</li>
         <li>Distance can calculated as a single line segment or as a path of line segments. Up to three paths can be compared at the same time.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr><td colspan="2" align="center"><b id="items">Wire Target Identification</b></td></tr>
+  <tr>
+    <td align="center">
+      <img height="111px" width="310" src="Screenshots/Wire/Governor.png" />
+      <img height="123px" width="310" src="Screenshots/Wire/Zelka.png" />
+    </td>
+    <td>
+      <ul>
+        <li>Find in-game objects that use the same object ID for <a href="https://kotor-speedruns.github.io/kotor1/Techniques/Wired%20Targeting">wire targeting</a>.</li>
+        <li>Use "Target ID" to find and save the ID of the target object in the "Filter" box. Then search other modules for objects that share that ID using the "Refresh..." button.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr><td colspan="2" align="center"><b id="items">Global Value Read, Write, and Watch</b></td></tr>
+  <tr>
+    <td align="center">
+      <img height="102px" width="310" src="Screenshots/Globals/Find.png" />
+      <img height="108px" width="200" src="Screenshots/Globals/ReadWrite.png" />
+      <img height="098px" width="360" src="Screenshots/Globals/Watch.png" />
+    </td>
+    <td>
+      <ul>
+        <li>Read and write to in-game global variables.</li>
+        <li>Watch global variables and see their values update in real-time.</li>
+        <li>Save and load lists of global variables of interest to watch.</li>
       </ul>
     </td>
   </tr>
