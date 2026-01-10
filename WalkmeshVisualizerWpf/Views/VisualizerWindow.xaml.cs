@@ -5867,6 +5867,19 @@ namespace WalkmeshVisualizerWpf.Views
             kmia.Warp(km.pr.h, module);
         }
 
+        private void ContextWarpToRim(string module)
+        {
+            if (!ShowLivePosition) return;
+            if (string.IsNullOrEmpty(module)) return;
+            var km = GetKotorManager();
+            if (km == null) return;
+            kmia.Warp(km.pr.h, module);
+        }
+
+        private void cmiWarpToOnRim(object sender, RoutedEventArgs e) => ContextWarpToRim(lvOn.SelectedItem.ToString());
+
+        private void cmiWarpToOffRim(object sender, RoutedEventArgs e) => ContextWarpToRim(lvOff.SelectedItem.ToString());
+
         /*
          * Party Members
          */

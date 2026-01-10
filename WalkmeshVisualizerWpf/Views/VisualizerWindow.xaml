@@ -2607,7 +2607,7 @@
                                     </StackPanel>
                                     <StackPanel>
                                         <Button Tag="1.5" Content="Force Speed (150%)" />
-                                        <Button Tag="1.5" Content="Turbo (1000%)" />
+                                        <Button Tag="8.0" Content="Turbo (800%)" />
                                     </StackPanel>
                                 </StackPanel>
 
@@ -4172,11 +4172,19 @@
                     </Grid.RowDefinitions>
 
                     <Grid.Resources>
+                        <ContextMenu x:Key="lvOnContext">
+                            <MenuItem Header="Warp To" Click="cmiWarpToOnRim" />
+                        </ContextMenu>
+                        <ContextMenu x:Key="lvOffContext">
+                            <MenuItem Header="Warp To" Click="cmiWarpToOffRim" />
+                        </ContextMenu>
                         <Style TargetType="ListViewItem" x:Key="OnItemStyle" BasedOn="{StaticResource BaseItemStyle}">
                             <EventSetter Event="MouseDoubleClick" Handler="LvOn_DoubleClick" />
+                            <Setter Property="ContextMenu" Value="{StaticResource lvOnContext}" />
                         </Style>
                         <Style TargetType="ListViewItem" x:Key="OffItemStyle" BasedOn="{StaticResource BaseItemStyle}">
                             <EventSetter Event="MouseDoubleClick" Handler="LvOff_DoubleClick" />
+                            <Setter Property="ContextMenu" Value="{StaticResource lvOffContext}" />
                         </Style>
                     </Grid.Resources>
 
