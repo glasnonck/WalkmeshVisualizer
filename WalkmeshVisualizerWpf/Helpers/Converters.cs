@@ -39,6 +39,37 @@ namespace WalkmeshVisualizerWpf.Helpers
             => throw new NotImplementedException();
     }
 
+    public class MultiplyDoubleConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not double v) return null;
+            if (!double.TryParse(parameter?.ToString() ?? "", CultureInfo.InvariantCulture, out double p)) return v;
+            return v * p;
+        }
+        
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not double v) return null;
+            if (!double.TryParse(parameter?.ToString() ?? "", CultureInfo.InvariantCulture, out double p)) return v;
+            return v / p;
+        }
+
+    }
+
+    public class GatherPartyTransformConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not double v || !double.TryParse(parameter.ToString(), CultureInfo.InvariantCulture, out double p)) return null;
+            if (p < 0) { v *= -1; }
+            return (v - p) / 2.0;
+        }
+        
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Used in MainWindow.xaml to converts a scale value to a percentage.
     /// It is used to display the 50%, 100%, etc that appears underneath the zoom and pan control.
@@ -115,6 +146,15 @@ namespace WalkmeshVisualizerWpf.Helpers
             => throw new NotImplementedException();
     }
 
+    public class StringNotEqualsToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => !value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase) ? Visibility.Visible : Visibility.Hidden;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
+            => throw new NotImplementedException();
+    }
+
     public class IntLessEqualConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -142,7 +182,21 @@ namespace WalkmeshVisualizerWpf.Helpers
             throw new NotImplementedException();
         }
     }
+    
+    public class UintGreaterEqualToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (uint)value >= int.Parse(parameter.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+        }
 
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Note: One way by design
+            throw new NotImplementedException();
+        }
+    }
+    
     public class UintGreaterEqualConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

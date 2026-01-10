@@ -165,10 +165,12 @@
         <help:AnyHiddenRdiConverter x:Key="AnyHiddenRdiConverter" />
         <help:StringEqualsConverter x:Key="StringEqualsConverter" />
         <help:StringEqualsToVisibilityConverter x:Key="StringEqualsToVisibilityConverter" />
+        <help:StringNotEqualsToVisibilityConverter x:Key="StringNotEqualsToVisibilityConverter" />
         <help:StringNotEqualsConverter x:Key="StringNotEqualsConverter" />
         <help:IntLessEqualConverter x:Key="IntLessEqualConverter" />
         <help:IntGreaterEqualConverter x:Key="IntGreaterEqualConverter" />
         <help:UintGreaterEqualConverter x:Key="UintGreaterEqualConverter" />
+        <help:UintGreaterEqualToVisibilityConverter x:Key="UintGreaterEqualToVisibilityConverter" />
         <help:StringEqualsMultiConverter x:Key="StringEqualsMultiConverter" />
         <help:BoolMultiConverter x:Key="BoolMultiConverter" />
         <help:BoolToVisibilityMultiConverter x:Key="BoolToVisibilityMultiConverter" />
@@ -180,6 +182,8 @@
         <help:IsZeroToVisibilityConverter x:Key="IsZeroToVisibilityConverter" />
         <help:BlackIfTransparentConverter x:Key="BlackIfTransparentConverter" />
         <help:FirstCharacterConverter x:Key="FirstCharacterConverter" />
+        <help:GatherPartyTransformConverter x:Key="GatherPartyTransformConverter" />
+        <help:MultiplyDoubleConverter x:Key="MultiplyDoubleConverter" />
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />
@@ -1993,15 +1997,16 @@
                             FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid Margin="4,0,0,0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" /> <!-- Path header -->
+                            <RowDefinition Height="Auto" /> <!-- Distance speed options -->
+                            <RowDefinition Height="Auto" /> <!-- Coordinate distances -->
+                            <RowDefinition Height="Auto" /> <!-- Segment settings -->
+                            <RowDefinition Height="Auto" /> <!-- Segment distance -->
+                            <RowDefinition Height="Auto" /> <!-- Path distance -->
+                            <RowDefinition Height="Auto" /> <!-- GP range header -->
+                            <RowDefinition Height="Auto" /> <!-- Live player GP data -->
+                            <RowDefinition Height="Auto" /> <!-- Left click GP data -->
+                            <RowDefinition Height="*" />    <!-- Filler space -->
                         </Grid.RowDefinitions>
                         <Grid.Resources>
                             <Style TargetType="Ellipse">
@@ -2068,8 +2073,11 @@
                             </Style>
                         </Grid.Resources>
 
+                        <!-- Path Distance Header -->
+                        <TextBlock Grid.Row="0" HorizontalAlignment="Center" Text="Path Distance" FontWeight="Bold" Margin="0,0,0,4" />
+
                         <!-- Distance speed options -->
-                        <StackPanel HorizontalAlignment="Center" x:Name="distPanelSpeedButtons" Orientation="Horizontal" Margin="0,0,-3,0">
+                        <StackPanel Grid.Row="1" HorizontalAlignment="Center" x:Name="distPanelSpeedButtons" Orientation="Horizontal" Margin="0,0,-3,0">
                             <StackPanel.Resources>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Margin" Value="3,0" />
@@ -2094,7 +2102,7 @@
                         </StackPanel>
 
                         <!-- Coordinate Distances -->
-                        <Border Grid.Row="1" Margin="0,4" Padding="4,2" BorderThickness="0,1" BorderBrush="#707070">
+                        <Border Grid.Row="2" Margin="0,4" Padding="4,2" BorderThickness="0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical" Margin="0">
                                 <StackPanel.Resources>
                                     <Style TargetType="Ellipse">
@@ -2182,7 +2190,7 @@
                         </Border>
 
                         <!-- Segment Settings -->
-                        <Border Grid.Row="2" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel>
                                 <!-- Title -->
                                 <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Center" Text="Segment Settings" Margin="0,0,0,4" />
@@ -2206,7 +2214,7 @@
                         </Border>
 
                         <!-- Segment Distance -->
-                        <Border Grid.Row="3" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                        <Border Grid.Row="4" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical">
                                 <!-- Title -->
                                 <TextBlock HorizontalAlignment="Center" Text="Segment Distance" Margin="0,0,0,4" />
@@ -2239,7 +2247,7 @@
                         </Border>
                         
                         <!-- Path Distances -->
-                        <Border Grid.Row="4" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                        <Border Grid.Row="5" Margin="0,0,0,4" Padding="4,0,4,6" BorderThickness="0,0,0,1" BorderBrush="#707070">
                             <StackPanel Orientation="Vertical">
                                 <!-- Title -->
                                 <TextBlock HorizontalAlignment="Center" Text="Path Distances" Margin="0,0,0,4" />
@@ -2298,6 +2306,180 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
+                        
+                        <!-- GP Range Header -->
+                        <TextBlock Grid.Row="6" HorizontalAlignment="Center" Text="Gather Party Range" FontWeight="Bold" Margin="0,0,0,4" />
+
+                        <!-- Live Player GP Data -->
+                        <Grid Grid.Row="7" Margin="0,0,0,4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Resources>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Stroke" Value="Black" />
+                                    <Setter Property="Margin" Value="0,0,0,0" />
+                                    <Setter Property="Height" Value="12" />
+                                    <Setter Property="Width" Value="12" />
+                                </Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Orientation" Value="Horizontal" />
+                                    <Setter Property="Margin" Value="0,0,0,4" />
+                                </Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Black" />
+                                    <Setter Property="BorderThickness" Value="0,1,0,0" />
+                                    <Setter Property="Padding" Value="0,1,0,0" />
+                                    <Setter Property="Margin" Value="0,0,2,0" />
+                                </Style>
+                            </Grid.Resources>
+
+                            <TextBlock Text="Live Player Gather Party Data" HorizontalAlignment="Center" />
+                            <Border Grid.Row="1" Margin="0,0,0,4" Padding="12,2" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                                <StackPanel Orientation="Vertical">
+                                    <!-- Gather Party Range -->
+                                    <StackPanel Margin="0,2,0,0">
+                                        <TextBlock Text="GP radius at ..." Width="112" /> <!--188-->
+                                        <TextBlock Text="&#x0394;z=" ToolTip="Height difference of the most distant follower." />
+                                        <TextBlock TextAlignment="Right" Width="30"
+                                            Text="{Binding LiveGatherPartyRangeDeltaZ, StringFormat=N2, FallbackValue=0.00}" />
+                                        <TextBlock Text="r=" Margin="10,0,0,0" />
+                                        <TextBlock TextAlignment="Right" Width="45"
+                                            Text="{Binding LiveGatherPartyRangeDiameter, StringFormat=N2,
+                                                Converter={StaticResource MultiplyDoubleConverter}, ConverterParameter=0.5,
+                                                FallbackValue=30.00}" />
+                                    </StackPanel>
+
+                                    <Border Margin="0,2" BorderBrush="#707070" BorderThickness="0,0,0,1"
+                                            Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                    <!-- Party 0 GP Range -->
+                                    <StackPanel Margin="0,2,0,0" Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid Margin="0,0,2,0">
+                                            <Ellipse Stroke="Black" Fill="#4E6BDF" />
+                                            <Polygon Points="6,6 0,10 6,0 12,10" Margin="0,2"
+                                                     Stroke="Black" Fill="#42BFA4"
+                                                     StrokeLineJoin="Round" StrokeThickness=".5" />
+                                        </Grid>
+                                        <TextBlock Text="" Margin="0,0,12,0" />
+                                        <TextBlock Text="{Binding Party0Name, FallbackValue=Player}" Width="86" />
+                                        <TextBlock Text="&#x0394;z=" ToolTip="Difference in height between locked GP position and party leader."
+                                                   Visibility="{Binding Party0DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}" />
+                                        <TextBlock TextAlignment="Right" Width="30"
+                                                   Visibility="{Binding Party0DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
+                                                   Text="{Binding Party0DeltaZ, StringFormat=N2, FallbackValue=0.00}" />
+                                        <TextBlock Text="d=" Margin="10,0,0,0" ToolTip="Distance between locked GP position and party leader."
+                                                   Visibility="{Binding Party0DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}" />
+                                        <TextBlock TextAlignment="Right" Width="45"
+                                                   Visibility="{Binding Party0DistanceTo, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
+                                                   Text="{Binding Party0DistanceTo, StringFormat=N2, FallbackValue=0.00}" />
+                                    </StackPanel>
+                                
+                                    <!-- Party 1 GP Range -->
+                                    <StackPanel Margin="0,2,0,0">
+                                        <StackPanel.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="ShowLivePosition" />
+                                                <Binding Path="LivePartyCount" Converter="{StaticResource UintGreaterEqualConverter}" ConverterParameter="2" />
+                                            </MultiBinding>
+                                            
+                                        </StackPanel.Visibility>
+                                        <Grid Margin="0,0,2,0">
+                                            <Ellipse Stroke="Black" Fill="#FA7300" />
+                                            <Polygon Points="6,6 0,10 6,0 12,10" Margin="0,2"
+                                                     Stroke="Black" Fill="#4E6BDF"
+                                                     StrokeLineJoin="Round" StrokeThickness=".5" />
+                                        </Grid>
+                                        <TextBlock Text="1, " />
+                                        <TextBlock Text="{Binding Party1Name, FallbackValue=Mandalore}" Width="86" />
+                                        <TextBlock Text="&#x0394;z=" ToolTip="Difference in height between leader and follower 1." />
+                                        <TextBlock TextAlignment="Right" Width="30"
+                                                   Visibility="{Binding Party1DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
+                                                   Text="{Binding Party1DeltaZ, StringFormat=N2, FallbackValue=1.00}" />
+                                        <TextBlock Text="d=" Margin="10,0,0,0" ToolTip="Distance between leader and follower 1." />
+                                        <TextBlock TextAlignment="Right" Width="45"
+                                                   Visibility="{Binding Party1DistanceTo, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
+                                                   Text="{Binding Party1DistanceTo, StringFormat=N2, FallbackValue=1.00}" />
+                                    </StackPanel>
+                                
+                                    <!-- Party 2 GP Range -->
+                                    <StackPanel Margin="0,2,0,0">
+                                        <StackPanel.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisibilityMultiConverter}" ConverterParameter="And">
+                                                <Binding Path="ShowLivePosition" />
+                                                <Binding Path="LivePartyCount" Converter="{StaticResource UintGreaterEqualConverter}" ConverterParameter="3" />
+                                            </MultiBinding>
+                                        </StackPanel.Visibility>
+                                        
+                                        <Grid Margin="0,0,2,0">
+                                            <Ellipse Stroke="Black" Fill="#FA7300" />
+                                            <Polygon Points="6,6 0,10 6,0 12,10" Margin="0,2"
+                                                     Stroke="Black" Fill="#4E6BDF"
+                                                     StrokeLineJoin="Round" StrokeThickness=".5" />
+                                        </Grid>
+                                        <TextBlock Text="2, " Margin="0,0,0,0" />
+                                        <TextBlock Text="{Binding Party2Name, FallbackValue=Canderous}" Width="86" />
+                                        <TextBlock Text="&#x0394;z=" ToolTip="Difference in height between leader and follower 2." />
+                                        <TextBlock TextAlignment="Right" Width="30"
+                                                   Visibility="{Binding Party2DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
+                                                   Text="{Binding Party2DeltaZ, StringFormat=N2, FallbackValue=2.00}" />
+                                        <TextBlock Text="d=" Margin="10,0,0,0" ToolTip="Distance between leader and follower 2." />
+                                        <TextBlock TextAlignment="Right" Width="45"
+                                                   Visibility="{Binding Party2DistanceTo, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
+                                                   Text="{Binding Party2DistanceTo, StringFormat=N2, FallbackValue=2.00}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Left Click GP Data -->
+                        <Grid Grid.Row="8" Margin="0,0,0,4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Left Click Gather Party Data" HorizontalAlignment="Center" />
+                            <Border Grid.Row="1" Margin="0,0,0,4" Padding="12,2" BorderThickness="0,0,0,1" BorderBrush="#707070">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="&#x0394;z=" Margin="0,0,6,4" VerticalAlignment="Center"
+                                               ToolTip="Simulated height difference between black and white coordinate points." />
+                                    <Slider Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Minimum="0" Maximum="30" LargeChange="1"
+                                            Value="{Binding LeftClickGatherPartyRangeDeltaZ, Mode=TwoWay}" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Width="30" VerticalAlignment="Center" TextAlignment="Right" Margin="0,0,0,4"
+                                            Text="{Binding LeftClickGatherPartyRangeDeltaZ, StringFormat=N2, FallbackValue=0.00}" />
+
+                                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="GP radius at &#x0394;z" Margin="0,0,6,4" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Width="30" VerticalAlignment="Center" TextAlignment="Right" Margin="0,0,0,4"
+                                            Text="{Binding LeftClickGatherPartyRangeDiameter, StringFormat=N2,
+                                                Converter={StaticResource MultiplyDoubleConverter},
+                                                ConverterParameter=0.5, FallbackValue=30.00}" />
+
+                                    <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="2D coordinate distance (m)" Margin="0,0,0,4" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" TextAlignment="Right" Margin="0,0,0,4"
+                                               Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=2.22}" />
+
+                                    <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="3D coordinate distance (m)" Margin="0,0,0,4" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" TextAlignment="Right" Margin="0,0,0,4"
+                                               Text="{Binding DistanceLeftRight3D, StringFormat=N2, FallbackValue=3.33}" />
+                                </Grid>
+                                
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Grid>
 
@@ -2310,7 +2492,7 @@
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
-                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                                  FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid>
                         <Grid.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -2347,10 +2529,11 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" /> <!--Teleport to points-->
+                                    <RowDefinition Height="Auto" /> <!--Teleport to coordinates-->
+                                    <RowDefinition Height="Auto" /> <!--Movement speed header-->
+                                    <RowDefinition Height="Auto" /> <!--Movement speed buttons-->
+                                    <RowDefinition Height="Auto" /> <!--Warp to module-->
                                 </Grid.RowDefinitions>
                                 
                                 <!-- Teleport Leader -->
@@ -2398,19 +2581,40 @@
                                 </Grid>
                                 
                                 <!-- Movement Speed -->
-                                <!-- TODO: Consider simple buttons for certain speeds. -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,2,6" Text="Speed Mul:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="cbSpeedMultiplier"
-                                          Margin="4,0,0,6" Text="{Binding MoveSpeedMultiplier, Mode=TwoWay}" />
-                                <Button Grid.Row="2" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="SetMoveSpeedMultiplier_Click"
-                                        ToolTip="Multiply the default movement speed by the selected value.">
-                                    <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
-                                </Button>
-                                
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="0,0,2,3" Text="Speed Multiplier:" VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="3" Grid.ColumnSpan="4" Orientation="Vertical">
+                                    <StackPanel.Resources>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Orientation" Value="Horizontal" />
+                                            <Setter Property="Margin" Value="0,0,0,3" />
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                        </Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Margin" Value="3,0,0,0" />
+                                            <Setter Property="Padding" Value="3,2" />
+                                            <Setter Property="FontSize" Value="12" />
+                                            <EventSetter Event="Click" Handler="SetMoveSpeedMultiplier_Click" />
+                                        </Style>
+                                    </StackPanel.Resources>
+
+                                    <StackPanel>
+                                        <Button Tag="0.5" Content="Walk (50%)" />
+                                        <Button Tag="1.0" Content="Run (100%)" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <Button Tag="1.2" Content="Alacrity (120%)" />
+                                        <Button Tag="1.3" Content="Hyper Alacrity (130%)" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <Button Tag="1.5" Content="Force Speed (150%)" />
+                                        <Button Tag="1.5" Content="Turbo (1000%)" />
+                                    </StackPanel>
+                                </StackPanel>
+
                                 <!-- Warp to Module -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,2,6" Text="Warp To:" VerticalAlignment="Center" />
-                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="4,0,0,6" Grid.ColumnSpan="2" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
-                                <Button Grid.Row="3" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="WarpCheat_Click"
+                                <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,2,6" Text="Warp To:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="4,0,0,6" Grid.ColumnSpan="2" Name="cbbWarpToRim" ItemsSource="{Binding AllRimNames}" />
+                                <Button Grid.Row="4" Grid.Column="3" Width="22" Height="22" Margin="4,0,0,6" Padding="0,0" Click="WarpCheat_Click"
                                         ToolTip="Load the selected module using the warp cheat.">
                                     <Image Width="18" Height="18" Source="/Resources/Icons/LivePositionIcon.png" />
                                 </Button>
@@ -3046,7 +3250,7 @@
                       Margin="4,0,0,0"
                       Visibility="{Binding ShowGlobalsPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Visible, TargetNullValue=Collapsed}">
+                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" x:Name="rowGlobalsFind" />
                         <RowDefinition Height="Auto" x:Name="rowGlobalsReadWrite" />
@@ -3495,10 +3699,14 @@
                                           Visibility="{Binding LeftClickPointVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <Ellipse Stroke="{Binding LeftClickGatherPartyRangeStrokeBrush}"
                                                  Fill="{Binding LeftClickGatherPartyRangeFillBrush}"
-                                                 StrokeThickness=".1" Width="60" Height="60"
+                                                 StrokeThickness=".1"
+                                                 Width="{Binding LeftClickGatherPartyRangeDiameter}" Height="{Binding LeftClickGatherPartyRangeDiameter}"
                                                  Visibility="{Binding ShowLeftClickGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <Ellipse.RenderTransform>
-                                                <TranslateTransform X="-29.5" Y="29.5" />
+                                                <TranslateTransform
+                                                    X="{Binding LeftClickGatherPartyRangeDiameter, Converter={StaticResource GatherPartyTransformConverter}, ConverterParameter=-1}"
+                                                    Y="{Binding LeftClickGatherPartyRangeDiameter, Converter={StaticResource GatherPartyTransformConverter}, ConverterParameter=1}"
+                                                    />
                                             </Ellipse.RenderTransform>
                                         </Ellipse>
                                     </Grid>
@@ -3569,10 +3777,14 @@
                                           Visibility="{Binding ShowLivePosition, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <Ellipse Stroke="{Binding LiveGatherPartyRangeStrokeBrush}"
                                                  Fill="{Binding LiveGatherPartyRangeFillBrush}"
-                                                 StrokeThickness=".1" Width="60" Height="60"
+                                                 StrokeThickness=".1"
+                                                 Width="{Binding LiveGatherPartyRangeDiameter}" Height="{Binding LiveGatherPartyRangeDiameter}"
                                                  Visibility="{Binding ShowGatherPartyRange, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <Ellipse.RenderTransform>
-                                                <TranslateTransform X="-29.5" Y="29.5" />
+                                                <TranslateTransform
+                                                    X="{Binding LiveGatherPartyRangeDiameter, Converter={StaticResource GatherPartyTransformConverter}, ConverterParameter=-1}"
+                                                    Y="{Binding LiveGatherPartyRangeDiameter, Converter={StaticResource GatherPartyTransformConverter}, ConverterParameter=1}"
+                                                    />
                                             </Ellipse.RenderTransform>
                                         </Ellipse>
                                     </Grid>

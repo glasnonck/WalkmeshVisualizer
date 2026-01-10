@@ -139,15 +139,6 @@ namespace WalkmeshVisualizerWpf.Views
             cbStickyRange.Items.Add(5.0.ToString("N1"));
             cbStickyRange.SelectedIndex = 2;
 
-            // Add speed multipliers and default.
-            cbSpeedMultiplier.Items.Add(0.5.ToString("N1"));
-            cbSpeedMultiplier.Items.Add(1.0.ToString("N1"));
-            cbSpeedMultiplier.Items.Add(1.2.ToString("N1"));
-            cbSpeedMultiplier.Items.Add(1.3.ToString("N1"));
-            cbSpeedMultiplier.Items.Add(1.5.ToString("N1"));
-            cbSpeedMultiplier.Items.Add(10.0.ToString("N1"));
-            cbSpeedMultiplier.SelectedIndex = 1;
-
             // Load saved settings.
             var settings = Properties.Settings.Default;
             ShowWalkableFaces = settings.ShowWalkableFaces;
@@ -1100,6 +1091,87 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Brush _liveGatherPartyRangeStrokeBrush = Brushes.Green;
 
+        public double LiveGatherPartyRangeDeltaZ
+        {
+            get => _liveGatherPartyRangeDeltaZ;
+            set => SetField(ref _liveGatherPartyRangeDeltaZ, value);
+        }
+        private double _liveGatherPartyRangeDeltaZ = 0.0;
+
+        public double LiveGatherPartyRangeDiameter
+        {
+            get => _liveGatherPartyRangeDiameter;
+            set => SetField(ref _liveGatherPartyRangeDiameter, value);
+        }
+        private double _liveGatherPartyRangeDiameter = 60.0;
+
+        private uint _party0ServerID = 0;
+        private uint _party1ServerID = 0;
+        private uint _party2ServerID = 0;
+
+        public string Party0Name
+        {
+            get => _party0Name;
+            set => SetField(ref _party0Name, value);
+        }
+        private string _party0Name = string.Empty;
+
+        public string Party1Name
+        {
+            get => _party1Name;
+            set => SetField(ref _party1Name, value);
+        }
+        private string _party1Name = string.Empty;
+
+        public string Party2Name
+        {
+            get => _party2Name;
+            set => SetField(ref _party2Name, value);
+        }
+        private string _party2Name = string.Empty;
+
+        public double Party0DistanceTo
+        {
+            get => _party0DistanceTo;
+            set => SetField(ref _party0DistanceTo, value);
+        }
+        private double _party0DistanceTo = -1;
+
+        public double Party0DeltaZ
+        {
+            get => _party0DeltaZ;
+            set => SetField(ref _party0DeltaZ, value);
+        }
+        private double _party0DeltaZ = -1;
+
+        public double Party1DistanceTo
+        {
+            get => _party1DistanceTo;
+            set => SetField(ref _party1DistanceTo, value);
+        }
+        private double _party1DistanceTo = -1;
+
+        public double Party1DeltaZ
+        {
+            get => _party1DeltaZ;
+            set => SetField(ref _party1DeltaZ, value);
+        }
+        private double _party1DeltaZ = -1;
+
+        public double Party2DistanceTo
+        {
+            get => _party2DistanceTo;
+            set => SetField(ref _party2DistanceTo, value);
+        }
+        private double _party2DistanceTo = -1;
+
+        public double Party2DeltaZ
+        {
+            get => _party2DeltaZ;
+            set => SetField(ref _party2DeltaZ, value);
+        }
+        private double _party2DeltaZ = -1;
+
         public Brush LeftClickGatherPartyRangeFillBrush
         {
             get => _leftClickGatherPartyRangeFillBrush;
@@ -1113,6 +1185,28 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _leftClickGatherPartyRangeStrokeBrush, value);
         }
         private Brush _leftClickGatherPartyRangeStrokeBrush = Brushes.Green;
+
+        public double LeftClickGatherPartyRangeDeltaZ
+        {
+            get => _leftClickGatherPartyRangeDeltaZ;
+            set
+            {
+                SetField(ref _leftClickGatherPartyRangeDeltaZ, value);
+                LeftClickGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(LeftClickGatherPartyRangeDeltaZ, 2)) * 2.0;
+            }
+        }
+        private double _leftClickGatherPartyRangeDeltaZ = 0.0;
+
+        public double LeftClickGatherPartyRangeDiameter
+        {
+            get => _leftClickGatherPartyRangeDiameter;
+            set
+            {
+                SetField(ref _leftClickGatherPartyRangeDiameter, value);
+                CalculatePointDistance();
+            }
+        }
+        private double _leftClickGatherPartyRangeDiameter = 60.0;
 
         private SolidColorBrush gprStrokeGreen = new SolidColorBrush(new Color { R = 0x00, G = 0x80, B = 0x00, A = 0xFF });
         private SolidColorBrush gprStrokeRed   = new SolidColorBrush(new Color { R = 0x80, G = 0x00, B = 0x00, A = 0xFF });
@@ -1281,12 +1375,6 @@ namespace WalkmeshVisualizerWpf.Views
         private float _freeCamSpeed = 10f;
 
         public const float DEFAULT_MOVEMENT_SPEED = 5.4f;
-        public string MoveSpeedMultiplier
-        {
-            get => _moveSpeedMultiplier;
-            set => SetField(ref _moveSpeedMultiplier, value);
-        }
-        private string _moveSpeedMultiplier = "1.0";
 
         public bool SetMoveSpeedOnLoad
         {
@@ -1308,6 +1396,13 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _distanceToTimeMultiplier, value);
         }
         private double _distanceToTimeMultiplier = 1.0;
+
+        public double DistanceLeftRight3D
+        {
+            get => _distanceLeftRight3D;
+            set => SetField(ref _distanceLeftRight3D, value);
+        }
+        private double _distanceLeftRight3D = 0.0;
 
         /// <summary>
         /// Distance between left click point and right click point.
@@ -2002,7 +2097,13 @@ namespace WalkmeshVisualizerWpf.Views
             }
 
             // If right click point is not visible OR if in range...
-            if (!RightClickPointVisible || distance <= 30.0)
+            DistanceLeftRight3D =
+                (
+                    new Point3D(LeftClickModuleCoords.X, LeftClickModuleCoords.Y, 0) -
+                    new Point3D(RightClickModuleCoords.X, RightClickModuleCoords.Y, LeftClickGatherPartyRangeDeltaZ)
+                ).Length;
+
+            if (!RightClickPointVisible || distance <= LeftClickGatherPartyRangeDiameter / 2.0)
             {
                 LeftClickGatherPartyRangeFillBrush = gprFillGreen;
                 LeftClickGatherPartyRangeStrokeBrush = gprStrokeGreen;
@@ -4603,7 +4704,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (ShowRimDataPanel || ShowCoordinatePanel || ShowDistancePanel || ShowToolsPanel || ShowGlobalsPanel || ShowWireTargetPanel)
             {
-                columnLeftPanel.MinWidth = 240;
+                columnLeftPanel.MinWidth = 300;
                 columnLeftPanel.Width = new GridLength(prevLeftPanelSize, GridUnitType.Pixel);
             }
             else
@@ -5098,6 +5199,7 @@ namespace WalkmeshVisualizerWpf.Views
                             var partyPositions3D = km.GetPartyPositions3D();
                             var partyBearings = km.GetPartyBearings();
                             var partyInRange = true;
+                            ReadPartyMemberNames(km);
 
                             // Handle party leader
                             LivePositionPoint = new Point(partyPositions3D[0].X, partyPositions3D[0].Y);
@@ -5105,7 +5207,7 @@ namespace WalkmeshVisualizerWpf.Views
                             if (LeftClickPointVisible)
                             {
                                 DistanceLiveLeft = (LeftClickModuleCoords - LivePositionPoint).Length;
-                                DurationLiveLeft  = DistanceLiveLeft  / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
+                                DurationLiveLeft = DistanceLiveLeft / SPEED_UNITS_PER_SECOND / DistanceToTimeMultiplier;
                             }
                             if (RightClickPointVisible)
                             {
@@ -5121,11 +5223,15 @@ namespace WalkmeshVisualizerWpf.Views
                                 LiveGatherPartyRangePoint = LivePositionEllipsePoint;
                                 LastGatherPartyRangePosition = partyPositions3D[0];
                                 LastGatherPartyRangePoint = LivePositionEllipsePoint;
+                                Party0DeltaZ = -1;
+                                Party0DistanceTo = -1;
                             }
                             else
                             {
                                 var leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[0]).LengthSquared;
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
+                                Party0DeltaZ = Math.Abs(LastGatherPartyRangePosition.Z - partyPositions3D[0].Z);
+                                Party0DistanceTo = Math.Sqrt(leaderDistSq);
                             }
 
                             // Handle party member 1
@@ -5133,12 +5239,25 @@ namespace WalkmeshVisualizerWpf.Views
                             {
                                 double leaderDistSq = 0;
                                 if (!LockGatherPartyRange)
+                                {
                                     leaderDistSq = (partyPositions3D[0] - partyPositions3D[1]).LengthSquared;
+                                    Party1DeltaZ = Math.Abs(partyPositions3D[0].Z - partyPositions3D[1].Z);
+                                }
                                 else
+                                {
                                     leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[1]).LengthSquared;
+                                    Party1DeltaZ = Math.Abs(LastGatherPartyRangePosition.Z - partyPositions3D[1].Z);
+                                }
+                                Party1DistanceTo = Math.Sqrt(leaderDistSq);
+
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
                                 LivePositionEllipsePointPC1 = new Point(partyPositions3D[1].X + LeftOffset - 0.5, partyPositions3D[1].Y + BottomOffset - 0.5);
                                 LiveBearingPC1 = partyBearings[1];
+                            }
+                            else
+                            {
+                                Party1DistanceTo = -1;
+                                Party1DeltaZ = -1;
                             }
 
                             // Handle party member 2
@@ -5146,16 +5265,64 @@ namespace WalkmeshVisualizerWpf.Views
                             {
                                 double leaderDistSq = 0;
                                 if (!LockGatherPartyRange)
+                                {
                                     leaderDistSq = (partyPositions3D[0] - partyPositions3D[2]).LengthSquared;
+                                    Party2DeltaZ = Math.Abs(partyPositions3D[0].Z - partyPositions3D[2].Z);
+                                }
                                 else
+                                {
                                     leaderDistSq = (LastGatherPartyRangePosition - partyPositions3D[2]).LengthSquared;
+                                    Party2DeltaZ = Math.Abs(LastGatherPartyRangePosition.Z - partyPositions3D[2].Z);
+                                }
+                                Party2DistanceTo = Math.Sqrt(leaderDistSq);
+
                                 partyInRange = partyInRange && leaderDistSq <= 900.0;
                                 LivePositionEllipsePointPC2 = new Point(partyPositions3D[2].X + LeftOffset - 0.5, partyPositions3D[2].Y + BottomOffset - 0.5);
                                 LiveBearingPC2 = partyBearings[2];
                             }
+                            else
+                            {
+                                Party2DistanceTo = -1;
+                                Party2DeltaZ = -1;
+                            }
 
+                            // Calculate GP range diameter
+                            if (Party1DistanceTo == -1 && Party2DistanceTo == -1)
+                            {
+                                // P1 and P2 missing
+                                if (Party0DistanceTo != -1) // Locked
+                                    LiveGatherPartyRangeDeltaZ = Party0DeltaZ;
+                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party0DeltaZ, 2)) * 2;
+                                else
+                                    LiveGatherPartyRangeDeltaZ = 0.0;
+                                    //LiveGatherPartyRangeDiameter = 60.0;
+                            }
+                            else if (Party2DistanceTo == -1 || Party1DistanceTo >= Party2DistanceTo)
+                            {
+                                // P2 missing, or P1 farther away
+                                if (Party0DistanceTo != -1 && Party0DistanceTo >= Party1DistanceTo) // Locked and P0 farther away
+                                    LiveGatherPartyRangeDeltaZ = Party0DeltaZ;
+                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party0DeltaZ, 2)) * 2;
+                                else
+                                    LiveGatherPartyRangeDeltaZ = Party1DeltaZ;
+                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party1DeltaZ, 2)) * 2;
+                            }
+                            else
+                            {
+                                // P2 farther away
+                                if (Party0DistanceTo != -1 && Party0DistanceTo >= Party2DistanceTo) // Locked and P0 farther away
+                                    LiveGatherPartyRangeDeltaZ = Party0DeltaZ;
+                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party0DeltaZ, 2)) * 2;
+                                else
+                                    LiveGatherPartyRangeDeltaZ = Party2DeltaZ;
+                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party2DeltaZ, 2)) * 2;
+                            }
+
+                            LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(LiveGatherPartyRangeDeltaZ, 2)) * 2;
+
+                            // Set GP range brush colors
                             LiveGatherPartyRangeStrokeBrush = partyInRange ? gprStrokeGreen : gprStrokeRed;
-                            LiveGatherPartyRangeFillBrush   = partyInRange ? gprFillGreen   : gprFillRed;
+                            LiveGatherPartyRangeFillBrush = partyInRange ? gprFillGreen : gprFillRed;
 
                             // Follow live position
                             if (ViewFollowsLivePosition)
@@ -5166,7 +5333,7 @@ namespace WalkmeshVisualizerWpf.Views
                                     var yExtent = zoomAndPanControl.ExtentHeight;
                                     var snapPoint = new Point(
                                         LivePositionEllipsePoint.X,
-                                        (yExtent/scale)-LivePositionEllipsePoint.Y);
+                                        (yExtent / scale) - LivePositionEllipsePoint.Y);
                                     zoomAndPanControl.SnapTo(snapPoint);
                                 });
                             }
@@ -5207,6 +5374,54 @@ namespace WalkmeshVisualizerWpf.Views
                     Debug.WriteLine($"Unknown exception caught: {ex}");
                     break;
                 }
+            }
+        }
+
+        private void ReadPartyMemberNames(KotorManager km)
+        {
+            if (!ShowDistancePanel) return;
+
+            var objParty0 = km.GetPartyGameObject(0);
+            km.pr.ReadUint(objParty0 + km.ka.OFFSET_GAME_OBJECT_ID, out uint sidParty0);
+            if (sidParty0 != _party0ServerID)
+            {
+                _party0ServerID = sidParty0;
+                Party0Name = kmia.GetServerObjectName(km.pr.h, sidParty0);
+                km.RefreshAddresses();
+            }
+
+            if (LivePartyCount > 1)
+            {
+                var objParty1 = km.GetPartyGameObject(1);
+                km.pr.ReadUint(objParty1 + km.ka.OFFSET_GAME_OBJECT_ID, out uint sidParty1);
+                if (sidParty1 != _party1ServerID)
+                {
+                    _party1ServerID = sidParty1;
+                    Party1Name = kmia.GetServerObjectName(km.pr.h, sidParty1);
+                    km.RefreshAddresses();
+                }
+            }
+            else
+            {
+                _party1ServerID = 0;
+                Party1Name = string.Empty;
+            }
+
+            if (LivePartyCount > 2)
+            {
+                var objParty2 = km.GetPartyGameObject(2);
+                km.pr.ReadUint(objParty2 + km.ka.OFFSET_GAME_OBJECT_ID, out uint sidParty2);
+                if (sidParty2 != _party2ServerID)
+                {
+                    _party2ServerID = sidParty2;
+                    Party2Name = kmia.GetServerObjectName(km.pr.h, sidParty2);
+                    km.RefreshAddresses();
+                }
+            }
+            else
+            {
+                _party2ServerID = 0;
+                Party2Name = string.Empty;
             }
         }
 
@@ -5637,13 +5852,10 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void SetMoveSpeedMultiplier_Click(object sender, RoutedEventArgs e)
         {
+            var multiplier = float.Parse((sender as Button).Tag.ToString(), CultureInfo.InvariantCulture);
             var km = GetKotorManager();
             if (km == null) return;
-            var isFloat = float.TryParse(MoveSpeedMultiplier, CultureInfo.CurrentCulture, out float msm);
-            if (isFloat)
-                kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * msm);
-            else
-                MessageBox.Show("Move speed multiplier must be a floating point number.");
+            kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * multiplier);
         }
 
         private void WarpCheat_Click(object sender, RoutedEventArgs e)
