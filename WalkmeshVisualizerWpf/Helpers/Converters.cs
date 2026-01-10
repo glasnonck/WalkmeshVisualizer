@@ -54,7 +54,22 @@ namespace WalkmeshVisualizerWpf.Helpers
             if (!double.TryParse(parameter?.ToString() ?? "", CultureInfo.InvariantCulture, out double p)) return v;
             return v / p;
         }
+    }
 
+    public class DoubleToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not double v) return null;
+            return v.ToString(CultureInfo.CurrentCulture);
+        }
+        
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var str = value?.ToString() ?? "";
+            if (!double.TryParse(str, CultureInfo.CurrentCulture, out double v)) return 0.0;
+            return v;
+        }
     }
 
     public class GatherPartyTransformConverter : IValueConverter

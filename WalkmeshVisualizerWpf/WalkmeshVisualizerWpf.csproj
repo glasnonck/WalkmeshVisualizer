@@ -6,7 +6,7 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-	<VersionPrefix>2.0.9</VersionPrefix>
+	<VersionPrefix>2.0.12</VersionPrefix>
 	<Title>WalkmeshVisualizerWpf</Title>
 	<Copyright>2026</Copyright>
 	<ApplicationIcon>Resources\Icons\Icon.ico</ApplicationIcon>

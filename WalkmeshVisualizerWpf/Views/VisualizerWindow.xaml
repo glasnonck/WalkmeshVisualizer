@@ -184,6 +184,7 @@
         <help:FirstCharacterConverter x:Key="FirstCharacterConverter" />
         <help:GatherPartyTransformConverter x:Key="GatherPartyTransformConverter" />
         <help:MultiplyDoubleConverter x:Key="MultiplyDoubleConverter" />
+        <help:DoubleToStringConverter x:Key="DoubleToStringConverter" />
 
         <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
             <Setter Property="Background" Value="Transparent" />
@@ -2556,7 +2557,7 @@
                                         <Ellipse Width="12" Height="12" Fill="White" Stroke="Black" StrokeThickness="1" />
                                     </Button>
                                     <!--To Custom Coordinates-->
-                                    <Button Grid.Column="3" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Tag="{Binding TeleportToCoordinates}"  Margin="2,0"
+                                    <Button Grid.Column="3" Content="Coordinates" Click="TeleportPlayerToPoint_Click" Margin="2,0"
                                             ToolTip="Teleport player to custom coordinates.">
                                     </Button>
                                 </Grid>
@@ -2574,10 +2575,12 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="1" Text="X: " />
                                     <TextBox   Grid.Column="2" TextAlignment="Right"
-                                               Text="{Binding TeleportToCoordinates.X, StringFormat=N2, Mode=TwoWay, FallbackValue=0}" />
+                                               Text="{Binding TeleportToX, StringFormat=N2, Mode=OneWayToSource, FallbackValue=0.00,
+                                                    Converter={StaticResource DoubleToStringConverter}}" />
                                     <TextBlock Grid.Column="4" Text="Y: " />
                                     <TextBox   Grid.Column="5" TextAlignment="Right"
-                                               Text="{Binding TeleportToCoordinates.Y, StringFormat=N2, Mode=TwoWay, FallbackValue=0}" />
+                                               Text="{Binding TeleportToY, StringFormat=N2, Mode=OneWayToSource, FallbackValue=0.00,
+                                                    Converter={StaticResource DoubleToStringConverter}}" />
                                 </Grid>
                                 
                                 <!-- Movement Speed -->

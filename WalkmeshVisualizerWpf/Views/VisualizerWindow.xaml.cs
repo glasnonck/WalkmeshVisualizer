@@ -1360,12 +1360,19 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private int _mouseHoverUpdateDelay = 50;
 
-        public Point TeleportToCoordinates
+        public double TeleportToX
         {
-            get => _teleportToCoordinates;
-            set => SetField(ref _teleportToCoordinates, value);
+            get => _teleportToX;
+            set => SetField(ref _teleportToX, value);
         }
-        private Point _teleportToCoordinates = new Point(0.0, 0.0);
+        private double _teleportToX = 0.0;
+
+        public double TeleportToY
+        {
+            get => _teleportToY;
+            set => SetField(ref _teleportToY, value);
+        }
+        private double _teleportToY = 0.0;
 
         public float FreeCamSpeed
         {
@@ -5838,7 +5845,14 @@ namespace WalkmeshVisualizerWpf.Views
          */
         private void TeleportPlayerToPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = ((e.Source as Button).Tag as Point?).Value;
+            Point point;
+            if ((e.Source as Button).Tag is Point tag) point = tag;
+            else
+            {
+                point.X = TeleportToX;
+                point.Y = TeleportToY;
+            }
+
             var km = GetKotorManager();
             if (km == null) return;
             kmia.SendMessage(
