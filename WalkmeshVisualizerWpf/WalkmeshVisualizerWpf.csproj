@@ -15,8 +15,10 @@
     <None Remove="Resources\Icons\Backspace.png" />
     <None Remove="Resources\Icons\Edit.png" />
     <None Remove="Resources\Icons\Filter.png" />
+    <None Remove="Resources\Icons\PopupIcon.png" />
     <None Remove="Resources\Icons\RemoveIcon.png" />
     <None Remove="Resources\Icons\Save.png" />
+    <None Remove="Resources\Icons\TimerIcon.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="KotorMessageInjector">
@@ -65,6 +67,7 @@
     <Resource Include="Resources\Icons\Backspace.png" />
     <Resource Include="Resources\Icons\Edit.png" />
     <Resource Include="Resources\Icons\Filter.png" />
+    <Resource Include="Resources\Icons\PopupIcon.png" />
     <Resource Include="Resources\Icons\RefreshIcon.png" />
     <Resource Include="Resources\Icons\AddIcon.png" />
     <Resource Include="Resources\Icons\ClearIcon.png" />
@@ -72,6 +75,7 @@
     <Resource Include="Resources\Icons\FolderIcon.png" />
     <Resource Include="Resources\Icons\RemoveIcon.png" />
     <Resource Include="Resources\Icons\Save.png" />
+    <Resource Include="Resources\Icons\TimerIcon.png" />
     <Resource Include="Resources\Icons\UndoIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLeftClickIcon.png" />
     <Resource Include="Resources\Icons\GatherPartyRangeLockIcon.png" />

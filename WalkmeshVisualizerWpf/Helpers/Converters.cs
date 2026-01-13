@@ -17,8 +17,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => value.ToString()[0];
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => string.Empty;
     }
 
     public class IsNullConverter : IValueConverter
@@ -26,8 +25,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => value == null;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => null;
     }
 
     public class IsNotNullConverter : IValueConverter
@@ -35,8 +33,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => value != null;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => null;
     }
 
     public class MultiplyDoubleConverter : IValueConverter
@@ -81,8 +78,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return (v - p) / 2.0;
         }
         
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 0.0;
     }
 
     /// <summary>
@@ -137,8 +133,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             => !value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase);
             //=> value.ToString().ToLower() != parameter.ToString().ToLower();
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => string.Empty;
     }
 
     public class StringEqualsConverter : IValueConverter
@@ -147,8 +142,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             => value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase);
             //=> value.ToString().ToLower() == parameter.ToString().ToLower();
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => string.Empty;
     }
 
     public class StringEqualsToVisibilityConverter : IValueConverter
@@ -157,8 +151,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             => value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase) ? Visibility.Visible : Visibility.Collapsed;
             //=> (value.ToString().ToLower() == parameter.ToString().ToLower()) ? Visibility.Visible : Visibility.Collapsed;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => string.Empty;
     }
 
     public class StringNotEqualsToVisibilityConverter : IValueConverter
@@ -166,8 +159,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => !value.ToString().Equals(parameter.ToString(), StringComparison.CurrentCultureIgnoreCase) ? Visibility.Visible : Visibility.Hidden;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) // Note: One way by design
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => string.Empty;
     }
 
     public class IntLessEqualConverter : IValueConverter
@@ -177,11 +169,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return (int)value <= int.Parse(parameter.ToString());
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // Note: One way by design
-            throw new NotImplementedException();
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 0;
     }
 
     public class IntGreaterEqualConverter : IValueConverter
@@ -191,11 +179,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return (int)value >= int.Parse(parameter.ToString());
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // Note: One way by design
-            throw new NotImplementedException();
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 0;
     }
     
     public class UintGreaterEqualToVisibilityConverter : IValueConverter
@@ -205,11 +189,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return (uint)value >= int.Parse(parameter.ToString()) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // Note: One way by design
-            throw new NotImplementedException();
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 0u;
     }
     
     public class UintGreaterEqualConverter : IValueConverter
@@ -219,11 +199,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return (uint)value >= uint.Parse(parameter.ToString());
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // Note: One way by design
-            throw new NotImplementedException();
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => 0u;
     }
 
     public class BlackIfTransparentConverter : IValueConverter
@@ -231,8 +207,7 @@ namespace WalkmeshVisualizerWpf.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => ((SolidColorBrush)value).Color.A == 0 ? Brushes.Black : parameter;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();     // one way by design
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Brushes.Black;
     }
 
     public class PointToTextConverter : IValueConverter
@@ -241,13 +216,10 @@ namespace WalkmeshVisualizerWpf.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var separator = culture.NumberFormat.NumberDecimalSeparator != "." ? "; " : ", ";
-            return value is Point p ? $"({p.X:N2}{separator}{p.Y:N2})" : throw new InvalidOperationException("The value must be of type Point.");
+            return value is Point p ? $"({p.X:N2}{separator}{p.Y:N2})" : "Err: Must be of type point.";
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new Point(0, 0);
         #endregion
     }
 
@@ -306,8 +278,7 @@ namespace WalkmeshVisualizerWpf.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => (value as IEnumerable<RimDataInfo>)?.Any(rdi => !rdi.MeshVisible) ?? false;
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new List<RimDataInfo>();
     }
 
     //[ValueConversion(typeof(RimDataInfo), typeof(bool))]
@@ -315,23 +286,15 @@ namespace WalkmeshVisualizerWpf.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             => (value as IEnumerable<RimDataInfo>)?.Any(rdi => rdi.MeshVisible) ?? false;
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => new List<RimDataInfo>();
     }
 
     //[ValueConversion(typeof(bool), typeof(bool))]
     public class InverseBooleanConverter : IValueConverter
     {
         #region IValueConverter Members
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value;
-        }
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => !(bool)value;
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => !(bool)value;
         #endregion
     }
 
@@ -426,7 +389,8 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (targetTypes is null) return null;
+            return [.. new bool[targetTypes.Length].Cast<object>()];
         }
         #endregion
     }
@@ -449,7 +413,11 @@ namespace WalkmeshVisualizerWpf.Helpers
             return result;
         }
 
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            if (targetTypes is null) return null;
+            return [.. new string[targetTypes.Length].Cast<object>()];
+        }
         #endregion
     }
 
@@ -481,7 +449,8 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (targetTypes is null) return null;
+            return [.. new bool[targetTypes.Length].Cast<object>()];
         }
         #endregion
     }
@@ -499,7 +468,8 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (targetTypes is null) return null;
+            return [.. new bool[targetTypes.Length].Cast<object>()];
         }
         #endregion
     }
@@ -517,7 +487,8 @@ namespace WalkmeshVisualizerWpf.Helpers
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (targetTypes is null) return null;
+            return [.. new bool[targetTypes.Length].Cast<object>()];
         }
         #endregion
     }
@@ -536,10 +507,7 @@ namespace WalkmeshVisualizerWpf.Helpers
             return onrims.Any(r => r.FileName == walk.Rim.FileName) ? walk.Rim.MeshColor : Brushes.Transparent;
         }
 
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
         #endregion
     }
 

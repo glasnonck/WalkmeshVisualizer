@@ -519,7 +519,7 @@
                             <RadioButton x:Key="RadioButtonResource" x:Shared="false" HorizontalAlignment="Center"
                                          GroupName="GlobalRefreshRadio" IsHitTestVisible="False">
                                 <RadioButton.IsChecked>
-                                    <MultiBinding Converter="{StaticResource StringEqualsMultiConverter}">
+                                    <MultiBinding Converter="{StaticResource StringEqualsMultiConverter}" FallbackValue="False" TargetNullValue="False">
                                         <Binding Mode="OneWay" Path="Tag" RelativeSource="{RelativeSource AncestorType=MenuItem}" />
                                         <Binding Mode="OneWay" Path="GlobalAutoRefreshRate" />
                                     </MultiBinding>
@@ -538,7 +538,8 @@
                         <MenuItem Header="15 seconds" Tag="15000" />
                         <MenuItem Header="20 seconds" Tag="20000" />
                     </MenuItem>
-                    
+                    <MenuItem Header="Popup All Global Changes" IsChecked="{Binding DoPopupAllGlobalWatch, Mode=TwoWay}" />
+
                     <!--<Separator />
                     <MenuItem Header="Live Position Fill Color" />
                     <MenuItem Header="Live Position Stroke Color" />-->
@@ -1370,7 +1371,7 @@
                                       Click="RimDataShowHideButton_Click"
                                       Tag="Door">
                             <TextBlock><Run>Doors:</Run> <TextBlock Margin="0,1,0,0"
-                                Text="{Binding RimDoors.Count, FallbackValue=0}" />
+                                Text="{Binding RimDoors.Count, FallbackValue=0, TargetNullValue=0}" />
                             </TextBlock>
                         </ToggleButton>
                         <ToggleButton IsChecked="{Binding ShowRimDataTriggers}"
@@ -1378,7 +1379,7 @@
                                       Click="RimDataShowHideButton_Click"
                                       Tag="Trigger">
                             <TextBlock><Run>Triggers:</Run> <TextBlock Margin="0,1,0,0"
-                                Text="{Binding RimTriggers.Count, FallbackValue=0}" />
+                                Text="{Binding RimTriggers.Count, FallbackValue=0, TargetNullValue=0}" />
                             </TextBlock>
                         </ToggleButton>
                         <ToggleButton IsChecked="{Binding ShowRimDataTraps}"
@@ -1386,7 +1387,7 @@
                                       Click="RimDataShowHideButton_Click"
                                       Tag="Trap" Width="70">
                             <TextBlock><Run>Traps:</Run> <TextBlock Margin="0,1,0,0"
-                                Text="{Binding RimTraps.Count, FallbackValue=0}" />
+                                Text="{Binding RimTraps.Count, FallbackValue=0, TargetNullValue=0}" />
                             </TextBlock>
                         </ToggleButton>
                         <ToggleButton IsChecked="{Binding ShowRimDataZones}"
@@ -1394,7 +1395,7 @@
                                       Click="RimDataShowHideButton_Click"
                                       Tag="Zone" Width="70">
                             <TextBlock><Run>Zones:</Run> <TextBlock Margin="0,1,0,0"
-                                Text="{Binding RimZones.Count, FallbackValue=0}" />
+                                Text="{Binding RimZones.Count, FallbackValue=0, TargetNullValue=0}" />
                             </TextBlock>
                         </ToggleButton>
                         <ToggleButton IsChecked="{Binding ShowRimDataEncounters}"
@@ -1402,7 +1403,7 @@
                                       Click="RimDataShowHideButton_Click"
                                       Tag="Encounter" Width="90">
                             <TextBlock><Run>Encounters:</Run> <TextBlock Margin="0,1,0,0"
-                                Text="{Binding RimEncounters.Count, FallbackValue=0}" />
+                                Text="{Binding RimEncounters.Count, FallbackValue=0, TargetNullValue=0}" />
                             </TextBlock>
                         </ToggleButton>
                     </StackPanel>
@@ -2136,11 +2137,11 @@
                                         </StackPanel>
                                     </Border>
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=1.11}" />
+                                           Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=1.11, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationLeftRight, StringFormat=N2, FallbackValue=1.11}" />
+                                           Text="{Binding DurationLeftRight, StringFormat=N2, FallbackValue=1.11, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                 </StackPanel>
 
@@ -2158,11 +2159,11 @@
                                         </StackPanel>
                                     </Border>
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceLiveLeft, StringFormat=N2, FallbackValue=69.69}" />
+                                           Text="{Binding DistanceLiveLeft, StringFormat=N2, FallbackValue=69.69, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationLiveLeft, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DurationLiveLeft, StringFormat=N2, FallbackValue=333.33, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                 </StackPanel>
 
@@ -2180,11 +2181,11 @@
                                         </StackPanel>
                                     </Border>
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceLiveRight, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DistanceLiveRight, StringFormat=N2, FallbackValue=333.33, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationLiveRight, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DurationLiveRight, StringFormat=N2, FallbackValue=333.33, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                 </StackPanel>
                             </StackPanel>
@@ -2208,7 +2209,7 @@
                                               ToolTip="A newly drawn segment will stick to the start and end point of segments in paths within range." />
                                     <ComboBox Grid.Row="1" Grid.Column="1" Width="70" Height="18" Padding="0" x:Name="cbStickyRange"
                                               HorizontalContentAlignment="Right" IsEnabled="{Binding SegmentIsSticky}"
-                                              Text="{Binding SegmentStickyDistance, StringFormat=N1, Mode=TwoWay, FallbackValue=1}">
+                                              Text="{Binding SegmentStickyDistance, StringFormat=N1, Mode=TwoWay, FallbackValue=1, TargetNullValue=1}">
                                     </ComboBox>
                                 </Grid>
                             </StackPanel>
@@ -2225,11 +2226,11 @@
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Black" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Black" />
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceTempSegment, StringFormat=N2, FallbackValue=1.11}" />
+                                           Text="{Binding DistanceTempSegment, StringFormat=N2, FallbackValue=1.11, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationTempSegment, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DurationTempSegment, StringFormat=N2, FallbackValue=333.33, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource stylePointButton}" Click="BuildSegmentFromBlackWhitePoints_Click">
                                         <Button.IsEnabled>
@@ -2258,11 +2259,11 @@
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Blue" />
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceBluePath, StringFormat=N2, FallbackValue=1.11}" />
+                                           Text="{Binding DistanceBluePath, StringFormat=N2, FallbackValue=1.11, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationBluePath, StringFormat=N2, FallbackValue=1.11}" />
+                                           Text="{Binding DurationBluePath, StringFormat=N2, FallbackValue=1.11, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding BluePathVisible}" Tag="Blue" />
                                     <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Blue" />
@@ -2281,11 +2282,11 @@
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding RedPathVisible}" Tag="Red" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Red" />
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceRedPath, StringFormat=N2, FallbackValue=22.22}" />
+                                           Text="{Binding DistanceRedPath, StringFormat=N2, FallbackValue=22.22, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationRedPath, StringFormat=N2, FallbackValue=22.22}" />
+                                           Text="{Binding DurationRedPath, StringFormat=N2, FallbackValue=22.22, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding RedPathVisible}" Tag="Red" />
                                     <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Red" />
@@ -2296,11 +2297,11 @@
                                     <Button Style="{StaticResource styleClearPathButton}" IsEnabled="{Binding GreenPathVisible}" Tag="Green" />
                                     <Line Style="{StaticResource styleSegmentIcon}" Stroke="Green" />
                                     <TextBlock TextAlignment="Right" Width="70"
-                                           Text="{Binding DistanceGreenPath, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DistanceGreenPath, StringFormat=N2, FallbackValue=333.33, TargetNullValue=0.0}" />
                                     <TextBlock Text="m" />
                                     <TextBlock Text="{Binding CoordinateSeparator}" />
                                     <TextBlock TextAlignment="Right" Width="60"
-                                           Text="{Binding DurationGreenPath, StringFormat=N2, FallbackValue=333.33}" />
+                                           Text="{Binding DurationGreenPath, StringFormat=N2, FallbackValue=333.33, TargetNullValue=0.0}" />
                                     <TextBlock Text="s" />
                                     <Button Style="{StaticResource styleMinusPathButton}" IsEnabled="{Binding GreenPathVisible}" Tag="Green" />
                                     <Button Style="{StaticResource styleAddToPathButton}" IsEnabled="{Binding TempSegmentVisible}" Tag="Green" />
@@ -2344,12 +2345,12 @@
                                         <TextBlock Text="GP radius at ..." Width="112" /> <!--188-->
                                         <TextBlock Text="&#x0394;z=" ToolTip="Height difference of the most distant follower." />
                                         <TextBlock TextAlignment="Right" Width="30"
-                                            Text="{Binding LiveGatherPartyRangeDeltaZ, StringFormat=N2, FallbackValue=0.00}" />
+                                            Text="{Binding LiveGatherPartyRangeDeltaZ, StringFormat=N2, FallbackValue=0.00, TargetNullValue=0.0}" />
                                         <TextBlock Text="r=" Margin="10,0,0,0" />
                                         <TextBlock TextAlignment="Right" Width="45"
                                             Text="{Binding LiveGatherPartyRangeDiameter, StringFormat=N2,
                                                 Converter={StaticResource MultiplyDoubleConverter}, ConverterParameter=0.5,
-                                                FallbackValue=30.00}" />
+                                                FallbackValue=30.00, TargetNullValue=30.0}" />
                                     </StackPanel>
 
                                     <Border Margin="0,2" BorderBrush="#707070" BorderThickness="0,0,0,1"
@@ -2364,17 +2365,17 @@
                                                      StrokeLineJoin="Round" StrokeThickness=".5" />
                                         </Grid>
                                         <TextBlock Text="" Margin="0,0,12,0" />
-                                        <TextBlock Text="{Binding Party0Name, FallbackValue=Player}" Width="86" />
+                                        <TextBlock Text="{Binding Party0Name, FallbackValue=Player, TargetNullValue=Player}" Width="86" />
                                         <TextBlock Text="&#x0394;z=" ToolTip="Difference in height between locked GP position and party leader."
                                                    Visibility="{Binding Party0DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}" />
                                         <TextBlock TextAlignment="Right" Width="30"
                                                    Visibility="{Binding Party0DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
-                                                   Text="{Binding Party0DeltaZ, StringFormat=N2, FallbackValue=0.00}" />
+                                                   Text="{Binding Party0DeltaZ, StringFormat=N2, FallbackValue=0.00, TargetNullValue=0.0}" />
                                         <TextBlock Text="d=" Margin="10,0,0,0" ToolTip="Distance between locked GP position and party leader."
                                                    Visibility="{Binding Party0DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}" />
                                         <TextBlock TextAlignment="Right" Width="45"
                                                    Visibility="{Binding Party0DistanceTo, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
-                                                   Text="{Binding Party0DistanceTo, StringFormat=N2, FallbackValue=0.00}" />
+                                                   Text="{Binding Party0DistanceTo, StringFormat=N2, FallbackValue=0.00, TargetNullValue=0.0}" />
                                     </StackPanel>
                                 
                                     <!-- Party 1 GP Range -->
@@ -2393,15 +2394,15 @@
                                                      StrokeLineJoin="Round" StrokeThickness=".5" />
                                         </Grid>
                                         <TextBlock Text="1, " />
-                                        <TextBlock Text="{Binding Party1Name, FallbackValue=Mandalore}" Width="86" />
+                                        <TextBlock Text="{Binding Party1Name, FallbackValue=Mandalore, TargetNullValue=Mandalore}" Width="86" />
                                         <TextBlock Text="&#x0394;z=" ToolTip="Difference in height between leader and follower 1." />
                                         <TextBlock TextAlignment="Right" Width="30"
                                                    Visibility="{Binding Party1DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
-                                                   Text="{Binding Party1DeltaZ, StringFormat=N2, FallbackValue=1.00}" />
+                                                   Text="{Binding Party1DeltaZ, StringFormat=N2, FallbackValue=1.00, TargetNullValue=0.0}" />
                                         <TextBlock Text="d=" Margin="10,0,0,0" ToolTip="Distance between leader and follower 1." />
                                         <TextBlock TextAlignment="Right" Width="45"
                                                    Visibility="{Binding Party1DistanceTo, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
-                                                   Text="{Binding Party1DistanceTo, StringFormat=N2, FallbackValue=1.00}" />
+                                                   Text="{Binding Party1DistanceTo, StringFormat=N2, FallbackValue=1.00, TargetNullValue=0.0}" />
                                     </StackPanel>
                                 
                                     <!-- Party 2 GP Range -->
@@ -2420,15 +2421,15 @@
                                                      StrokeLineJoin="Round" StrokeThickness=".5" />
                                         </Grid>
                                         <TextBlock Text="2, " Margin="0,0,0,0" />
-                                        <TextBlock Text="{Binding Party2Name, FallbackValue=Canderous}" Width="86" />
+                                        <TextBlock Text="{Binding Party2Name, FallbackValue=Canderous, TargetNullValue=Canderous}" Width="86" />
                                         <TextBlock Text="&#x0394;z=" ToolTip="Difference in height between leader and follower 2." />
                                         <TextBlock TextAlignment="Right" Width="30"
                                                    Visibility="{Binding Party2DeltaZ, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
-                                                   Text="{Binding Party2DeltaZ, StringFormat=N2, FallbackValue=2.00}" />
+                                                   Text="{Binding Party2DeltaZ, StringFormat=N2, FallbackValue=2.00, TargetNullValue=0.0}" />
                                         <TextBlock Text="d=" Margin="10,0,0,0" ToolTip="Distance between leader and follower 2." />
                                         <TextBlock TextAlignment="Right" Width="45"
                                                    Visibility="{Binding Party2DistanceTo, Converter={StaticResource StringNotEqualsToVisibilityConverter}, ConverterParameter=-1}"
-                                                   Text="{Binding Party2DistanceTo, StringFormat=N2, FallbackValue=2.00}" />
+                                                   Text="{Binding Party2DistanceTo, StringFormat=N2, FallbackValue=2.00, TargetNullValue=0.0}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -2462,21 +2463,21 @@
                                     <Slider Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Minimum="0" Maximum="30" LargeChange="1"
                                             Value="{Binding LeftClickGatherPartyRangeDeltaZ, Mode=TwoWay}" />
                                     <TextBlock Grid.Row="0" Grid.Column="2" Width="30" VerticalAlignment="Center" TextAlignment="Right" Margin="0,0,0,4"
-                                            Text="{Binding LeftClickGatherPartyRangeDeltaZ, StringFormat=N2, FallbackValue=0.00}" />
+                                            Text="{Binding LeftClickGatherPartyRangeDeltaZ, StringFormat=N2, FallbackValue=0.00, TargetNullValue=0.0}" />
 
                                     <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="GP radius at &#x0394;z" Margin="0,0,6,4" VerticalAlignment="Center" />
                                     <TextBlock Grid.Row="1" Grid.Column="2" Width="30" VerticalAlignment="Center" TextAlignment="Right" Margin="0,0,0,4"
                                             Text="{Binding LeftClickGatherPartyRangeDiameter, StringFormat=N2,
                                                 Converter={StaticResource MultiplyDoubleConverter},
-                                                ConverterParameter=0.5, FallbackValue=30.00}" />
+                                                ConverterParameter=0.5, FallbackValue=30.00, TargetNullValue=30.0}" />
 
                                     <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="2D coordinate distance (m)" Margin="0,0,0,4" />
                                     <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" TextAlignment="Right" Margin="0,0,0,4"
-                                               Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=2.22}" />
+                                               Text="{Binding DistanceLeftRight, StringFormat=N2, FallbackValue=2.22, TargetNullValue=0.0}" />
 
                                     <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="3D coordinate distance (m)" Margin="0,0,0,4" />
                                     <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" TextAlignment="Right" Margin="0,0,0,4"
-                                               Text="{Binding DistanceLeftRight3D, StringFormat=N2, FallbackValue=3.33}" />
+                                               Text="{Binding DistanceLeftRight3D, StringFormat=N2, FallbackValue=3.33, TargetNullValue=0.0}" />
                                 </Grid>
                                 
                             </Border>
@@ -2493,7 +2494,7 @@
                               VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding ShowToolsPanel,
                                   Converter={StaticResource BoolToVisibilityConverter},
-                                  FallbackValue=Visible, TargetNullValue=Collapsed}">
+                                  FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid>
                         <Grid.IsEnabled>
                             <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -2563,7 +2564,6 @@
                                 </Grid>
                                 
                                 <!-- Custom Coordinates -->
-                                <!-- TODO: Fix coordinate text boxes -->
                                 <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,2,4,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="20" />
@@ -2575,11 +2575,11 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="1" Text="X: " />
                                     <TextBox   Grid.Column="2" TextAlignment="Right"
-                                               Text="{Binding TeleportToX, StringFormat=N2, Mode=OneWayToSource, FallbackValue=0.00,
+                                               Text="{Binding TeleportToX, StringFormat=N2, Mode=OneWayToSource, FallbackValue=0.00, TargetNullValue=0.0,
                                                     Converter={StaticResource DoubleToStringConverter}}" />
                                     <TextBlock Grid.Column="4" Text="Y: " />
                                     <TextBox   Grid.Column="5" TextAlignment="Right"
-                                               Text="{Binding TeleportToY, StringFormat=N2, Mode=OneWayToSource, FallbackValue=0.00,
+                                               Text="{Binding TeleportToY, StringFormat=N2, Mode=OneWayToSource, FallbackValue=0.00, TargetNullValue=0.0,
                                                     Converter={StaticResource DoubleToStringConverter}}" />
                                 </Grid>
                                 
@@ -3253,7 +3253,7 @@
                       Margin="4,0,0,0"
                       Visibility="{Binding ShowGlobalsPanel,
                           Converter={StaticResource BoolToVisibilityConverter},
-                          FallbackValue=Collapsed, TargetNullValue=Collapsed}">
+                          FallbackValue=Visible, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" x:Name="rowGlobalsFind" />
                         <RowDefinition Height="Auto" x:Name="rowGlobalsReadWrite" />
@@ -3380,6 +3380,15 @@
                                             <GridViewColumnHeader Tag="Add" Content="" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
+                                    <GridViewColumn Width="28">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Margin="0" IsChecked="{Binding DoPopupOnChange, Mode=TwoWay}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                        <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="DoPopupOnChange" Content="Pop"
+                                                              ToolTip="Show in-game popup when value changes." />
+                                    </GridViewColumn>
                                     <GridViewColumn Width="60" DisplayMemberBinding="{Binding Type}">
                                         <GridViewColumnHeader Click="LvGlobalsFind_ColumnHeader_Click" Tag="Type" Content="Type" />
                                     </GridViewColumn>
@@ -3400,8 +3409,8 @@
                         </ListView>
 
                         <TextBlock Grid.Row="2" Margin="8,24,8,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="Select a game to populate globals."
-                                   Visibility="{Binding KotorFindGlobals.Count, Converter={StaticResource IsZeroToVisibilityConverter}}"
-                                   />
+                                   Visibility="{Binding KotorFindGlobals.Count, Converter={StaticResource IsZeroToVisibilityConverter},
+                                                        FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                     </Grid>
 
                     <!-- Read / Write Globals -->
@@ -3423,12 +3432,21 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Read / Write" Style="{StaticResource tbHeader}" />
-                        <CheckBox Grid.Row="0" Grid.Column="2" Margin="0,0,0,4"
-                                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    IsChecked="{Binding DoGlobalReadAutoRefresh, Mode=TwoWay}"
-                                    ToolTip="Periodically read selected global variable." />
-                        <Button Grid.Row="0" Grid.Column="3" Margin="4,0,0,4" Click="ReadGlobal_Click"
+                        <ToggleButton Margin="0,0,4,4" Padding="0" Height="22" Width="22"
+                                      HorizontalAlignment="Left" VerticalAlignment="Center"
+                                      IsChecked="{Binding GlobalsFindSelectedItem.DoPopupOnChange, Mode=TwoWay}"
+                                      ToolTip="Show in-game popup when value changes.">
+                            <Image Height="20" Source="/Resources/Icons/PopupIcon.png" />
+                        </ToggleButton>
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Text="Read / Write" Style="{StaticResource tbHeader}" />
+                        <ToggleButton Grid.Row="0" Grid.Column="2" Margin="0,0,0,4" Padding="0"
+                                      HorizontalAlignment="Right" VerticalAlignment="Center"
+                                      IsChecked="{Binding DoGlobalReadAutoRefresh, Mode=TwoWay}"
+                                      ToolTip="Periodically read selected global variable.">
+                            <Image Height="20" Source="/Resources/Icons/TimerIcon.png" />
+                        </ToggleButton>
+                        <Button Grid.Row="0" Grid.Column="3" Margin="4,0,0,4"
+                                Click="ReadGlobal_Click" Padding="0"
                                 ToolTip="Read selected global variable.">
                             <Button.IsEnabled>
                                 <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
@@ -3437,7 +3455,7 @@
                                     <Binding Path="DoGlobalReadAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
                                 </MultiBinding>
                             </Button.IsEnabled>
-                            <Image Height="14" Source="/Resources/Icons/RefreshIcon.png" />
+                            <Image Height="20" Source="/Resources/Icons/RefreshIcon.png" />
                         </Button>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" />
@@ -3466,7 +3484,7 @@
                                     <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
                                 </MultiBinding>
                             </Button.IsEnabled>
-                            <Image Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
+                            <Image Margin="0" Height="14" Source="/Resources/Icons/LivePositionIcon.png" />
                         </Button>
                     </Grid>
                 </Grid>
@@ -3950,7 +3968,7 @@
                     </GridSplitter>
 
                     <!--
-                    Bottom Panel: Global Watch
+                    Bottom Panel: Global Watch Panel
                     -->
                     <Grid Margin="0,4,0,0" Grid.Row="2" x:Name="gridGlobalsWatch"
                           Visibility="{Binding ShowGlobalWatchPanel,
@@ -3963,6 +3981,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.Resources>
@@ -4001,6 +4020,10 @@
                             </Style>
                             <Style TargetType="CheckBox">
                                 <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Margin" Value="0,0,0,4" />
                                 <Setter Property="VerticalAlignment" Value="Center" />
                             </Style>
                             <DataTemplate x:Key="dtRemoveWatch">
@@ -4049,7 +4072,8 @@
                             </Style>
                         </Grid.Resources>
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <!--Watch file actions-->
+                        <StackPanel Visibility="Collapsed" Grid.Column="0" Orientation="Horizontal">
                             <!--Load-->
                             <Button Margin="0,0,4,4" Click="LoadGlobalWatch_Click"
                                     ToolTip="Open global watch file.">
@@ -4078,19 +4102,21 @@
                             </Button>
                         </StackPanel>
                         
+                        <!--Filter-->
                         <DockPanel Grid.Column="1">
                             <TextBlock DockPanel.Dock="Left" Text="Filter:" />
-                            <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsWatchFilter_Click">
-                                <Image Height="14" Width="14" Source="/Resources/Icons/Backspace.png" />
+                            <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsWatchFilter_Click" Width="24" Height="24">
+                                <Image Height="18" Width="18" Source="/Resources/Icons/Backspace.png" />
                             </Button>
                             <TextBox x:Name="txtGlobalsWatchFilter" TextChanged="TxtGlobalsWatchFilter_TextChanged" d:Text="filter" />
                         </DockPanel>
 
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <!--Refresh actions-->
+                        <StackPanel Visibility="Collapsed" Grid.Column="2" Orientation="Horizontal">
                             <CheckBox x:Name="cbAutoRefreshGlobalWatch" Content="Auto" Margin="4,0,4,4"
                                       ToolTip="Periodically read all watched global variables."
                                       IsChecked="{Binding DoGlobalWatchAutoRefresh, Mode=TwoWay}" />
-                            
+
                             <Button Click="RefreshGlobalWatch_Click"
                                     ToolTip="Read all watched global vairables.">
                                 <Button.IsEnabled>
@@ -4116,13 +4142,22 @@
                                     d:ItemsSource="{d:SampleData}">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Width="20" CellTemplate="{StaticResource dtRemoveWatch}">
+                                    <GridViewColumn Width="22" CellTemplate="{StaticResource dtRemoveWatch}">
                                         <GridViewColumn.Header>
                                             <GridViewColumnHeader Tag="Remove" Content="" />
                                         </GridViewColumn.Header>
                                     </GridViewColumn>
-                                    <GridViewColumn Width="20" DisplayMemberBinding="{Binding Type}">
-                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Type" Content="T" />
+                                    <GridViewColumn Width="28">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Margin="0" IsChecked="{Binding DoPopupOnChange, Mode=TwoWay}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="DoPopupOnChange" Content="Pop"
+                                                              ToolTip="Show in-game popup when value changes." />
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="65" DisplayMemberBinding="{Binding Type}">
+                                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Type" Content="Type" />
                                     </GridViewColumn>
                                     <GridViewColumn Width="140" DisplayMemberBinding="{Binding Name}">
                                         <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Name" Content="Name" />
@@ -4142,6 +4177,53 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
+
+                        <StackPanel Margin="4,0,0,0" Grid.Column="3" Grid.RowSpan="2" Orientation="Vertical">
+                            <!--Load-->
+                            <Button Click="LoadGlobalWatch_Click" Height="24"
+                                    ToolTip="Open global watch file.">
+                                <Image Height="18" Source="/Resources/Icons/FolderIcon.png" />
+                            </Button>
+                            <!--Save-->
+                            <Button Padding="2" Click="SaveGlobalWatch_Click"
+                                    ToolTip="Save global watch file.">
+                                <Image Height="18" Source="/Resources/Icons/Save.png" />
+                            </Button>
+                            <!--Clear-->
+                            <Button Click="ClearGlobalWatch_Click"
+                                    ToolTip="Clear global watch list.">
+                                <Image Height="20" Source="/Resources/Icons/ClearIcon.png" />
+                            </Button>
+                            <!--Reset-->
+                            <Button Click="ResetGlobalWatch_Click" Height="24"
+                                    ToolTip="Reset global watch list to defaults.">
+                                <Image Height="18" Source="/Resources/Icons/UndoIcon.png" />
+                            </Button>
+                            <Separator Margin="0,0,0,4" />
+                            <!--Refresh-->
+                            <Button Click="RefreshGlobalWatch_Click" Height="24"
+                                    ToolTip="Read all watched global vairables.">
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource BoolMultiConverter}" ConverterParameter="And">
+                                        <Binding Path="ShowLivePosition" />
+                                        <Binding Path="IsBusy" Converter="{StaticResource InverseBooleanConverter}" />
+                                        <Binding Path="DoGlobalWatchAutoRefresh" Converter="{StaticResource InverseBooleanConverter}" />
+                                    </MultiBinding>
+                                </Button.IsEnabled>
+                                <Image Height="18" Source="/Resources/Icons/RefreshIcon.png" />
+                            </Button>
+                            <!--Auto-->
+                            <ToggleButton IsChecked="{Binding DoGlobalWatchAutoRefresh}"
+                                          ToolTip="Periodically read all watched global variables.">
+                                <Image Height="20" Source="/Resources/Icons/TimerIcon.png" />
+                            </ToggleButton>
+                            <!--Popup-->
+                            <ToggleButton IsChecked="{Binding DoPopupAllGlobalWatch, Mode=TwoWay}"
+                                          ToolTip="Show in-game popup when any watched value changes.">
+                                <Image Height="20" Source="/Resources/Icons/PopupIcon.png" />
+                            </ToggleButton>
+                        </StackPanel>
+
                     </Grid>
                 </Grid>
 
@@ -4165,7 +4247,7 @@
                 <Grid x:Name="optionsGrid" Grid.Column="5" Margin="4,0,0,0"
                       Visibility="{Binding ShowWalkmeshPanel,
                             Converter={StaticResource BoolToVisibilityConverter},
-                            FallbackValue=Visible, TargetNullValue=Collapsed}">
+                            FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />

@@ -586,5 +586,29 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["GlobalAutoRefreshRate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DoGlobalWatchAutoRefresh {
+            get {
+                return ((bool)(this["DoGlobalWatchAutoRefresh"]));
+            }
+            set {
+                this["DoGlobalWatchAutoRefresh"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DoPopupAllGlobalWatch {
+            get {
+                return ((bool)(this["DoPopupAllGlobalWatch"]));
+            }
+            set {
+                this["DoPopupAllGlobalWatch"] = value;
+            }
+        }
     }
 }

@@ -178,6 +178,8 @@ namespace WalkmeshVisualizerWpf.Views
             prevBottomPanelSize = settings.PrevBottomPanelSize;
             ShowGlobalWatchPanel = settings.ShowGlobalWatchPanel;
             GlobalAutoRefreshRate = settings.GlobalAutoRefreshRate;
+            DoGlobalWatchAutoRefresh = settings.DoGlobalWatchAutoRefresh;
+            DoPopupAllGlobalWatch = settings.DoPopupAllGlobalWatch;
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
             SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
@@ -1695,6 +1697,14 @@ namespace WalkmeshVisualizerWpf.Views
             set => SetField(ref _doGlobalAutoRefresh, value);
         }
         private bool _doGlobalAutoRefresh = false;
+
+        public bool DoPopupAllGlobalWatch
+        {
+            get => _doPopupAllGlobalWatch;
+            set => SetField(ref _doPopupAllGlobalWatch, value);
+        }
+        private bool _doPopupAllGlobalWatch = false;
+
 
         private List<KotorGlobal> Kotor1Globals = [];
         private List<KotorGlobal> Kotor2Globals = [];
@@ -4345,6 +4355,8 @@ namespace WalkmeshVisualizerWpf.Views
             settings.PrevBottomPanelSize = ShowGlobalWatchPanel
                 ? rowBottomPanel.ActualHeight
                 : prevBottomPanelSize;
+            settings.DoGlobalWatchAutoRefresh = DoGlobalWatchAutoRefresh;
+            settings.DoPopupAllGlobalWatch = DoPopupAllGlobalWatch;
 
             settings.SelectedPaletteName = SelectedPalette.FileName;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
@@ -4997,7 +5009,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (ShowGlobalWatchPanel)
             {
-                rowBottomPanel.MinHeight = 200;
+                rowBottomPanel.MinHeight = 201;
                 rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
             }
             else
@@ -6597,6 +6609,19 @@ namespace WalkmeshVisualizerWpf.Views
             foreach (var global in globals)
                 ReadGlobal(global, km, false);
             RefreshSort_Globals();
+            PopupChangedGlobals();
+        }
+
+        private void PopupChangedGlobals()
+        {
+            var changedGlobals = KotorWatchGlobals.Where(g
+                => (DoPopupAllGlobalWatch || g.DoPopupOnChange)
+                && g.HasChanged && g.LastValue != null);
+            if (!changedGlobals.Any()) return;
+            ShowCustomMessageBox(
+                "Globals have changed!\n"
+                +"-------------------------------------\n"
+                + string.Join("\n", changedGlobals.Select(g => $"{g.Name}: {g.LastValue} -> {g.Value}")));
         }
 
         private void RefreshSort_Globals()

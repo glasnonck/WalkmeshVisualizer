@@ -96,6 +96,13 @@ namespace WalkmeshVisualizerWpf.Models
         }
         private bool _isWatched = false;
 
+        public bool DoPopupOnChange
+        {
+            get => _doPopupOnChange;
+            set => SetField(ref _doPopupOnChange, value);
+        }
+        private bool _doPopupOnChange = false;
+
         [JsonIgnore]
         public bool HasChanged => Value != LastValue;
         #endregion // Properties
