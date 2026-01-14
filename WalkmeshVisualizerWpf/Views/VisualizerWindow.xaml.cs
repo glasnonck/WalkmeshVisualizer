@@ -1010,6 +1010,13 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private bool _showCurrentLiveModule = false;
 
+        public string CurrentLiveModuleName
+        {
+            get => _currentLiveModuleName;
+            set => SetField(ref _currentLiveModuleName, value);
+        }
+        private string _currentLiveModuleName = string.Empty;
+
         public bool HotswapToLiveGame
         {
             get => _hotswapToLiveGame;
@@ -5116,7 +5123,7 @@ namespace WalkmeshVisualizerWpf.Views
             int lastVersion = 0;
             int version = 0;
             KotorManager km = null;
-            var thisModuleName = string.Empty;
+            CurrentLiveModuleName = string.Empty;
 
             while (true)
             {
@@ -5125,7 +5132,7 @@ namespace WalkmeshVisualizerWpf.Views
                     if (bw.CancellationPending) break;
                     if (km == null)
                     {
-                        thisModuleName = string.Empty;
+                        CurrentLiveModuleName = string.Empty;
                         version = GetRunningKotor();
                         if (version != 0)
                         {
@@ -5213,15 +5220,15 @@ namespace WalkmeshVisualizerWpf.Views
                             }
                             else
                             {
-                                thisModuleName = string.Empty;
+                                CurrentLiveModuleName = string.Empty;
                                 nextModuleName = string.Empty;
                             }
 
                             // If HidePreviousLiveModule
-                            if (HidePreviousLiveModule && thisModuleName != nextModuleName)
+                            if (HidePreviousLiveModule && CurrentLiveModuleName != nextModuleName)
                             {
                                 // Hide previous module.
-                                var lastRim = OnRims.FirstOrDefault(rm => rm.FileName == thisModuleName.ToLower());
+                                var lastRim = OnRims.FirstOrDefault(rm => rm.FileName == CurrentLiveModuleName.ToLower());
                                 if (lastRim != null) Application.Current.Dispatcher.Invoke(() => RemoveRim(lastRim));
                                 while (IsBusy) { Thread.Sleep(10); }
                             }
@@ -5234,10 +5241,10 @@ namespace WalkmeshVisualizerWpf.Views
                             }
 
                             // If current module not shown, display it
-                            if (thisModuleName != nextModuleName)
+                            if (CurrentLiveModuleName != nextModuleName)
                             {
                                 // Update address information
-                                thisModuleName = nextModuleName;
+                                CurrentLiveModuleName = nextModuleName;
                                 km.RefreshAddresses();
                             }
 
@@ -6661,6 +6668,8 @@ namespace WalkmeshVisualizerWpf.Views
         private void LogChangedGlobals(IEnumerable<KotorGlobal> changedGlobals)
         {
             if (!changedGlobals.Any()) return;
+            GlobalsLogger.LogLine($"Module: {CurrentLiveModuleName}");
+            GlobalsLogger.LogLine($"Position: {LivePositionPoint.X}{CoordinateSeparator}{LivePositionPoint.Y}");
             GlobalsLogger.LogLines(
                 changedGlobals
                     .OrderBy(g => g.LastChangeAt)

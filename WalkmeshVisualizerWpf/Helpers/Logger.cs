@@ -33,6 +33,13 @@ namespace WalkmeshVisualizerWpf.Helpers
             _logFilePath = Path.Combine(Environment.CurrentDirectory, DIRECTORY, $"{LogFilePrefix}_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
         }
 
+        public void LogLine(string line, bool includeDateTime = true)
+        {
+            if (includeDateTime)
+                line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {line}{Environment.NewLine}";
+            File.AppendAllText(_logFilePath, line);
+        }
+
         public void LogLines(IEnumerable<string> lines, bool includeDateTime = true)
         {
             if (includeDateTime)
