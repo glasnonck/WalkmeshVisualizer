@@ -180,6 +180,7 @@ namespace WalkmeshVisualizerWpf.Views
             GlobalAutoRefreshRate = settings.GlobalAutoRefreshRate;
             DoGlobalWatchAutoRefresh = settings.DoGlobalWatchAutoRefresh;
             DoPopupAllGlobalWatch = settings.DoPopupAllGlobalWatch;
+            DoLogChangedGlobals = settings.DoLogChangedGlobals;
 
             SelectedBackgroundColor = (BackgroundColor)settings.SelectedBackgroundColor;
             SelectedPalette = PaletteManager.Instance.Palettes.FirstOrDefault(p => p.FileName == settings.SelectedPaletteName);
@@ -1701,10 +1702,29 @@ namespace WalkmeshVisualizerWpf.Views
         public bool DoPopupAllGlobalWatch
         {
             get => _doPopupAllGlobalWatch;
-            set => SetField(ref _doPopupAllGlobalWatch, value);
+            set
+            {
+                SetField(ref _doPopupAllGlobalWatch, value);
+                _popupDisplayLines.Clear();
+            }
         }
         private bool _doPopupAllGlobalWatch = false;
 
+        private readonly List<string> _popupDisplayLines = [];
+
+        public bool DoLogChangedGlobals
+        {
+            get => _doLogChangedGlobals;
+            set
+            {
+                GlobalsLogger.NewLogFile();
+                SetField(ref _doLogChangedGlobals, value);
+            }
+        }
+        private bool _doLogChangedGlobals = false;
+        private readonly Logger GlobalsLogger = new("Globals");
+        private const string K1_GLOBALS_LOG_FILE_PREFIX = "K1_Globals";
+        private const string K2_GLOBALS_LOG_FILE_PREFIX = "K2_Globals";
 
         private List<KotorGlobal> Kotor1Globals = [];
         private List<KotorGlobal> Kotor2Globals = [];
@@ -4357,6 +4377,7 @@ namespace WalkmeshVisualizerWpf.Views
                 : prevBottomPanelSize;
             settings.DoGlobalWatchAutoRefresh = DoGlobalWatchAutoRefresh;
             settings.DoPopupAllGlobalWatch = DoPopupAllGlobalWatch;
+            settings.DoLogChangedGlobals = DoLogChangedGlobals;
 
             settings.SelectedPaletteName = SelectedPalette.FileName;
             settings.SelectedBackgroundColor = (int)SelectedBackgroundColor;
@@ -5009,7 +5030,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             if (ShowGlobalWatchPanel)
             {
-                rowBottomPanel.MinHeight = 201;
+                rowBottomPanel.MinHeight = 229;
                 rowBottomPanel.Height = new GridLength(prevBottomPanelSize, GridUnitType.Pixel);
             }
             else
@@ -5117,6 +5138,8 @@ namespace WalkmeshVisualizerWpf.Views
                                 cbInfluence.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
                                 tbInfluenceValue.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
                                 btnInfluence.Visibility = version == 2 ? Visibility.Visible : Visibility.Collapsed;
+                                GlobalsLogger.LogFilePrefix = version == 1 ? K1_GLOBALS_LOG_FILE_PREFIX : K2_GLOBALS_LOG_FILE_PREFIX;
+                                _popupDisplayLines.Clear();
                             });
                             lastVersion = version;
 
@@ -5164,12 +5187,18 @@ namespace WalkmeshVisualizerWpf.Views
                             // Global Watch Auto-Refresh
                             if (!IsBusy && DoGlobalWatchAutoRefresh && swWatchRefresh.ElapsedMilliseconds >= GlobalAutoRefreshRate)
                             {
+                                bool globalsRefreshed = false;
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
-                                    try { RefreshGlobalWatch_Click(null, null); }
+                                    try
+                                    {
+                                        globalsRefreshed = RefreshGlobalWatch();
+                                        PopupChangedGlobals();
+                                    }
                                     catch (Exception) { }
                                 });
-                                swWatchRefresh.Restart();
+                                if (globalsRefreshed)
+                                    swWatchRefresh.Restart();
                             }
 
                             string nextModuleName = string.Empty;
@@ -6335,11 +6364,13 @@ namespace WalkmeshVisualizerWpf.Views
             kmia.SendMessage(km.pr.h, kmia.Invulnerability());
         }
 
-        private void ShowCustomMessageBox(string message, bool showCancel = false)
+        private bool ShowCustomMessageBox(string message, bool showCancel = false)
         {
             var km = GetKotorManager();
-            if (km == null) return;
-            kmia.CreatePopUp(km.pr.h, message, showCancel);
+            if (km == null) return false;
+            if (kmih.getGuiManager(km.pr.h) == 0u) return false; // GUI not initialized
+            kmia.CreatePopUp(km.pr.h, message, showCancel, 0u); // causes crash if on main menu after having loaded a module
+            return true;
         }
 
         #endregion // Live Tools Panel Methods
@@ -6603,25 +6634,66 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void RefreshGlobalWatch_Click(object sender, RoutedEventArgs e)
         {
-            var km = GetKotorManager();
-            if (km == null) return;
-            var globals = KotorWatchGlobals.ToList();
-            foreach (var global in globals)
-                ReadGlobal(global, km, false);
-            RefreshSort_Globals();
-            PopupChangedGlobals();
+            RefreshGlobalWatch();
         }
 
+        private bool RefreshGlobalWatch()
+        {
+            var km = GetKotorManager();
+            if (km == null) return false;
+
+            var globals = KotorWatchGlobals.ToList();
+            if (kmih.getServer(km.pr.h) == 0) return false;
+
+            foreach (var global in globals)
+                ReadGlobal(global, km, false);
+
+            QueueChangedGlobalsForPopup(KotorWatchGlobals.Where(g => (DoPopupAllGlobalWatch || g.DoPopupOnChange) && g.HasChanged));
+            //PopupChangedGlobals(KotorWatchGlobals.Where(g => (DoPopupAllGlobalWatch || g.DoPopupOnChange) && g.HasChanged && g.LastValue != null));
+            if (DoLogChangedGlobals)
+                LogChangedGlobals(KotorWatchGlobals.Where(g => g.HasChanged));
+                //LogChangedGlobals(KotorWatchGlobals.Where(g => g.HasChanged && g.LastValue != null));
+
+            RefreshSort_Globals();
+            return true;
+        }
+
+        private void LogChangedGlobals(IEnumerable<KotorGlobal> changedGlobals)
+        {
+            if (!changedGlobals.Any()) return;
+            GlobalsLogger.LogLines(
+                changedGlobals
+                    .OrderBy(g => g.LastChangeAt)
+                    .Select(g => $"{g.LastChangeAt:yyyy-MM-dd HH:mm:ss} - {g.Name}: {g.LastValue} -> {g.Value}")
+                , false);
+        }
+
+        //private void DisplayGlobalsPopup()
         private void PopupChangedGlobals()
         {
-            var changedGlobals = KotorWatchGlobals.Where(g
-                => (DoPopupAllGlobalWatch || g.DoPopupOnChange)
-                && g.HasChanged && g.LastValue != null);
-            if (!changedGlobals.Any()) return;
-            ShowCustomMessageBox(
-                "Globals have changed!\n"
-                +"-------------------------------------\n"
-                + string.Join("\n", changedGlobals.Select(g => $"{g.Name}: {g.LastValue} -> {g.Value}")));
+            if (_popupDisplayLines.Count == 0) return;
+
+            // TODO: Consider limiting displaying to only 512 characters at a time. Is there a way to check if there is a popup already open?
+            //var message = "Globals have changed!\n"
+            //        + "-------------------------------------\n"
+            //        + string.Join("\n", _popupDisplayLines);
+            //var length = message.Length;
+
+            if (ShowCustomMessageBox("Globals have changed!\n-------------------------------------\n" + string.Join("\n", _popupDisplayLines)))
+            {
+                _popupDisplayLines.Clear();
+            }
+        }
+
+        //private void PopupChangedGlobals(IEnumerable<KotorGlobal> changedGlobals)
+        private void QueueChangedGlobalsForPopup(IEnumerable<KotorGlobal> changedGlobals)
+        {
+            //if (!changedGlobals.Any()) return;
+            _popupDisplayLines.AddRange(changedGlobals.Select(g => $"({g.LastChangeAt:HH:mm:ss}) {g.Name}: {g.LastValue} -> {g.Value}"));
+            //ShowCustomMessageBox(
+            //    "Globals have changed!\n"
+            //    +"-------------------------------------\n"
+            //    + string.Join("\n", _popupDisplayLines));
         }
 
         private void RefreshSort_Globals()

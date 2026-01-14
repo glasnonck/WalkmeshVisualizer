@@ -106,5 +106,7 @@ namespace WalkmeshVisualizerWpf.Models
         [JsonIgnore]
         public bool HasChanged => Value != LastValue;
         #endregion // Properties
+
+        public override string ToString() => $"({LastChangeAt:HH:mm:ss}) {Name}: {LastValue} -> {Value}";
     }
 }

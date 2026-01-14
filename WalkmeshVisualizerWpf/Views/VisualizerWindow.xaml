@@ -3605,7 +3605,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" x:Name="rowBottomPanel" />
+                        <RowDefinition Height="Auto" x:Name="rowBottomPanel" d:Height="229" />
                     </Grid.RowDefinitions>
 
                     <!--
@@ -4214,16 +4214,20 @@
                             </Button>
                             <!--Auto-->
                             <ToggleButton IsChecked="{Binding DoGlobalWatchAutoRefresh}"
-                                          ToolTip="Periodically read all watched global variables.">
-                                <Image Height="20" Source="/Resources/Icons/TimerIcon.png" />
+                                          ToolTip="Periodically read all watched global variables." Padding="0">
+                                <Image Height="22" Source="/Resources/Icons/TimerIcon.png" />
                             </ToggleButton>
                             <!--Popup-->
                             <ToggleButton IsChecked="{Binding DoPopupAllGlobalWatch, Mode=TwoWay}"
                                           ToolTip="Show in-game popup when any watched value changes.">
                                 <Image Height="20" Source="/Resources/Icons/PopupIcon.png" />
                             </ToggleButton>
+                            <!--Log-->
+                            <ToggleButton Height="24" IsChecked="{Binding DoLogChangedGlobals, Mode=TwoWay}"
+                                          ToolTip='Log any watched value changes to a file in the "Log/" directory.'>
+                                <Image Height="18" Source="/Resources/Icons/Edit.png" />
+                            </ToggleButton>
                         </StackPanel>
-
                     </Grid>
                 </Grid>
 

@@ -610,5 +610,17 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["DoPopupAllGlobalWatch"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DoLogChangedGlobals {
+            get {
+                return ((bool)(this["DoLogChangedGlobals"]));
+            }
+            set {
+                this["DoLogChangedGlobals"] = value;
+            }
+        }
     }
 }
