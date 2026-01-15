@@ -1,0 +1,218 @@
+﻿<UserControl x:Class="WalkmeshVisualizerWpf.UserControls.Globals.WatchGlobalsUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WalkmeshVisualizerWpf.UserControls.Globals"
+             mc:Ignorable="d" d:Background="White" d:Height="229"
+             DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <Grid Margin="0,4,0,0" Grid.Row="2" x:Name="gridGlobalsWatch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        
+        <Grid.Resources>
+            <Style TargetType="ListViewItem" x:Key="BaseItemStyle">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="Black" />
+            </Style>
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,0,4,4" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style TargetType="TextBlock" x:Key="tbHeader">
+                <Setter Property="Margin" Value="0,0,4,4" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+            <Style TargetType="TextBlock" x:Key="tbHighlight">
+                <Setter Property="Margin" Value="0,0,4,4" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="Black" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding GlobalsFindSelectedItem.HasChanged}" Value="True">
+                        <DataTrigger.Setters>
+                            <Setter Property="Foreground" Value="Red" />
+                        </DataTrigger.Setters>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Margin" Value="0,0,0,4" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+            <Style TargetType="ListView">
+                <Setter Property="Margin" Value="0" />
+            </Style>
+            <Style TargetType="Button">
+                <Setter Property="Margin" Value="0,0,0,4" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style TargetType="CheckBox">
+                <Setter Property="Margin" Value="0,0,4,4" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style TargetType="ToggleButton">
+                <Setter Property="Margin" Value="0,0,0,4" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <DataTemplate x:Key="dtRemoveWatch">
+                <Grid Margin="-4">
+                    <Button Margin="0" Padding="0" Background="Transparent"
+                                            BorderBrush="Transparent" BorderThickness="1"
+                                            Click="RemoveGlobalWatch_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ContentPresenter
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Setter Property="BorderThickness" Value="1" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="Lavender" />
+                                            <Setter Property="BorderBrush" Value="MediumSlateBlue" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Image Margin="0" Width="14" Source="/Resources/Icons/RemoveIcon.png" />
+                        </Border>
+                    </Button>
+                </Grid>
+            </DataTemplate>
+            <Style TargetType="ListViewItem" x:Key="GlobalWatchStyle" BasedOn="{StaticResource BaseItemStyle}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding HasChanged}" Value="True">
+                        <Setter Property="Foreground" Value="Red" />
+                    </DataTrigger>
+                </Style.Triggers>
+                <EventSetter Event="MouseDoubleClick" Handler="lviGlobalWatch_DoubleClick" />
+                <EventSetter Event="KeyDown" Handler="lviGlobalWatch_KeyDown" />
+            </Style>
+        </Grid.Resources>
+
+        <!--Filter-->
+        <DockPanel Grid.Column="1">
+            <TextBlock DockPanel.Dock="Left" Text="Filter:" />
+            <Button DockPanel.Dock="Right" Margin="4,0,0,4" Click="ClearGlobalsWatchFilter_Click" Width="24" Height="24">
+                <Image Height="18" Width="18" Source="/Resources/Icons/Backspace.png" />
+            </Button>
+            <TextBox x:Name="txtGlobalsWatchFilter" TextChanged="TxtGlobalsWatchFilter_TextChanged" d:Text="filter" />
+        </DockPanel>
+
+        <!--Watch List-->
+        <ListView Grid.Row="1" Grid.ColumnSpan="3" x:Name="lvGlobalsWatch"
+                  ItemsSource="{Binding GM.KotorWatchGlobals}"
+                  ItemContainerStyle="{StaticResource GlobalWatchStyle}"
+                  d:ItemsSource="{d:SampleData}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="22" CellTemplate="{StaticResource dtRemoveWatch}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Tag="Remove" Content="" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="28">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox Margin="0" IsChecked="{Binding DoPopupOnChange, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="DoPopupOnChange" Content="Pop"
+                                              ToolTip="Show in-game popup when value changes." />
+                    </GridViewColumn>
+                    <GridViewColumn Width="65" DisplayMemberBinding="{Binding Type}">
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Type" Content="Type" />
+                    </GridViewColumn>
+                    <GridViewColumn Width="140" DisplayMemberBinding="{Binding Name}">
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Name" Content="Name" />
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Value}">
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="Value" Content="Value" />
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastValue}">
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="LastValue" Content="Last Value" />
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastReadAt, StringFormat=HH:mm:ss}">
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="LastReadAt" Content="Read At" />
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding LastChangeAt, StringFormat=HH:mm:ss}">
+                        <GridViewColumnHeader Click="LvGlobalsWatch_ColumnHeader_Click" Tag="LastChangeAt" Content="Change At" />
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!--Actions-->
+        <StackPanel Margin="4,0,0,0" Grid.Column="3" Grid.RowSpan="2" Orientation="Vertical">
+            <!--Load-->
+            <Button Click="LoadGlobalWatch_Click" Height="24" ToolTip="Open global watch file.">
+                <Image Height="18" Source="/Resources/Icons/FolderIcon.png" />
+            </Button>
+            <!--Save-->
+            <Button Padding="2" Click="SaveGlobalWatch_Click" ToolTip="Save global watch file.">
+                <Image Height="18" Source="/Resources/Icons/Save.png" />
+            </Button>
+            <!--Clear-->
+            <Button Click="ClearGlobalWatch_Click" ToolTip="Clear global watch list.">
+                <Image Height="20" Source="/Resources/Icons/ClearIcon.png" />
+            </Button>
+            <!--Reset-->
+            <Button Click="ResetGlobalWatch_Click" Height="24" ToolTip="Reset global watch list to defaults.">
+                <Image Height="18" Source="/Resources/Icons/UndoIcon.png" />
+            </Button>
+            <Separator Margin="0,0,0,4" />
+            <!--Refresh-->
+            <Button Margin="0,0,0,4" Click="RefreshGlobalWatch_Click" Height="24" ToolTip="Read all watched global vairables." IsEnabled="False">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding ShowLivePosition}" Value="True" />
+                                    <Condition Binding="{Binding IsBusy}" Value="False" />
+                                    <Condition Binding="{Binding DoGlobalWatchAutoRefresh}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="IsEnabled" Value="True" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Image Height="18" Source="/Resources/Icons/RefreshIcon.png" />
+            </Button>
+            <!--Auto-->
+            <ToggleButton IsChecked="{Binding GM.DoGlobalWatchAutoRefresh}" ToolTip="Periodically read all watched global variables." Padding="0">
+                <Image Height="22" Source="/Resources/Icons/TimerIcon.png" />
+            </ToggleButton>
+            <!--Popup-->
+            <ToggleButton IsChecked="{Binding GM.DoPopupAllGlobalWatch, Mode=TwoWay}" ToolTip="Show in-game popup when any watched value changes.">
+                <Image Height="20" Source="/Resources/Icons/PopupIcon.png" />
+            </ToggleButton>
+            <!--Log-->
+            <ToggleButton Height="24" IsChecked="{Binding GM.DoLogChangedGlobals, Mode=TwoWay}" ToolTip='Log any watched value changes to a file in the "Log/" directory.'>
+                <Image Height="18" Source="/Resources/Icons/Edit.png" />
+            </ToggleButton>
+        </StackPanel>
+    </Grid>
+</UserControl>

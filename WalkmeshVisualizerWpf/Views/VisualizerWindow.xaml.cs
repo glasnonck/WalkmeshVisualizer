@@ -2481,6 +2481,64 @@ namespace WalkmeshVisualizerWpf.Views
         }
 
         /// <summary>
+        /// List of install locations for KotOR 1 found via registry scan.
+        /// </summary>
+        public List<string> InstallLocationsK1 { get; set; } = [];
+
+        /// <summary>
+        /// List of install locations for KotOR 2 found via registry scan.
+        /// </summary>
+        public List<string> InstallLocationsK2 { get; set; } = [];
+
+        /// <summary>
+        /// Scans the Windows registry to locate installed instances of Star Wars: Knights of the Old Republic 1 and 2.
+        /// TODO: Implement configurable game paths in settings.
+        /// </summary>
+        private void FindInstalledGames()
+        {
+            InstallLocationsK1.Clear();
+            InstallLocationsK2.Clear();
+
+            string[] subkeyNames = [
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", // steam
+                @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", // gog
+            ];
+
+            foreach (var subkeyName in subkeyNames)
+            {
+                var subkey = Registry.LocalMachine.OpenSubKey(subkeyName);
+
+                foreach (var keyname in subkey.GetSubKeyNames())
+                {
+                    using RegistryKey key = subkey.OpenSubKey(keyname, false);
+                    if (key == null) continue;
+
+                    var name = key.GetValue("DisplayName")?.ToString() ?? "";
+                    var location = key.GetValue("InstallLocation")?.ToString() ?? "";
+                    if (name == null || location == null) continue;
+
+                    // Additional info (not used currently)
+                    var icon = key.GetValue("DisplayIcon")?.ToString() ?? "";
+                    var publisher = key.GetValue("Publisher")?.ToString() ?? "";
+                    var helpLink = key.GetValue("HelpLink")?.ToString() ?? "";
+                    var isSteam = helpLink.Contains("steampowered.com", StringComparison.CurrentCultureIgnoreCase);
+                    var isGog = helpLink.Contains("gog.com", StringComparison.CurrentCultureIgnoreCase);
+
+                    if (name.Contains("Knights of the Old Republic"))
+                    {
+                        // KotOR 2
+                        if (name.Contains("II: The Sith Lords"))
+                            InstallLocationsK2.Add(location);
+
+                        // KotOR 1
+                        else
+                            InstallLocationsK1.Add(location);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Load KotOR 1 or 2 from a custom directory.
         /// </summary>
         private void LoadCustom_Executed(object sender, ExecutedRoutedEventArgs e)
