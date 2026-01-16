@@ -59,7 +59,7 @@
 
         <RoutedUICommand x:Key="Commands.LoadK1" />
         <RoutedUICommand x:Key="Commands.LoadK2" />
-        <RoutedUICommand x:Key="Commands.LoadCustom" />
+        <RoutedUICommand x:Key="Commands.PathSettings" />
         <RoutedUICommand x:Key="Commands.RemoveAll" />
         <RoutedUICommand x:Key="Commands.SwapGame" />
         <RoutedUICommand x:Key="Commands.ClearCache" />
@@ -232,9 +232,8 @@
             Executed="LoadK2_Executed"
             />
         <CommandBinding
-            Command="{StaticResource Commands.LoadCustom}"
-            Executed="LoadCustom_Executed"
-            />
+            Command="{StaticResource Commands.PathSettings}"
+            Executed="PathSettings_Executed" />
         <CommandBinding
             Command="{StaticResource Commands.RemoveAll}"
             Executed="RemoveAll_Executed"
@@ -539,15 +538,6 @@
                         <MenuItem Header="20 seconds" Tag="20000" />
                     </MenuItem>
                     <MenuItem Header="Popup All Global Changes" IsChecked="{Binding DoPopupAllGlobalWatch, Mode=TwoWay}" />
-
-                    <!--<Separator />
-                    <MenuItem Header="Live Position Fill Color" />
-                    <MenuItem Header="Live Position Stroke Color" />-->
-                    <!--<Separator />
-                    <MenuItem Header="Update at 60 FPS" />
-                    <MenuItem Header="Update at 40 FPS" />
-                    <MenuItem Header="Update at 20 FPS" />
-                    <MenuItem Header="Update at 10 FPS" />-->
                 </MenuItem>
 
                 <!--
@@ -610,10 +600,20 @@
                                 </MultiBinding>
                             </Button.IsEnabled>
                         </Button>
-                        <Button Content="Custom" Command="{StaticResource Commands.LoadCustom}">
-                            <Button.IsEnabled>
-                                <Binding Path="SelectedGame" Converter="{StaticResource StringEqualsConverter}" ConverterParameter="N/A" />
-                            </Button.IsEnabled>
+                        <Button Command="{StaticResource Commands.PathSettings}" Width="20"
+                                ToolTip="Configure path settings.">
+                            <Image Source="/Resources/Icons/OptionsIcon.png" Height="16" Width="16"/>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                            <DataTrigger.Setters>
+                                                <Setter Property="IsEnabled" Value="False" />
+                                            </DataTrigger.Setters>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -1117,14 +1117,6 @@
                             </ToggleButton.ToolTip>
                         </ToggleButton>
                     </StackPanel>
-                
-                    <!-- Bottom Panel Buttons -->
-                    <!--<StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Bottom" Margin="0,0,0,-4">
-                        <ToggleButton Content="Watch"
-                                      IsChecked="{Binding ShowGlobalWatchPanel}"
-                                      Style="{StaticResource panelToggleButton}"
-                                      />
-                    </StackPanel>-->
                 </Grid>
 
                 <!--
@@ -1144,7 +1136,6 @@
                         <Grid.Resources>
                             <Style TargetType="Grid">
                                 <Setter Property="Margin" Value="0,6,0,0" />
-                                <!--<Setter Property="Margin" Value="0,2" />-->
                             </Style>
                             <Style TargetType="StackPanel">
                                 <Setter Property="Margin" Value="5,0" />
@@ -1422,9 +1413,6 @@
                                 <EventSetter Event="MouseDoubleClick" Handler="lvRimDataInfo_DoubleClick" />
                                 <EventSetter Event="KeyDown" Handler="lvRimDataInfo_KeyDown" />
                             </Style>
-                            <Style TargetType="Grid">
-                                <!--<Setter Property="Margin" Value="0,4,0,0" />-->
-                            </Style>
                             <Style TargetType="StackPanel">
                                 <Setter Property="Orientation" Value="Horizontal" />
                                 <Setter Property="VerticalAlignment" Value="Center" />
@@ -1460,7 +1448,6 @@
                             </Style>
                             <Style TargetType="Button" x:Key="btnRimDataShowHide">
                                 <Setter Property="Padding" Value="2,1" />
-                                <!--<Setter Property="Width" Value="22" />-->
                                 <Setter Property="FontSize" Value="11" />
                                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                             </Style>
@@ -3638,11 +3625,6 @@
                                 <!-- This Canvas is the main part of the content that is displayed. -->
                                 <Canvas x:Name="content" Background="White">
                                     <Canvas.Resources>
-                                        <!--<help:ThresholdEffect x:Key="shader"
-                                            Threshold=".25"
-                                            BlankColor="Blue"
-                                            />-->
-
                                         <TransformGroup x:Key="CartesianTransform">
                                             <TranslateTransform Y="{Binding BottomOffset}" X="{Binding LeftOffset}"/>
                                             <ScaleTransform ScaleY="-1" />
@@ -3681,7 +3663,6 @@
                                             <Setter Property="StrokeThickness" Value=".35" />
                                             <Setter Property="StrokeStartLineCap" Value="Round" />
                                             <Setter Property="StrokeEndLineCap" Value="Round" />
-                                            <!--<Setter Property="StrokeLineJoin" Value="" />-->
                                         </Style>
 
                                         <Style TargetType="Line" x:Key="baseLine">

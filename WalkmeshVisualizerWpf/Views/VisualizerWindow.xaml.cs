@@ -141,6 +141,9 @@ namespace WalkmeshVisualizerWpf.Views
 
             // Load saved settings.
             var settings = Properties.Settings.Default;
+            Kotor1Path = settings.Kotor1Path;
+            Kotor2Path = settings.Kotor2Path;
+
             ShowWalkableFaces = settings.ShowWalkableFaces;
             ShowNonWalkableFaces = settings.ShowNonWalkableFaces;
             ShowTransAbortPoints = settings.ShowTransAbortPoints;
@@ -459,6 +462,8 @@ namespace WalkmeshVisualizerWpf.Views
         public bool K1Loaded { get; set; }
         public bool K2Loaded { get; set; }
         public XmlGame CurrentGame { get; set; }
+        public string Kotor1Path { get; set; }
+        public string Kotor2Path { get; set; }
 
         private readonly Point BaseOffset = new Point(20, 20);
         public const string DEFAULT = "N/A";
@@ -1045,13 +1050,6 @@ namespace WalkmeshVisualizerWpf.Views
         }
         private Point _liveGatherPartyRangePoint = new Point();
 
-        //public Point LastGatherPartyRangePosition
-        //{
-        //    get => _lastGatherPartyRangePosition;
-        //    set => SetField(ref _lastGatherPartyRangePosition, value);
-        //}
-        //private Point _lastGatherPartyRangePosition = new Point();
-
         public Point3D LastGatherPartyRangePosition
         {
             get => _lastGatherPartyRangePosition;
@@ -1561,8 +1559,11 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInAttributeBox { get; set; } = 10;
         public int ValueInSkillBox { get; set; } = 0;
 
-        // Kotor 1 MAX =   250,000
-        // Kotor 2 MAX = 1,250,000
+        /// <summary>
+        /// Gets or sets the experience point value displayed in the experience box.
+        /// </summary>
+        /// <remarks>The experiece needed for max level depends on the game: in KotOR 1,
+        /// the required xp is 250,000; in KotOR 2, the required xp is 1,250,000.</remarks>
         public int ValueInExperienceBox { get; set; } = 1000;
         public int ValueInSetCreditsBox { get; set; } = 10000;
 
@@ -2423,21 +2424,29 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK1_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
+            if (!string.IsNullOrWhiteSpace(Kotor1Path))
             {
+                CurrentGame = XmlGameData.Kotor1Data;
+                RimDataSet.LoadGameData(Kotor1Path);
+                LoadGameFiles(Kotor1Path, K1_NAME);
+            }
+            else if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
+            {
+                Kotor1Path = K1_STEAM_DEFAULT_PATH;
                 CurrentGame = XmlGameData.Kotor1Data;
                 RimDataSet.LoadGameData(K1_STEAM_DEFAULT_PATH);
                 LoadGameFiles(K1_STEAM_DEFAULT_PATH, K1_NAME);
             }
             else if (Directory.Exists(K1_GOG_DEFAULT_PATH))
             {
+                Kotor1Path = K1_GOG_DEFAULT_PATH;
                 CurrentGame = XmlGameData.Kotor1Data;
                 RimDataSet.LoadGameData(K1_GOG_DEFAULT_PATH);
                 LoadGameFiles(K1_GOG_DEFAULT_PATH, K1_NAME);
             }
             else
             {
-                _ = MessageBox.Show("Default KotOR 1 path not found. Please use the 'Custom' option instead.");
+                _ = MessageBox.Show("Default KotOR 1 path not found. Please configure your path manually instead.");
             }
         }
 
@@ -2454,21 +2463,29 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK2_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
+            if (!string.IsNullOrWhiteSpace(Kotor2Path))
             {
+                CurrentGame = XmlGameData.Kotor2Data;
+                RimDataSet.LoadGameData(Kotor2Path);
+                LoadGameFiles(Kotor2Path, K2_NAME);
+            }
+            else if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
+            {
+                Kotor2Path = K2_STEAM_DEFAULT_PATH;
                 CurrentGame = XmlGameData.Kotor2Data;
                 RimDataSet.LoadGameData(K2_STEAM_DEFAULT_PATH);
                 LoadGameFiles(K2_STEAM_DEFAULT_PATH, K2_NAME);
             }
             else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
             {
+                Kotor2Path = K2_GOG_DEFAULT_PATH;
                 CurrentGame = XmlGameData.Kotor2Data;
                 RimDataSet.LoadGameData(K2_GOG_DEFAULT_PATH);
                 LoadGameFiles(K2_GOG_DEFAULT_PATH, K2_NAME);
             }
             else
             {
-                _ = MessageBox.Show("Default KotOR 2 path not found. Please use the 'Custom' option instead.");
+                _ = MessageBox.Show("Default KotOR 2 path not found. Please configure your path manually instead.");
             }
         }
 
@@ -2490,9 +2507,44 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         public List<string> InstallLocationsK2 { get; set; } = [];
 
+        private void PathSettings_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            FindInstalledGames();
+
+            if (string.IsNullOrWhiteSpace(Kotor1Path))
+            {
+                if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
+                    Kotor1Path = K1_STEAM_DEFAULT_PATH;
+                else if (Directory.Exists(K1_GOG_DEFAULT_PATH))
+                    Kotor1Path = K1_GOG_DEFAULT_PATH;
+            }
+
+            if (string.IsNullOrWhiteSpace(Kotor2Path))
+            {
+                if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
+                    Kotor2Path = K2_STEAM_DEFAULT_PATH;
+                else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
+                    Kotor2Path = K2_GOG_DEFAULT_PATH;
+            }
+
+            var psw = new PathSettingsWindow()
+            {
+                Owner = this,
+                Kotor1Path = Kotor1Path,
+                Kotor1SuggestedPaths = InstallLocationsK1,
+                Kotor2Path = Kotor2Path,
+                Kotor2SuggestedPaths = InstallLocationsK2,
+            };
+
+            if (psw.ShowDialog() ?? false)
+            {
+                Kotor1Path = psw.Kotor1Path;
+                Kotor2Path = psw.Kotor2Path;
+            }
+        }
+
         /// <summary>
         /// Scans the Windows registry to locate installed instances of Star Wars: Knights of the Old Republic 1 and 2.
-        /// TODO: Implement configurable game paths in settings.
         /// </summary>
         private void FindInstalledGames()
         {
@@ -2536,45 +2588,6 @@ namespace WalkmeshVisualizerWpf.Views
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Load KotOR 1 or 2 from a custom directory.
-        /// </summary>
-        private void LoadCustom_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            var ofd = new OpenFileDialog
-            {
-                Title = "Select KotOR 1 or 2 Game File",
-                Filter = "Game File (swkotor(2).exe)|swkotor.exe;swkotor2.exe"
-            };
-
-            if (ofd.ShowDialog() == true)
-            {
-                var dir = new FileInfo(ofd.FileName).Directory;
-                var exe = dir.EnumerateFiles()
-                    .FirstOrDefault(fi =>
-                        fi.Name.ToLower() == "swkotor.exe" ||
-                        fi.Name.ToLower() == "swkotor2.exe");
-                if (exe == null) return;
-                if (exe.Name.ToLower() == "swkotor.exe")
-                {
-                    CurrentGame = XmlGameData.Kotor1Data;
-                    RimDataSet.LoadGameData(dir.FullName);
-                    LoadGameFiles(dir.FullName, K1_NAME);
-                }
-                if (exe.Name.ToLower() == "swkotor2.exe")
-                {
-                    CurrentGame = XmlGameData.Kotor2Data;
-                    RimDataSet.LoadGameData(dir.FullName);
-                    LoadGameFiles(dir.FullName, K2_NAME);
-                }
-            }
-        }
-
-        private void LoadCustom_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !IsBusy && SelectedGame == DEFAULT;
         }
 
         /// <summary>
@@ -4397,6 +4410,9 @@ namespace WalkmeshVisualizerWpf.Views
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             var settings = Properties.Settings.Default;
+            settings.Kotor1Path = Kotor1Path;
+            settings.Kotor2Path = Kotor2Path;
+
             settings.ShowWalkableFaces = ShowWalkableFaces;
             settings.ShowNonWalkableFaces = ShowNonWalkableFaces;
             settings.ShowTransAbortPoints = ShowTransAbortPoints;
@@ -5405,30 +5421,24 @@ namespace WalkmeshVisualizerWpf.Views
                                 // P1 and P2 missing
                                 if (Party0DistanceTo != -1) // Locked
                                     LiveGatherPartyRangeDeltaZ = Party0DeltaZ;
-                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party0DeltaZ, 2)) * 2;
                                 else
                                     LiveGatherPartyRangeDeltaZ = 0.0;
-                                    //LiveGatherPartyRangeDiameter = 60.0;
                             }
                             else if (Party2DistanceTo == -1 || Party1DistanceTo >= Party2DistanceTo)
                             {
                                 // P2 missing, or P1 farther away
                                 if (Party0DistanceTo != -1 && Party0DistanceTo >= Party1DistanceTo) // Locked and P0 farther away
                                     LiveGatherPartyRangeDeltaZ = Party0DeltaZ;
-                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party0DeltaZ, 2)) * 2;
                                 else
                                     LiveGatherPartyRangeDeltaZ = Party1DeltaZ;
-                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party1DeltaZ, 2)) * 2;
                             }
                             else
                             {
                                 // P2 farther away
                                 if (Party0DistanceTo != -1 && Party0DistanceTo >= Party2DistanceTo) // Locked and P0 farther away
                                     LiveGatherPartyRangeDeltaZ = Party0DeltaZ;
-                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party0DeltaZ, 2)) * 2;
                                 else
                                     LiveGatherPartyRangeDeltaZ = Party2DeltaZ;
-                                    //LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(Party2DeltaZ, 2)) * 2;
                             }
 
                             LiveGatherPartyRangeDiameter = Math.Sqrt(900.0 - Math.Pow(LiveGatherPartyRangeDeltaZ, 2)) * 2;
@@ -6289,7 +6299,7 @@ namespace WalkmeshVisualizerWpf.Views
 
         private void GiveItem_Click(object sender, RoutedEventArgs e)
         {
-            // 
+            // TODO: Implement giving item to player.
         }
 
         /*
@@ -6448,7 +6458,6 @@ namespace WalkmeshVisualizerWpf.Views
             var km = GetKotorManager();
             if (km == null) return;
             var id = kmih.getLookingAtClientID(km.pr.h);
-            //var id = kmih.getLookingAtServerID(km.pr.h);
             txtTargetID.Text = "0x" + id.ToString("X");
         }
 
@@ -6547,22 +6556,6 @@ namespace WalkmeshVisualizerWpf.Views
             return kg.Name.Contains(txtGlobalsWatchFilter.Text, StringComparison.OrdinalIgnoreCase);
         }
 
-        //private void RefreshGlobalListing(KotorGlobal global)
-        //{
-        //    var idx = KotorFindGlobals.IndexOf(global);
-        //    if (idx != -1)
-        //    {
-        //        KotorFindGlobals.Remove(global);
-        //        KotorFindGlobals.Insert(idx, global);
-        //    }
-        //    else
-        //    {
-        //        idx = KotorWatchGlobals.IndexOf(global);
-        //        KotorWatchGlobals.Remove(global);
-        //        KotorWatchGlobals.Insert(idx, global);
-        //    }
-        //}
-
         private void ReadGlobal_Click(object sender, RoutedEventArgs e)
         {
             var km = GetKotorManager();
@@ -6587,7 +6580,6 @@ namespace WalkmeshVisualizerWpf.Views
                 global.LastChangeAt = global.LastReadAt;
 
             GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] read successful";
-            //RefreshGlobalListing(global);
             RefreshSort_Globals();
         }
 
@@ -6633,7 +6625,6 @@ namespace WalkmeshVisualizerWpf.Views
                 if (global.LastValue != global.Value)
                     global.LastChangeAt = global.LastReadAt;
                 GlobalReadMessage = $"[{global.LastReadAt:HH:mm:ss}] value set";
-                //RefreshGlobalListing(global);
                 RefreshSort_Globals();
             }
         }
@@ -6714,10 +6705,8 @@ namespace WalkmeshVisualizerWpf.Views
                 ReadGlobal(global, km, false);
 
             QueueChangedGlobalsForPopup(KotorWatchGlobals.Where(g => (DoPopupAllGlobalWatch || g.DoPopupOnChange) && g.HasChanged));
-            //PopupChangedGlobals(KotorWatchGlobals.Where(g => (DoPopupAllGlobalWatch || g.DoPopupOnChange) && g.HasChanged && g.LastValue != null));
             if (DoLogChangedGlobals)
                 LogChangedGlobals(KotorWatchGlobals.Where(g => g.HasChanged));
-                //LogChangedGlobals(KotorWatchGlobals.Where(g => g.HasChanged && g.LastValue != null));
 
             RefreshSort_Globals();
             return true;
@@ -6735,32 +6724,20 @@ namespace WalkmeshVisualizerWpf.Views
                 , false);
         }
 
-        //private void DisplayGlobalsPopup()
         private void PopupChangedGlobals()
         {
             if (_popupDisplayLines.Count == 0) return;
 
             // TODO: Consider limiting displaying to only 512 characters at a time. Is there a way to check if there is a popup already open?
-            //var message = "Globals have changed!\n"
-            //        + "-------------------------------------\n"
-            //        + string.Join("\n", _popupDisplayLines);
-            //var length = message.Length;
-
             if (ShowCustomMessageBox("Globals have changed!\n-------------------------------------\n" + string.Join("\n", _popupDisplayLines)))
             {
                 _popupDisplayLines.Clear();
             }
         }
 
-        //private void PopupChangedGlobals(IEnumerable<KotorGlobal> changedGlobals)
         private void QueueChangedGlobalsForPopup(IEnumerable<KotorGlobal> changedGlobals)
         {
-            //if (!changedGlobals.Any()) return;
             _popupDisplayLines.AddRange(changedGlobals.Select(g => $"({g.LastChangeAt:HH:mm:ss}) {g.Name}: {g.LastValue} -> {g.Value}"));
-            //ShowCustomMessageBox(
-            //    "Globals have changed!\n"
-            //    +"-------------------------------------\n"
-            //    + string.Join("\n", _popupDisplayLines));
         }
 
         private void RefreshSort_Globals()

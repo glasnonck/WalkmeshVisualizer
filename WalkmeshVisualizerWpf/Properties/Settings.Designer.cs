@@ -622,5 +622,29 @@ namespace WalkmeshVisualizerWpf.Properties {
                 this["DoLogChangedGlobals"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Kotor1Path {
+            get {
+                return ((string)(this["Kotor1Path"]));
+            }
+            set {
+                this["Kotor1Path"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Kotor2Path {
+            get {
+                return ((string)(this["Kotor2Path"]));
+            }
+            set {
+                this["Kotor2Path"] = value;
+            }
+        }
     }
 }
