@@ -474,6 +474,8 @@ namespace WalkmeshVisualizerWpf.Views
         private const string K2_STEAM_DEFAULT_PATH = @"C:\Program Files (x86)\Steam\steamapps\common\Knights of the Old Republic II";
         private const string K1_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR";
         private const string K2_GOG_DEFAULT_PATH = @"C:\GOG Games\Star Wars - KotOR2";
+        private const string K1_GOG_GALAXY_DEFAULT_PATH = @"C:\Program Files (x86)\GOG Galaxy\Games\Star Wars - KotOR";
+        private const string K2_GOG_GALAXY_DEFAULT_PATH = @"C:\Program Files (x86)\GOG Galaxy\Games\Star Wars - KotOR2";
         private KPaths Paths;
 
         #endregion // END REGION KIO Members
@@ -2424,30 +2426,35 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK1_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(Kotor1Path))
+            // Try to find default path if not set.
+            if (string.IsNullOrWhiteSpace(Kotor1Path))
             {
-                CurrentGame = XmlGameData.Kotor1Data;
-                RimDataSet.LoadGameData(Kotor1Path);
-                LoadGameFiles(Kotor1Path, K1_NAME);
+                if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
+                    Kotor1Path = K1_STEAM_DEFAULT_PATH;
+                else if (Directory.Exists(K1_GOG_DEFAULT_PATH))
+                    Kotor1Path = K1_GOG_DEFAULT_PATH;
+                else if (Directory.Exists(K1_GOG_GALAXY_DEFAULT_PATH))
+                    Kotor1Path = K1_GOG_GALAXY_DEFAULT_PATH;
+                else
+                {
+                    FindInstalledGames();
+                    if (InstallLocationsK1.Count > 0)
+                        Kotor1Path = InstallLocationsK1[0];
+                }
             }
-            else if (Directory.Exists(K1_STEAM_DEFAULT_PATH))
+
+            // If still not found, show error message.
+            if (string.IsNullOrWhiteSpace(Kotor1Path))
             {
-                Kotor1Path = K1_STEAM_DEFAULT_PATH;
-                CurrentGame = XmlGameData.Kotor1Data;
-                RimDataSet.LoadGameData(K1_STEAM_DEFAULT_PATH);
-                LoadGameFiles(K1_STEAM_DEFAULT_PATH, K1_NAME);
+                _ = MessageBox.Show(this, "Default KotOR 1 path not found. Please configure your path manually instead.");
+                PathSettings_Executed(null, null);
+                return;
             }
-            else if (Directory.Exists(K1_GOG_DEFAULT_PATH))
-            {
-                Kotor1Path = K1_GOG_DEFAULT_PATH;
-                CurrentGame = XmlGameData.Kotor1Data;
-                RimDataSet.LoadGameData(K1_GOG_DEFAULT_PATH);
-                LoadGameFiles(K1_GOG_DEFAULT_PATH, K1_NAME);
-            }
-            else
-            {
-                _ = MessageBox.Show("Default KotOR 1 path not found. Please configure your path manually instead.");
-            }
+
+            // Load game data.
+            CurrentGame = XmlGameData.Kotor1Data;
+            RimDataSet.LoadGameData(Kotor1Path);
+            LoadGameFiles(Kotor1Path, K1_NAME);
         }
 
         /// <summary>
@@ -2463,30 +2470,35 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         private void LoadK2_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(Kotor2Path))
+            // Try to find default path if not set.
+            if (string.IsNullOrWhiteSpace(Kotor2Path))
             {
-                CurrentGame = XmlGameData.Kotor2Data;
-                RimDataSet.LoadGameData(Kotor2Path);
-                LoadGameFiles(Kotor2Path, K2_NAME);
+                if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
+                    Kotor2Path = K2_STEAM_DEFAULT_PATH;
+                else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
+                    Kotor2Path = K2_GOG_DEFAULT_PATH;
+                else if (Directory.Exists(K2_GOG_GALAXY_DEFAULT_PATH))
+                    Kotor2Path = K2_GOG_GALAXY_DEFAULT_PATH;
+                else
+                {
+                    FindInstalledGames();
+                    if (InstallLocationsK2.Count > 0)
+                        Kotor2Path = InstallLocationsK2[0];
+                }
             }
-            else if (Directory.Exists(K2_STEAM_DEFAULT_PATH))
+
+            // If still not found, show error message.
+            if (string.IsNullOrWhiteSpace(Kotor2Path))
             {
-                Kotor2Path = K2_STEAM_DEFAULT_PATH;
-                CurrentGame = XmlGameData.Kotor2Data;
-                RimDataSet.LoadGameData(K2_STEAM_DEFAULT_PATH);
-                LoadGameFiles(K2_STEAM_DEFAULT_PATH, K2_NAME);
+                _ = MessageBox.Show(this, "Default KotOR 2 path not found. Please configure your path manually instead.");
+                PathSettings_Executed(null, null);
+                return;
             }
-            else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
-            {
-                Kotor2Path = K2_GOG_DEFAULT_PATH;
-                CurrentGame = XmlGameData.Kotor2Data;
-                RimDataSet.LoadGameData(K2_GOG_DEFAULT_PATH);
-                LoadGameFiles(K2_GOG_DEFAULT_PATH, K2_NAME);
-            }
-            else
-            {
-                _ = MessageBox.Show("Default KotOR 2 path not found. Please configure your path manually instead.");
-            }
+
+            // Load game data.
+            CurrentGame = XmlGameData.Kotor2Data;
+            RimDataSet.LoadGameData(Kotor2Path);
+            LoadGameFiles(Kotor2Path, K2_NAME);
         }
 
         /// <summary>
@@ -2507,6 +2519,13 @@ namespace WalkmeshVisualizerWpf.Views
         /// </summary>
         public List<string> InstallLocationsK2 { get; set; } = [];
 
+        /// <summary>
+        /// Handles the execution of the Path Settings command, allowing the user to view and modify the installation
+        /// paths for supported games.
+        /// </summary>
+        /// <remarks>This method attempts to prepopulate game installation paths with known defaults if
+        /// they are not already set. It then displays a dialog window for the user to review or update these paths.
+        /// Changes made in the dialog are applied to the corresponding properties if the user confirms.</remarks>
         private void PathSettings_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             FindInstalledGames();
@@ -2525,6 +2544,8 @@ namespace WalkmeshVisualizerWpf.Views
                     Kotor2Path = K2_STEAM_DEFAULT_PATH;
                 else if (Directory.Exists(K2_GOG_DEFAULT_PATH))
                     Kotor2Path = K2_GOG_DEFAULT_PATH;
+                else if (Directory.Exists(K2_GOG_GALAXY_DEFAULT_PATH))
+                    Kotor2Path = K2_GOG_GALAXY_DEFAULT_PATH;
             }
 
             var psw = new PathSettingsWindow()
