@@ -88,7 +88,7 @@
         <DockPanel Grid.Row="2">
             <TextBlock DockPanel.Dock="Top" Margin="32,0"
                        FontSize="12" FontStyle="Italic"
-                       Text="Installed games found:"
+                       Text="Installed games: (double-click to select)"
                        />
             <ListView Grid.Row="2" Tag="Kotor1"
                       ItemsSource="{Binding Kotor1SuggestedPaths}"
@@ -110,7 +110,7 @@
         <DockPanel Grid.Row="5">
             <TextBlock DockPanel.Dock="Top" Margin="32,0"
                        FontSize="12" FontStyle="Italic"
-                       Text="Installed games found:"
+                       Text="Installed games: (double-click to select)"
                        />
             <ListView Grid.Row="2" Tag="Kotor2"
                       ItemsSource="{Binding Kotor2SuggestedPaths}"

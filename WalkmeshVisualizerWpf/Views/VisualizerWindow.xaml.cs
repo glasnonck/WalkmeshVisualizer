@@ -2443,12 +2443,29 @@ namespace WalkmeshVisualizerWpf.Views
                 }
             }
 
-            // If still not found, show error message.
             if (string.IsNullOrWhiteSpace(Kotor1Path))
             {
-                _ = MessageBox.Show(this, "Default KotOR 1 path not found. Please configure your path manually instead.");
-                PathSettings_Executed(null, null);
-                return;
+                // If still not found, show error message.
+                if (MessageBox.Show(this,
+                    "Default KotOR 1 path not found. Please configure your path manually instead.",
+                    "Kotor 1 Path Not Found", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation)
+                    == MessageBoxResult.OK)
+                {
+                    PathSettings_Executed(null, null);
+                }
+                return; // Do not load game for either response.
+            }
+            else
+            {
+                // Confirm found path with user.
+                if (MessageBox.Show(this,
+                    $"KotOR 1 installation found. Is this the correct directory?\n\n{Kotor1Path}",
+                    "KotOR 1 Path Found", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                    == MessageBoxResult.No)
+                {
+                    PathSettings_Executed(null, null);
+                    return; // Do not load game for "No" response.
+                }
             }
 
             // Load game data.
@@ -2485,14 +2502,31 @@ namespace WalkmeshVisualizerWpf.Views
                     if (InstallLocationsK2.Count > 0)
                         Kotor2Path = InstallLocationsK2[0];
                 }
-            }
 
-            // If still not found, show error message.
-            if (string.IsNullOrWhiteSpace(Kotor2Path))
-            {
-                _ = MessageBox.Show(this, "Default KotOR 2 path not found. Please configure your path manually instead.");
-                PathSettings_Executed(null, null);
-                return;
+                if (string.IsNullOrWhiteSpace(Kotor2Path))
+                {
+                    // If still not found, show error message.
+                    if (MessageBox.Show(this,
+                        "Default KotOR 2 path not found. Please configure your path manually instead.",
+                        "Kotor 2 Path Not Found", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation)
+                        == MessageBoxResult.OK)
+                    {
+                        PathSettings_Executed(null, null);
+                    }
+                    return; // Do not load game for either response.
+                }
+                else
+                {
+                    // Confirm found path with user.
+                    if (MessageBox.Show(this,
+                        $"KotOR 2 installation found. Is this the correct directory?\n\n{Kotor2Path}",
+                        "KotOR 2 Path Found", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                        == MessageBoxResult.No)
+                    {
+                        PathSettings_Executed(null, null);
+                        return; // Do not load game for "No" response.
+                    }
+                }
             }
 
             // Load game data.
@@ -2528,6 +2562,9 @@ namespace WalkmeshVisualizerWpf.Views
         /// Changes made in the dialog are applied to the corresponding properties if the user confirms.</remarks>
         private void PathSettings_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            // Do not open path settings if busy or a game is already selected.
+            if (IsBusy || SelectedGame != DEFAULT) return;
+
             FindInstalledGames();
 
             if (string.IsNullOrWhiteSpace(Kotor1Path))
