@@ -30,8 +30,8 @@ using System.Windows.Xps.Packaging;
 using WalkmeshVisualizerWpf.Helpers;
 using WalkmeshVisualizerWpf.Models;
 using ZoomAndPan;
-using kmia = KotorMessageInjector.Adapter;
-using kmih = KotorMessageInjector.KotorHelpers;
+using KMIAdapter = KotorMessageInjector.Adapter;
+using KMIHelpers = KotorMessageInjector.KotorHelpers;
 
 namespace WalkmeshVisualizerWpf.Views
 {
@@ -1573,33 +1573,33 @@ namespace WalkmeshVisualizerWpf.Views
         public int ValueInInfluenceBox { get; set; } = 50;
 
         // Classes
-        private Dictionary<kmih.CLASSES, string> KotorClassDescriptionLookup = new Dictionary<kmih.CLASSES, string>()
+        private Dictionary<KMIHelpers.CLASSES, string> KotorClassDescriptionLookup = new Dictionary<KMIHelpers.CLASSES, string>()
         {
-            { kmih.CLASSES.SOLDIER,           "Soldier" },
-            { kmih.CLASSES.SCOUT,             "Scout" },
-            { kmih.CLASSES.SCOUNDREL,         "Scoundrel" },
-            { kmih.CLASSES.JEDI_GUARDIAN,     "Jedi Guardian" },
-            { kmih.CLASSES.JEDI_CONSULAR,     "Jedi Consular" },
-            { kmih.CLASSES.JEDI_SENTINEL,     "Jedi Sentinel" },
-            { kmih.CLASSES.COMBAT_DROID,      "Combat Droid" },
-            { kmih.CLASSES.EXPERT_DROID,      "Expert Droid" },
-            { kmih.CLASSES.MINION,            "Minion" },
-            { kmih.CLASSES.TECH_SPECIALIST,   "Tech Specialist" },
-            { kmih.CLASSES.BOUNTY_HUNTER,     "Bounty Hunter" },
-            { kmih.CLASSES.JEDI_WEAPONMASTER, "Jedi Weaponmaster" },
-            { kmih.CLASSES.JEDI_MASTER,       "Jedi Master" },
-            { kmih.CLASSES.JEDI_WATCHMAN,     "Jedi Watchman" },
-            { kmih.CLASSES.SITH_MARAUDER,     "Sith Marauder" },
-            { kmih.CLASSES.SITH_LORD,         "Sith Lord" },
-            { kmih.CLASSES.SITH_ASSASSIN,     "Sith Assassin" },
+            { KMIHelpers.CLASSES.SOLDIER,           "Soldier" },
+            { KMIHelpers.CLASSES.SCOUT,             "Scout" },
+            { KMIHelpers.CLASSES.SCOUNDREL,         "Scoundrel" },
+            { KMIHelpers.CLASSES.JEDI_GUARDIAN,     "Jedi Guardian" },
+            { KMIHelpers.CLASSES.JEDI_CONSULAR,     "Jedi Consular" },
+            { KMIHelpers.CLASSES.JEDI_SENTINEL,     "Jedi Sentinel" },
+            { KMIHelpers.CLASSES.COMBAT_DROID,      "Combat Droid" },
+            { KMIHelpers.CLASSES.EXPERT_DROID,      "Expert Droid" },
+            { KMIHelpers.CLASSES.MINION,            "Minion" },
+            { KMIHelpers.CLASSES.TECH_SPECIALIST,   "Tech Specialist" },
+            { KMIHelpers.CLASSES.BOUNTY_HUNTER,     "Bounty Hunter" },
+            { KMIHelpers.CLASSES.JEDI_WEAPONMASTER, "Jedi Weaponmaster" },
+            { KMIHelpers.CLASSES.JEDI_MASTER,       "Jedi Master" },
+            { KMIHelpers.CLASSES.JEDI_WATCHMAN,     "Jedi Watchman" },
+            { KMIHelpers.CLASSES.SITH_MARAUDER,     "Sith Marauder" },
+            { KMIHelpers.CLASSES.SITH_LORD,         "Sith Lord" },
+            { KMIHelpers.CLASSES.SITH_ASSASSIN,     "Sith Assassin" },
         };
 
-        private Dictionary<string, kmih.CLASSES> KotorClassLookup;
+        private Dictionary<string, KMIHelpers.CLASSES> KotorClassLookup;
 
-        public List<string> Kotor1Classes => Enum.GetValues(typeof(kmih.CLASSES)).Cast<kmih.CLASSES>()
-            .Where(c => (byte)c < kmih.FIRST_KOTOR_2_CLASS).Select(c => KotorClassDescriptionLookup[c]).ToList();
+        public List<string> Kotor1Classes => Enum.GetValues(typeof(KMIHelpers.CLASSES)).Cast<KMIHelpers.CLASSES>()
+            .Where(c => (byte)c < KMIHelpers.FIRST_KOTOR_2_CLASS).Select(c => KotorClassDescriptionLookup[c]).ToList();
 
-        public List<string> Kotor2Classes => Enum.GetValues(typeof(kmih.CLASSES)).Cast<kmih.CLASSES>().Select(c => KotorClassDescriptionLookup[c]).ToList();
+        public List<string> Kotor2Classes => Enum.GetValues(typeof(KMIHelpers.CLASSES)).Cast<KMIHelpers.CLASSES>().Select(c => KotorClassDescriptionLookup[c]).ToList();
 
         public List<string> KotorClasses
         {
@@ -1609,17 +1609,17 @@ namespace WalkmeshVisualizerWpf.Views
         private List<string> _kotorClasses = new List<string>();
 
         // Attributes
-        public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.ATTRIBUTES))).ToList();
+        public List<string> KotorAttributes => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(KMIHelpers.ATTRIBUTES))).ToList();
 
         // Skills
-        public List<string> KotorSkills => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.SKILLS))).ToList();
+        public List<string> KotorSkills => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(KMIHelpers.SKILLS))).ToList();
 
         // Feats
-        public List<string> Kotor1Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.FEATS)).Cast<ushort>().ToList()
-            .Where(f => f < kmih.FIRST_KOTOR_2_FEAT).Cast<kmih.FEATS>().Select(f => f.ToString())
+        public List<string> Kotor1Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(KMIHelpers.FEATS)).Cast<ushort>().ToList()
+            .Where(f => f < KMIHelpers.FIRST_KOTOR_2_FEAT).Cast<KMIHelpers.FEATS>().Select(f => f.ToString())
             .Where(f => !f.StartsWith("XXX") && !f.EndsWith("XXX")).OrderBy(f => f)).ToList();
 
-        public List<string> Kotor2Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.FEATS))
+        public List<string> Kotor2Feats => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(KMIHelpers.FEATS))
             .Where(f => !f.StartsWith("XXX") && !f.EndsWith("XXX")).OrderBy(f => f)).ToList();
 
         public List<string> KotorFeats
@@ -1630,11 +1630,11 @@ namespace WalkmeshVisualizerWpf.Views
         private List<string> _kotorFeats = [];
 
         // Powers
-        public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(kmih.SPELLS)).Cast<int>().ToList()
-            .Where(p => p < kmih.FIRST_KOTOR_2_SPELL).Cast<kmih.SPELLS>().Select(p => p.ToString())
+        public List<string> Kotor1Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetValues(typeof(KMIHelpers.SPELLS)).Cast<int>().ToList()
+            .Where(p => p < KMIHelpers.FIRST_KOTOR_2_SPELL).Cast<KMIHelpers.SPELLS>().Select(p => p.ToString())
             .Where(p => !p.StartsWith("XXX") && !p.EndsWith("XXX")).OrderBy(p => p)).ToList();
 
-        public List<string> Kotor2Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(kmih.SPELLS))
+        public List<string> Kotor2Powers => new List<string> { ALL_ABILITIES }.Concat(Enum.GetNames(typeof(KMIHelpers.SPELLS))
             .Where(p => !p.StartsWith("XXX") && !p.EndsWith("XXX")).OrderBy(p => p)).ToList();
 
         public List<string> KotorPowers
@@ -1645,7 +1645,7 @@ namespace WalkmeshVisualizerWpf.Views
         private List<string> _kotorPowers = [];
 
         // K2 Party Members
-        public static List<string> Kotor2PartyMembers => [ALL_ABILITIES, .. Enum.GetNames(typeof(kmih.PARTY_NPCS_K2)).OrderBy(p => p)];
+        public static List<string> Kotor2PartyMembers => [ALL_ABILITIES, .. Enum.GetNames(typeof(KMIHelpers.PARTY_NPCS_K2)).OrderBy(p => p)];
 
         public List<string> KotorPartyMembers
         {
@@ -5567,7 +5567,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (sidParty0 != _party0ServerID)
             {
                 _party0ServerID = sidParty0;
-                Party0Name = kmia.GetServerObjectName(km.pr.h, sidParty0);
+                Party0Name = KMIAdapter.GetServerObjectName(km.pr.h, sidParty0);
                 km.RefreshAddresses();
             }
 
@@ -5578,7 +5578,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (sidParty1 != _party1ServerID)
                 {
                     _party1ServerID = sidParty1;
-                    Party1Name = kmia.GetServerObjectName(km.pr.h, sidParty1);
+                    Party1Name = KMIAdapter.GetServerObjectName(km.pr.h, sidParty1);
                     km.RefreshAddresses();
                 }
             }
@@ -5595,7 +5595,7 @@ namespace WalkmeshVisualizerWpf.Views
                 if (sidParty2 != _party2ServerID)
                 {
                     _party2ServerID = sidParty2;
-                    Party2Name = kmia.GetServerObjectName(km.pr.h, sidParty2);
+                    Party2Name = KMIAdapter.GetServerObjectName(km.pr.h, sidParty2);
                     km.RefreshAddresses();
                 }
             }
@@ -6029,9 +6029,9 @@ namespace WalkmeshVisualizerWpf.Views
 
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.SendMessage(
+            KMIAdapter.SendMessage(
                 km.pr.h,
-                kmia.TeleportPlayer(
+                KMIAdapter.TeleportPlayer(
                     km.GetClientPlayerID(),
                     (float)point.X,
                     (float)point.Y,
@@ -6043,7 +6043,7 @@ namespace WalkmeshVisualizerWpf.Views
             var multiplier = float.Parse((sender as Button).Tag.ToString(), CultureInfo.InvariantCulture);
             var km = GetKotorManager();
             if (km == null) return;
-            kmih.setRunrate(km.pr.h, kmia.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * multiplier);
+            KMIHelpers.setRunrate(km.pr.h, KMIAdapter.GetPlayerServerObject(km.pr.h), DEFAULT_MOVEMENT_SPEED * multiplier);
         }
 
         private void WarpCheat_Click(object sender, RoutedEventArgs e)
@@ -6052,7 +6052,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (string.IsNullOrEmpty(module)) return;
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.Warp(km.pr.h, module);
+            KMIAdapter.Warp(km.pr.h, module);
         }
 
         private void ContextWarpToRim(string module)
@@ -6061,7 +6061,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (string.IsNullOrEmpty(module)) return;
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.Warp(km.pr.h, module);
+            KMIAdapter.Warp(km.pr.h, module);
         }
 
         private void cmiWarpToOnRim(object sender, RoutedEventArgs e) => ContextWarpToRim(lvOn.SelectedItem.ToString());
@@ -6075,7 +6075,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.SendMessage(km.pr.h, kmia.Heal());
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.Heal());
         }
 
         private void StartGatherPartyDialog_Click(object sender, RoutedEventArgs e)
@@ -6085,9 +6085,9 @@ namespace WalkmeshVisualizerWpf.Views
             var script = (e.Source as Button).Tag.ToString() == "Warp"
                 ? "k_trg_transfail1"
                 : "k_trg_transfail";
-            kmia.SendMessage(
+            KMIAdapter.SendMessage(
                 km.pr.h,
-                kmia.RunScript(
+                KMIAdapter.RunScript(
                     script,
                     km.pr.h));
         }
@@ -6099,9 +6099,9 @@ namespace WalkmeshVisualizerWpf.Views
             var script = km.version == 1
                 ? "k_cheat_01"
                 : "a_debugparty";
-            kmia.SendMessage(
+            KMIAdapter.SendMessage(
                 km.pr.h,
-                kmia.RunScript(
+                KMIAdapter.RunScript(
                     script,
                     km.pr.h));
         }
@@ -6110,15 +6110,15 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.ShowPartySelection(km.pr.h);
+            KMIAdapter.ShowPartySelection(km.pr.h);
         }
 
         private void SwapToTargetCreature_Click(object sender, RoutedEventArgs e)
         {
             var km = GetKotorManager();
             if (km == null) return;
-            var target = kmih.getLookingAtClientID(km.pr.h);
-            kmia.SendMessage(km.pr.h, kmia.SwapToTarget(target));
+            var target = KMIHelpers.getLookingAtClientID(km.pr.h);
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.SwapToTarget(target));
         }
 
         private void SetAlignment_Click(object sender, RoutedEventArgs e)
@@ -6128,13 +6128,13 @@ namespace WalkmeshVisualizerWpf.Views
 
             uint id;
             if (cbAlignmentTarget.Text == "Player")
-                id = kmih.getPlayerServerID(km.pr.h);
+                id = KMIHelpers.getPlayerServerID(km.pr.h);
             else
-                id = kmih.getLookingAtServerID(km.pr.h);
-            var obj = kmia.GetServerObject(km.pr.h, id);
+                id = KMIHelpers.getLookingAtServerID(km.pr.h);
+            var obj = KMIAdapter.GetServerObject(km.pr.h, id);
             km.RefreshAddresses();
 
-            kmih.SetAlignment(km.pr.h, obj, (short)ValueInAlignmentBox);
+            KMIHelpers.SetAlignment(km.pr.h, obj, (short)ValueInAlignmentBox);
         }
 
         private void SetInfluence_Click(object sender, RoutedEventArgs e)
@@ -6154,7 +6154,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 if (npc == ALL_ABILITIES) continue;
                 km.RefreshAddresses();
-                kmia.SetPCInfluenceKotor2(km.pr.h, npc.ToEnum<kmih.PARTY_NPCS_K2>(), ValueInInfluenceBox);
+                KMIAdapter.SetPCInfluenceKotor2(km.pr.h, npc.ToEnum<KMIHelpers.PARTY_NPCS_K2>(), ValueInInfluenceBox);
             }
         }
 
@@ -6179,9 +6179,9 @@ namespace WalkmeshVisualizerWpf.Views
             if (km == null) return;
 
             // Set class
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
-            kmia.AddCreatureClass(km.pr.h, player, KotorClassLookup[cbClass.Text]);
+            KMIAdapter.AddCreatureClass(km.pr.h, player, KotorClassLookup[cbClass.Text]);
         }
 
         private void AddExperience_Click(object sender, RoutedEventArgs e)
@@ -6190,9 +6190,9 @@ namespace WalkmeshVisualizerWpf.Views
             if (km == null) return;
 
             // Add experience
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
-            kmia.AddCreatureExp(km.pr.h, player, (uint)ValueInExperienceBox);
+            KMIAdapter.AddCreatureExp(km.pr.h, player, (uint)ValueInExperienceBox);
         }
 
         private void MaximumAbilities_Click(object sender, RoutedEventArgs e)
@@ -6227,14 +6227,14 @@ namespace WalkmeshVisualizerWpf.Views
                 attrs.Add(cbAttribute.Text);
 
             // Set attributes
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
             foreach (var attr in attrs)
             {
                 if (attr == ALL_ABILITIES) continue;
-                kmia.SetCreatureAttribute(
+                KMIAdapter.SetCreatureAttribute(
                     km.pr.h, player,
-                    attr.ToEnum<kmih.ATTRIBUTES>(),
+                    attr.ToEnum<KMIHelpers.ATTRIBUTES>(),
                     (byte)ValueInAttributeBox);
                 km.RefreshAddresses();
             }
@@ -6259,12 +6259,12 @@ namespace WalkmeshVisualizerWpf.Views
             else value = (byte)(ValueInSkillBox + 256);             // Convert signed to unsigned
 
             // Set skills
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
             foreach (var skill in skills)
             {
                 if (skill == ALL_ABILITIES) continue;
-                kmia.SetCreatureSkill(km.pr.h, player, skill.ToEnum<kmih.SKILLS>(), value);
+                KMIAdapter.SetCreatureSkill(km.pr.h, player, skill.ToEnum<KMIHelpers.SKILLS>(), value);
                 km.RefreshAddresses();
             }
         }
@@ -6282,12 +6282,12 @@ namespace WalkmeshVisualizerWpf.Views
             else feats.Add(cbFeat.Text);
 
             // Add feats
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
             foreach (var feat in feats)
             {
                 if (feat == ALL_ABILITIES) continue;
-                kmia.AddCreatureFeat(km.pr.h, player, feat.ToEnum<kmih.FEATS>());
+                KMIAdapter.AddCreatureFeat(km.pr.h, player, feat.ToEnum<KMIHelpers.FEATS>());
                 km.RefreshAddresses();
             }
         }
@@ -6298,18 +6298,18 @@ namespace WalkmeshVisualizerWpf.Views
             if (km == null) return;
 
             // Get feats to add as default
-            var feats = new List<kmih.FEATS>()
+            var feats = new List<KMIHelpers.FEATS>()
             {
-                kmih.FEATS.ARMOUR_PROF_LIGHT,
-                kmih.FEATS.WEAPON_PROF_BLASTER,
-                kmih.FEATS.WEAPON_PROF_BLASTER_RIFLE,
-                kmih.FEATS.WEAPON_PROF_MELEE_WEAPONS,
+                KMIHelpers.FEATS.ARMOUR_PROF_LIGHT,
+                KMIHelpers.FEATS.WEAPON_PROF_BLASTER,
+                KMIHelpers.FEATS.WEAPON_PROF_BLASTER_RIFLE,
+                KMIHelpers.FEATS.WEAPON_PROF_MELEE_WEAPONS,
             };
 
             // Add feats
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
-            kmia.SetCreatureFeats(km.pr.h, player, feats);
+            KMIAdapter.SetCreatureFeats(km.pr.h, player, feats);
         }
 
         private void AddPower_Click(object sender, RoutedEventArgs e)
@@ -6325,12 +6325,12 @@ namespace WalkmeshVisualizerWpf.Views
             else powers.Add(cbPower.Text);
 
             // Add powers
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
             foreach (var power in powers)
             {
                 if (power == ALL_ABILITIES) continue;
-                kmia.AddCreatureSpell(km.pr.h, player, (byte)cbPowerTarget.SelectedIndex, power.ToEnum<kmih.SPELLS>());
+                KMIAdapter.AddCreatureSpell(km.pr.h, player, (byte)cbPowerTarget.SelectedIndex, power.ToEnum<KMIHelpers.SPELLS>());
                 km.RefreshAddresses();
             }
         }
@@ -6343,16 +6343,16 @@ namespace WalkmeshVisualizerWpf.Views
             var km = GetKotorManager();
             if (km == null) return;
 
-            var player = kmia.GetPlayerServerObject(km.pr.h);
+            var player = KMIAdapter.GetPlayerServerObject(km.pr.h);
             km.RefreshAddresses();
-            kmia.SetCreatureCredits(km.pr.h, player, ValueInSetCreditsBox);
+            KMIAdapter.SetCreatureCredits(km.pr.h, player, ValueInSetCreditsBox);
         }
 
         private void ShowItemCreate_Click(object sender, RoutedEventArgs e)
         {
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.ShowItemCreateMenu(km.pr.h);
+            KMIAdapter.ShowItemCreateMenu(km.pr.h);
         }
 
         private void GiveItem_Click(object sender, RoutedEventArgs e)
@@ -6421,9 +6421,9 @@ namespace WalkmeshVisualizerWpf.Views
             var km = GetKotorManager();
             if (km == null) return;
             km.SetFreeCamSpeed(FreeCamSpeed);
-            kmia.SendMessage(km.pr.h, kmia.FreeCamOn());
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.FreeCamOn());
             km.RefreshAddresses();
-            kmia.SetVisibilityGraph(km.pr.h, false);
+            KMIAdapter.SetVisibilityGraph(km.pr.h, false);
         }
 
         private void TurnOffFreeCam_Click(object sender, RoutedEventArgs e)
@@ -6431,9 +6431,9 @@ namespace WalkmeshVisualizerWpf.Views
             var km = GetKotorManager();
             if (km == null) return;
             km.SetFreeCamSpeed(10f);
-            kmia.SendMessage(km.pr.h, kmia.FreeCamOff());
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.FreeCamOff());
             km.RefreshAddresses();
-            kmia.SetVisibilityGraph(km.pr.h, true);
+            KMIAdapter.SetVisibilityGraph(km.pr.h, true);
         }
 
         //private void ResetFreeCamSpeed_Click(object sender, RoutedEventArgs e)
@@ -6454,7 +6454,7 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.SetSceneFogOff(km.pr.h);
+            KMIAdapter.SetSceneFogOff(km.pr.h);
         }
 
         /*
@@ -6465,8 +6465,8 @@ namespace WalkmeshVisualizerWpf.Views
             // TODO: Update kmi adapter to handle getLokingAtClientID.
             var km = GetKotorManager();
             if (km == null) return;
-            var target = kmih.getLookingAtClientID(km.pr.h);
-            kmia.SendMessage(km.pr.h, kmia.DeleteTargetDoor(target));
+            var target = KMIHelpers.getLookingAtClientID(km.pr.h);
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.DeleteTargetDoor(target));
         }
 
         private void KillTargetCreature_Click(object sender, RoutedEventArgs e)
@@ -6474,17 +6474,17 @@ namespace WalkmeshVisualizerWpf.Views
             var km = GetKotorManager();
             if (km == null) return;
             var handle = km.pr.h;
-            var player = kmih.getPlayerServerID(handle);
-            var target = kmih.getLookingAtServerID(handle);
-            kmia.SendMessage(handle, kmia.KillTargetCreature(player, target, handle));
+            var player = KMIHelpers.getPlayerServerID(handle);
+            var target = KMIHelpers.getLookingAtServerID(handle);
+            KMIAdapter.SendMessage(handle, KMIAdapter.KillTargetCreature(player, target, handle));
         }
 
         private void PeekTargetContainer_Click(object sender, RoutedEventArgs e)
         {
             var km = GetKotorManager();
             if (km == null) return;
-            var target = kmih.getLookingAtClientID(km.pr.h);
-            kmia.SendMessage(km.pr.h, kmia.PeekContainerContents(target));
+            var target = KMIHelpers.getLookingAtClientID(km.pr.h);
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.PeekContainerContents(target));
         }
 
         /*
@@ -6494,15 +6494,15 @@ namespace WalkmeshVisualizerWpf.Views
         {
             var km = GetKotorManager();
             if (km == null) return;
-            kmia.SendMessage(km.pr.h, kmia.Invulnerability());
+            KMIAdapter.SendMessage(km.pr.h, KMIAdapter.Invulnerability());
         }
 
         private bool ShowCustomMessageBox(string message, bool showCancel = false)
         {
             var km = GetKotorManager();
             if (km == null) return false;
-            if (kmih.getGuiManager(km.pr.h) == 0u) return false; // GUI not initialized
-            kmia.CreatePopUp(km.pr.h, message, showCancel, 0u); // causes crash if on main menu after having loaded a module
+            if (KMIHelpers.getGuiManager(km.pr.h) == 0u) return false; // GUI not initialized
+            KMIAdapter.CreatePopUp(km.pr.h, message, showCancel, 0u); // causes crash if on main menu after having loaded a module
             return true;
         }
 
@@ -6515,7 +6515,7 @@ namespace WalkmeshVisualizerWpf.Views
             txtTargetID.Text = string.Empty;
             var km = GetKotorManager();
             if (km == null) return;
-            var id = kmih.getLookingAtClientID(km.pr.h);
+            var id = KMIHelpers.getLookingAtClientID(km.pr.h);
             txtTargetID.Text = "0x" + id.ToString("X");
         }
 
@@ -6532,17 +6532,17 @@ namespace WalkmeshVisualizerWpf.Views
                 var obj = km.GetGameObjectByServerID(objPtr);
                 km.pr.ReadUint(obj, out uint vtable);
                 km.pr.ReadUint(obj + km.ka.OFFSET_GAME_OBJECT_ID, out uint serverID);
-                var clientID = kmih.serverToClientId(serverID);
+                var clientID = KMIHelpers.serverToClientId(serverID);
                 km.pr.ReadByte(obj + km.ka.OFFSET_GAME_OBJECT_TYPE, out byte type);
-                var serverObject = kmia.GetServerObject(km.pr.h, serverID);
+                var serverObject = KMIAdapter.GetServerObject(km.pr.h, serverID);
                 km.RefreshAddresses();
                 objs.Add(new KotorGameObject
                 {
                     VTable = vtable,
                     ID = clientID,
                     Type = (GameObjectTypes)type,
-                    Tag = kmih.getServerObjectTag(km.pr.h, serverObject),
-                    Name = kmia.GetClientObjectName(km.pr.h, clientID),
+                    Tag = KMIHelpers.getServerObjectTag(km.pr.h, serverObject),
+                    Name = KMIAdapter.GetClientObjectName(km.pr.h, clientID),
                 });
                 km.RefreshAddresses();
             }
@@ -6629,10 +6629,10 @@ namespace WalkmeshVisualizerWpf.Views
             global.LastReadAt = DateTime.Now;
 
             if (global.Type == KotorGlobalType.Boolean)
-                global.Value = kmia.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
+                global.Value = KMIAdapter.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
 
             if (global.Type == KotorGlobalType.Number)
-                global.Value = kmia.GetGlobalNumber(km.pr.h, global.Name).ToString();
+                global.Value = KMIAdapter.GetGlobalNumber(km.pr.h, global.Name).ToString();
 
             if (global.LastValue != global.Value)
                 global.LastChangeAt = global.LastReadAt;
@@ -6658,7 +6658,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 if (bool.TryParse(txtGlobalSetValue.Text, out bool bResult))
                 {
-                    kmia.SetGlobalBoolean(km.pr.h, global.Name, bResult);
+                    KMIAdapter.SetGlobalBoolean(km.pr.h, global.Name, bResult);
                     value = bResult.ToString();
                     valueSet = true;
                 }
@@ -6668,7 +6668,7 @@ namespace WalkmeshVisualizerWpf.Views
             {
                 if (int.TryParse(txtGlobalSetValue.Text, CultureInfo.CurrentCulture, out int nResult))
                 {
-                    kmia.SetGlobalNumber(km.pr.h, global.Name, nResult);
+                    KMIAdapter.SetGlobalNumber(km.pr.h, global.Name, nResult);
                     value = nResult.ToString();
                     valueSet = true;
                 }
@@ -6757,7 +6757,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (km == null) return false;
 
             var globals = KotorWatchGlobals.ToList();
-            if (kmih.getServer(km.pr.h) == 0) return false;
+            if (KMIHelpers.getServer(km.pr.h) == 0) return false;
 
             foreach (var global in globals)
                 ReadGlobal(global, km, false);
@@ -6820,7 +6820,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (global.Type == KotorGlobalType.Boolean)
             {
                 global.LastValue = global.Value;
-                global.Value = kmia.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
+                global.Value = KMIAdapter.GetGlobalBoolean(km.pr.h, global.Name)?.ToString() ?? "N/A";
                 global.LastReadAt = DateTime.Now;
                 if (global.LastValue != global.Value)
                     global.LastChangeAt = global.LastReadAt;
@@ -6828,7 +6828,7 @@ namespace WalkmeshVisualizerWpf.Views
             if (global.Type == KotorGlobalType.Number)
             {
                 global.LastValue = global.Value;
-                global.Value = kmia.GetGlobalNumber(km.pr.h, global.Name).ToString();
+                global.Value = KMIAdapter.GetGlobalNumber(km.pr.h, global.Name).ToString();
                 global.LastReadAt = DateTime.Now;
                 if (global.LastValue != global.Value)
                     global.LastChangeAt = global.LastReadAt;
